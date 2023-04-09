@@ -1,0 +1,10 @@
+{
+  "name": "com.cwaemu.flash-converter",
+  "displayName":  "Flash Converter",
+  "version": "0.1.0",
+  "description": "Tool to convert a selected flash file to Unity UI",
+  "unity": "2021.3",
+  "dependencies": {
+    "com.unity.ugui": "1.0.0"
+  }
+}
