@@ -1,3 +1,4 @@
+using CWAEmu.FlashConverter.Flash.Tags;
 using System;
 using UnityEngine;
 using Utils.Conversion;
@@ -18,6 +19,8 @@ namespace CWAEmu.FlashConverter.Flash {
 
         public bool ReachedEnd => index == data.Length;
         public int Remaining => data.Length - index;
+
+        public void skip(int bytes) => index += bytes;
 
         public byte readByte() => data[index++];
         public char readChar() => (char)data[index++];
@@ -83,16 +86,21 @@ namespace CWAEmu.FlashConverter.Flash {
             return BitConverter.ToSingle(bytes);
         }
 
-        public (ushort tag, uint length) readFlashTagHeader() {
+        public FlashTagHeader readFlashTagHeader() {
             ushort header = readUInt16();
             ushort tag = (ushort)((header & 0b1111_1111_1100_0000) >> 6);
-            uint length = (uint)(header & 0b0011_1111);
+            int length = (header & 0b0011_1111);
 
             if (length == 0x3f) {
-                length = readUInt32();
+                length = readInt32();
             }
 
-            return (tag, length);
+            FlashTagHeader tHeader = new() {
+                TagType = tag,
+                TagLength = length
+            };
+
+            return tHeader;
         }
 
         public uint readUBits(int numBits) {

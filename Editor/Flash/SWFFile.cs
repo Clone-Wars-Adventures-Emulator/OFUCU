@@ -1,4 +1,5 @@
 using CWAEmu.FlashConverter.Flash.Records;
+using CWAEmu.FlashConverter.Flash.Tags;
 using Ionic.Zlib;
 using System.IO;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace CWAEmu.FlashConverter.Flash {
         public Rect FrameSize { get; private set; }
         public float FrameRate { get; private set; }
         public ushort FrameCount { get; private set; }
+        public FileAttributesTag AttributesTag { get; private set; }
 
 
         private SWFFile(string name) {
@@ -21,12 +23,37 @@ namespace CWAEmu.FlashConverter.Flash {
         }
 
         private void parseFull(Reader reader) {
+            if (Version >= 8) {
+                FlashTagHeader header = reader.readFlashTagHeader();
+                if (header.TagType != FileAttributesTag.TAG_TYPE) {
+                    // error
+                    return;
+                }
 
+                AttributesTag = FileAttributesTag.readTag(header, reader);
+            }
+
+            // read all tags until completion
+            while (!reader.ReachedEnd) {
+                FlashTagHeader header = reader.readFlashTagHeader();
+
+                // if end tag, stop parsing
+                if (header.TagType == 0) {
+                    break;
+                }
+
+                switch (header.TagType) {
+
+                    default:
+                        reader.skip(header.TagLength);
+                        break;
+                }
+            }
         }
 
         public static SWFFile readFull(string path) {
             if (!File.Exists(path)) {
-                Debug.LogError($"File `{path}` does not exist");
+                Debug.LogError($"File `{path}` does not exist!");
                 return null;
             }
 
