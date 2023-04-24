@@ -1,17 +1,22 @@
 using CWAEmu.FlashConverter.Flash.Tags;
 using System;
-using UnityEngine;
-using Utils.Conversion;
+using System.Collections.Generic;
+using System.Text;
 
 namespace CWAEmu.FlashConverter.Flash {
     public class Reader  {
+        private const float FIXED_16_CONVERT = 0x10000;
+        private const float FIXED_8_CONVERT = 0x100;
+
         private byte[] data;
+        private byte flashVersion;
         private int index;
         private int bitOffset;
         private bool readingBits;
 
-        public Reader(byte[] data) {
+        public Reader(byte[] data, byte flashVersion) {
             this.data = data;
+            this.flashVersion = flashVersion;
             index = 0;
             readingBits = false;
             bitOffset = 0;
@@ -23,7 +28,10 @@ namespace CWAEmu.FlashConverter.Flash {
         public void skip(int bytes) => index += bytes;
 
         public byte readByte() => data[index++];
+        public sbyte readSByte() => (sbyte)data[index++];
         public char readChar() => (char)data[index++];
+        public byte readUInt8() => readByte();
+        public sbyte readInt8() => readSByte();
 
         // TODO: error checking, not mixing bit reading with byte reading
         public byte[] readBytes(int count) {
@@ -146,6 +154,12 @@ namespace CWAEmu.FlashConverter.Flash {
             return signExtend(readUBits(numBits), numBits);
         }
 
+        public float readFixedBits(int numBits) {
+            int raw = readBits(numBits);
+
+            return raw / FIXED_16_CONVERT;
+        }
+
         private int signExtend(uint source, int numBits) {
             int shiftAmount = 32 - numBits;
 
@@ -160,6 +174,22 @@ namespace CWAEmu.FlashConverter.Flash {
 
             bitOffset = 0;
             index++;
+        }
+
+        public string readString() {
+            List<byte> bytes = new();
+
+            byte read = readByte();
+            while (read != 0) {
+                bytes.Add(read);
+                read = readByte();
+            }
+
+            if (flashVersion >= 6) {
+                return Encoding.UTF8.GetString(bytes.ToArray());
+            }
+
+            return Encoding.Default.GetString(bytes.ToArray());
         }
     }
 }
