@@ -98,7 +98,7 @@ namespace CWAEmu.FlashConverter.Flash {
                 data = targetStream.ToArray();
             }
 
-            Reader reader = new(data);
+            Reader reader = new(data, file.Version);
             file.FrameSize = Rect.readRect(reader);
             file.FrameRate = reader.readUInt16() / 256.0f;
             file.FrameCount = reader.readUInt16();
