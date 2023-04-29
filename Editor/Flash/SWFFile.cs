@@ -45,8 +45,8 @@ namespace CWAEmu.FlashConverter.Flash {
                 }
 
                 switch (header.TagType) {
-                    // Need to parse
-                    case 2: // DefineShape
+                    // = = = = = = = = = = Need to parse = = = = = = = = = =
+                    case 2:  // DefineShape
                     case 22: // DefineShape2
                     case 32: // DefineShape3
                     case 83: // DefineShape4
@@ -57,6 +57,9 @@ namespace CWAEmu.FlashConverter.Flash {
 
                     case 20: // DefineBitsLossless
                     case 36: // DefineBitsLossless2
+                    case 6:  // DefineBits
+                    case 8:  // JPEGTables
+                    case 21: // DefineBitsJPEG2
                     case 35: // DefineBitsJPEG3
 
                     case 34: // DefineButton2
@@ -66,16 +69,16 @@ namespace CWAEmu.FlashConverter.Flash {
 
                     case 78: // DefineScalingGrid
 
-                    // Unknown how to handle
-                    case 1: // ShowFrame
+                    //  = = = = = = = = = = Unknown how to handle = = = = = = = = = =
+                    case 1:  // ShowFrame
                     case 71: // ImportAssets2
                     case 75: // DefineFont3
                     case 73: // DefineFontAlignZones
                     case 77: // Metadata
                     case 88: // DefineFontName
 
-                    // No need to parse
-                    case 9: // SetBackgroundColor
+                    //  = = = = = = = = = = No need to parse = = = = = = = = = =
+                    case 9:  // SetBackgroundColor
                     case 24: // Protect
                     case 56: // ExportAssets
                     case 59: // DoInitAction
