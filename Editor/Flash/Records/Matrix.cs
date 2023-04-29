@@ -8,8 +8,10 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public float ScaleY { get; private set; } = 1;
         public float RotateSkew0 { get; private set; } = 0;
         public float RotateSkew1 { get; private set; } = 0;
-        public int TranslateX { get; private set; }
-        public int TranslateY { get; private set; }
+        public int TranslateXTwips { get; private set; }
+        public int TranslateYTwips { get; private set; }
+        public float TranslateX => TranslateXTwips / 20.0f;
+        public float TranslateY => TranslateYTwips / 20.0f;
 
         public static Matrix readMatrix(Reader reader) {
             Matrix matrix = new();
@@ -29,8 +31,8 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             }
 
             matrix.nTranslateBits = (int)reader.readUBits(5);
-            matrix.TranslateX = reader.readBits(matrix.nTranslateBits);
-            matrix.TranslateY = reader.readBits(matrix.nTranslateBits);
+            matrix.TranslateXTwips = reader.readBits(matrix.nTranslateBits);
+            matrix.TranslateYTwips = reader.readBits(matrix.nTranslateBits);
 
             reader.endBitRead();
 

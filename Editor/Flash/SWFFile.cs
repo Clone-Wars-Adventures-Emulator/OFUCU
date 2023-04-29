@@ -1,6 +1,7 @@
 using CWAEmu.FlashConverter.Flash.Records;
 using CWAEmu.FlashConverter.Flash.Tags;
 using Ionic.Zlib;
+using System;
 using System.IO;
 using UnityEngine;
 using Rect = CWAEmu.FlashConverter.Flash.Records.Rect;
@@ -39,12 +40,49 @@ namespace CWAEmu.FlashConverter.Flash {
 
                 // if end tag, stop parsing
                 if (header.TagType == 0) {
+                    Debug.Log($"End Tag found");
                     break;
                 }
 
                 switch (header.TagType) {
+                    // Need to parse
+                    case 2: // DefineShape
+                    case 22: // DefineShape2
+                    case 32: // DefineShape3
+                    case 83: // DefineShape4
 
+                    case 39: // DefineSprite
+
+                    case 26: // PlaceObject2
+
+                    case 20: // DefineBitsLossless
+                    case 36: // DefineBitsLossless2
+                    case 35: // DefineBitsJPEG3
+
+                    case 34: // DefineButton2
+
+                    case 37: // DefineEditText
+                    case 74: // CSMTextSettings           IMPORTANT
+
+                    case 78: // DefineScalingGrid
+
+                    // Unknown how to handle
+                    case 1: // ShowFrame
+                    case 71: // ImportAssets2
+                    case 75: // DefineFont3
+                    case 73: // DefineFontAlignZones
+                    case 77: // Metadata
+                    case 88: // DefineFontName
+
+                    // No need to parse
+                    case 9: // SetBackgroundColor
+                    case 24: // Protect
+                    case 56: // ExportAssets
+                    case 59: // DoInitAction
+                        reader.skip(header.TagLength);
+                        break;
                     default:
+                        Debug.Log($"Skipping {header.TagLength} bytes for tag {header.TagType}");
                         reader.skip(header.TagLength);
                         break;
                 }
