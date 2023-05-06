@@ -106,6 +106,7 @@ namespace CWAEmu.FlashConverter.Flash {
         private void readShape(int shapeType, FlashTagHeader header, Reader reader) {
             DefineShape ds1 = new();
             ds1.Header = header;
+            ds1.ShapeType = shapeType;
             ds1.read(reader);
 
             CharacterTags.Add(ds1.CharacterId, ds1);
