@@ -2,6 +2,7 @@ using CWAEmu.FlashConverter.Flash.Records;
 using CWAEmu.FlashConverter.Flash.Tags;
 using Ionic.Zlib;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Rect = CWAEmu.FlashConverter.Flash.Records.Rect;
@@ -17,6 +18,8 @@ namespace CWAEmu.FlashConverter.Flash {
         public float FrameRate { get; private set; }
         public ushort FrameCount { get; private set; }
         public FileAttributesTag AttributesTag { get; private set; }
+        public Dictionary<int, CharacterTag> CharacterTags { get; private set; }
+        public Dictionary<int, DefineShape> Shapes { get; private set; }
 
 
         private SWFFile(string name) {
@@ -47,9 +50,17 @@ namespace CWAEmu.FlashConverter.Flash {
                 switch (header.TagType) {
                     // = = = = = = = = = = Need to parse = = = = = = = = = =
                     case 2:  // DefineShape
+                        readShape(1, header, reader);
+                        break;
                     case 22: // DefineShape2
+                        readShape(2, header, reader);
+                        break;
                     case 32: // DefineShape3
+                        readShape(3, header, reader);
+                        break;
                     case 83: // DefineShape4
+                        readShape(4, header, reader);
+                        break;
 
                     case 39: // DefineSprite
 
@@ -90,6 +101,15 @@ namespace CWAEmu.FlashConverter.Flash {
                         break;
                 }
             }
+        }
+
+        private void readShape(int shapeType, FlashTagHeader header, Reader reader) {
+            DefineShape ds1 = new();
+            ds1.Header = header;
+            ds1.read(reader);
+
+            CharacterTags.Add(ds1.CharacterId, ds1);
+            Shapes.Add(ds1.CharacterId, ds1);
         }
 
         public static SWFFile readFull(string path) {

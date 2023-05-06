@@ -22,6 +22,7 @@ namespace CWAEmu.FlashConverter.Flash {
             bitOffset = 0;
         }
 
+        public int Version => flashVersion;
         public bool ReachedEnd => index == data.Length;
         public int Remaining => data.Length - index;
 
@@ -84,6 +85,18 @@ namespace CWAEmu.FlashConverter.Flash {
             return (uint)((upperHig << 24) | (upperLow << 16) | (lowerHig << 8) | lowerLow);
         }
 
+        public float readFixed16() {
+            int raw = readInt32();
+
+            return raw / FIXED_16_CONVERT;
+        }
+
+        public float readFixed8() {
+            int raw = readInt16();
+
+            return raw / FIXED_8_CONVERT;
+        }
+
         public float readSingle() {
             byte[] bytes = readBytes(4);
 
@@ -110,6 +123,8 @@ namespace CWAEmu.FlashConverter.Flash {
 
             return tHeader;
         }
+
+        public uint readUBits(uint numBits) => readUBits((int)numBits);
 
         public uint readUBits(int numBits) {
             uint result = 0;
@@ -149,6 +164,8 @@ namespace CWAEmu.FlashConverter.Flash {
 
             return result;
         }
+
+        public int readBits(uint numBits) => readBits((int)numBits);
 
         public int readBits(int numBits) {
             return signExtend(readUBits(numBits), numBits);

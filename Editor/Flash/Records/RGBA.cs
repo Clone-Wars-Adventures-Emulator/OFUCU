@@ -15,5 +15,16 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
             return rgba;
         }
+
+        public static RGBA readRGBasRGBA(Reader reader) {
+            RGBA rgba = new() {
+                R = reader.readUInt8(),
+                G = reader.readUInt8(),
+                B = reader.readUInt8(),
+                A = 255
+            };
+
+            return rgba;
+        }
     }
 }

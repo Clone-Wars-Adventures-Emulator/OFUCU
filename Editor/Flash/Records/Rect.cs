@@ -1,6 +1,7 @@
 namespace CWAEmu.FlashConverter.Flash.Records {
     public class Rect {
         private int nBits;
+        public int ByteLength => (5 + nBits * 4) / 8 + 1;
         public float X => XTwips / 20.0f;
         public float Y => YTwips / 20.0f;
         public float Width => WidthTwips / 20.0f;
