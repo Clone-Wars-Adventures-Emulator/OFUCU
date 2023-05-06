@@ -177,6 +177,10 @@ namespace CWAEmu.FlashConverter.Flash {
             return raw / FIXED_16_CONVERT;
         }
 
+        public bool readBitFlag() {
+            return readUBits(1) == 1;
+        }
+
         private int signExtend(uint source, int numBits) {
             int shiftAmount = 32 - numBits;
 

@@ -10,14 +10,14 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
             // reserved
             reader.readBits(3);
 
-            HasMetadata = reader.readBits(1) == 1;
+            HasMetadata = reader.readBitFlag();
 
-            ActionScript3 = reader.readBits(1) == 1;
+            ActionScript3 = reader.readBitFlag();
 
             // reserved
             reader.readBits(2);
 
-            UseNetwork = reader.readBits(1) == 1;
+            UseNetwork = reader.readBitFlag();
 
             // reserved
             reader.readBits(24);

@@ -16,14 +16,14 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public static Matrix readMatrix(Reader reader) {
             Matrix matrix = new();
 
-            bool hasScale = reader.readBits(1) == 1;
+            bool hasScale = reader.readBitFlag();
             if (hasScale) {
                 matrix.nScaleBits = (int)reader.readUBits(5);
                 matrix.ScaleX = reader.readFixedBits(matrix.nScaleBits);
                 matrix.ScaleY = reader.readFixedBits(matrix.nScaleBits);
             }
 
-            bool hasRotate = reader.readBits(1) == 1;
+            bool hasRotate = reader.readBitFlag();
             if (hasRotate) {
                 matrix.nRotateBits = (int)reader.readUBits(5);
                 matrix.RotateSkew0 = reader.readFixedBits(matrix.nRotateBits);

@@ -12,8 +12,8 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public static CXForm readCXForm(Reader reader) {
             CXForm cxform = new();
 
-            bool hasAdd = reader.readBits(1) == 1;
-            bool hasMult = reader.readBits(1) == 1;
+            bool hasAdd = reader.readBitFlag();
+            bool hasMult = reader.readBitFlag();
             cxform.nBits = reader.readBits(4);
 
             if (hasMult) {

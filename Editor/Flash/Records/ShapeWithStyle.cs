@@ -18,14 +18,14 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
             bool readEndFlag = false;
             while (!readEndFlag) {
-                bool typeFlag = reader.readBits(1) == 1;
+                bool typeFlag = reader.readBitFlag();
 
                 if (!typeFlag) {
-                    bool stateNewStyles = reader.readBits(1) == 1;
-                    bool stateLineStyle = reader.readBits(1) == 1;
-                    bool stateFillStyle1 = reader.readBits(1) == 1;
-                    bool stateFillStyle0 = reader.readBits(1) == 1;
-                    bool stateMoveTo = reader.readBits(1) == 1;
+                    bool stateNewStyles = reader.readBitFlag();
+                    bool stateLineStyle = reader.readBitFlag();
+                    bool stateFillStyle1 = reader.readBitFlag();
+                    bool stateFillStyle0 = reader.readBitFlag();
+                    bool stateMoveTo = reader.readBitFlag();
 
                     // if all 0, end record
                     if (!(stateNewStyles || stateLineStyle || stateFillStyle1 || stateFillStyle0 || stateMoveTo)) {
@@ -66,13 +66,13 @@ namespace CWAEmu.FlashConverter.Flash.Records {
                         style.NumLineBits = reader.readUBits(4);
                     }
                 } else {
-                    bool straightFlag = reader.readBits(1) == 1;
+                    bool straightFlag = reader.readBitFlag();
 
                     if (straightFlag) {
                         StraightEdgeRecord ser = new() {
                             NumBits = reader.readUBits(4),
-                            GeneralLineFlag = reader.readBits(1) == 1,
-                            VertLineFlag = reader.readBits(1) == 1
+                            GeneralLineFlag = reader.readBitFlag(),
+                            VertLineFlag = reader.readBitFlag()
                         };
 
                         if (ser.GeneralLineFlag || !ser.VertLineFlag) {
@@ -271,13 +271,13 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             lineStyle.Width = reader.readUInt16();
             lineStyle.StartCapStyle = (byte)reader.readBits(2);
             lineStyle.JoinStyle = (byte)reader.readBits(2);
-            lineStyle.HasFillFlag = reader.readBits(1) == 1;
-            lineStyle.NoHScaleFlag = reader.readBits(1) == 1;
-            lineStyle.NoVScaleFlag = reader.readBits(1) == 1;
-            lineStyle.PixelHintingFlag = reader.readBits(1) == 1;
+            lineStyle.HasFillFlag = reader.readBitFlag();
+            lineStyle.NoHScaleFlag = reader.readBitFlag();
+            lineStyle.NoVScaleFlag = reader.readBitFlag();
+            lineStyle.PixelHintingFlag = reader.readBitFlag();
             // reserved
             reader.readBits(5);
-            lineStyle.NoClose = reader.readBits(1) == 1;
+            lineStyle.NoClose = reader.readBitFlag();
             lineStyle.EndCapStyle = (byte)reader.readBits(2);
 
             if (lineStyle.JoinStyle == 2) {
