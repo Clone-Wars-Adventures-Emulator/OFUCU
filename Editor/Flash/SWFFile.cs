@@ -1,7 +1,6 @@
 using CWAEmu.FlashConverter.Flash.Records;
 using CWAEmu.FlashConverter.Flash.Tags;
 using Ionic.Zlib;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -20,6 +19,7 @@ namespace CWAEmu.FlashConverter.Flash {
         public FileAttributesTag AttributesTag { get; private set; }
         public Dictionary<int, CharacterTag> CharacterTags { get; private set; }
         public Dictionary<int, DefineShape> Shapes { get; private set; }
+        public Dictionary<int, FlashImage> Images { get; private set; }
 
 
         private SWFFile(string name) {
@@ -67,7 +67,11 @@ namespace CWAEmu.FlashConverter.Flash {
                     case 26: // PlaceObject2
 
                     case 20: // DefineBitsLossless
+                        readBitsLossless(1, header, reader);
+                        break;
                     case 36: // DefineBitsLossless2
+                        readBitsLossless(2, header, reader);
+                        break;
                     case 6:  // DefineBits
                     case 8:  // JPEGTables
                     case 21: // DefineBitsJPEG2
@@ -77,8 +81,6 @@ namespace CWAEmu.FlashConverter.Flash {
 
                     case 37: // DefineEditText
                     case 74: // CSMTextSettings           IMPORTANT
-
-                    case 78: // DefineScalingGrid
 
                     //  = = = = = = = = = = Unknown how to handle = = = = = = = = = =
                     case 1:  // ShowFrame
@@ -104,13 +106,23 @@ namespace CWAEmu.FlashConverter.Flash {
         }
 
         private void readShape(int shapeType, FlashTagHeader header, Reader reader) {
-            DefineShape ds1 = new();
-            ds1.Header = header;
-            ds1.ShapeType = shapeType;
-            ds1.read(reader);
+            DefineShape ds = new();
+            ds.Header = header;
+            ds.ShapeType = shapeType;
+            ds.read(reader);
 
-            CharacterTags.Add(ds1.CharacterId, ds1);
-            Shapes.Add(ds1.CharacterId, ds1);
+            CharacterTags.Add(ds.CharacterId, ds);
+            Shapes.Add(ds.CharacterId, ds);
+        }
+
+        private void readBitsLossless(int type, FlashTagHeader header, Reader reader) {
+            DefineBitsLossless bits = new();
+            bits.Header = header;
+            bits.BitsLosslessType = type;
+            bits.read(reader);
+
+            CharacterTags.Add(bits.CharacterId, bits);
+            Images.Add(bits.CharacterId, bits.ImageData);
         }
 
         public static SWFFile readFull(string path) {

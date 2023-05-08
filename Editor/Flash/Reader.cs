@@ -1,6 +1,8 @@
 using CWAEmu.FlashConverter.Flash.Tags;
+using Ionic.Zlib;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace CWAEmu.FlashConverter.Flash {
@@ -211,6 +213,19 @@ namespace CWAEmu.FlashConverter.Flash {
             }
 
             return Encoding.Default.GetString(bytes.ToArray());
+        }
+
+        public Reader readZLibBytes(int numBytes) {
+            byte[] bytes = readBytes(numBytes);
+
+            using var targetStream = new MemoryStream();
+
+            using var compressedStream = new MemoryStream(bytes);
+            using var decompressStream = new ZlibStream(compressedStream, Ionic.Zlib.CompressionMode.Decompress);
+
+            decompressStream.CopyTo(targetStream);
+
+            return new Reader(targetStream.ToArray(), flashVersion);
         }
     }
 }
