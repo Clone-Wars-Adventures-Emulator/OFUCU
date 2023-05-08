@@ -11,7 +11,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public RGBA[] ColorTableRGB { get; private set; }
         public int[,] ImgData { get; private set; }
 
-        public static ColorMapData readColorMapData(Reader reader, int colorTableSize, int losslessType, int width, int height) {
+        public static ColorMapData readColorMapData(Reader reader, int colorTableSize, int losslessType, int width, int height, int widthPadding) {
             ColorMapData cmd = new();
             cmd.Width = width;
             cmd.Height = height;
@@ -31,6 +31,10 @@ namespace CWAEmu.FlashConverter.Flash.Records {
                 for (int c = 0; c < width; c++) {
                     cmd.ImgData[r, c] = reader.readByte();
                 }
+
+                for (int i = 0; i < widthPadding; i++) {
+                    reader.readByte();
+                }
             }
 
             return cmd;
@@ -44,7 +48,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
     public class BitMapData : FlashImage {
         public RGBA[,] ImgData { get; private set; }
 
-        public static BitMapData readBitMapData(Reader reader, int losslessType, int bitmapFormat, int width, int height) {
+        public static BitMapData readBitMapData(Reader reader, int losslessType, int bitmapFormat, int width, int height, int widthPadding) {
             BitMapData bmd = new();
             bmd.Width = width;
             bmd.Height = height;
@@ -62,6 +66,10 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             for (int r = 0; r < height; r++) {
                 for (int c = 0; c < width; c++) {
                     bmd.ImgData[r, c] = generator(reader);
+                }
+
+                for (int i = 0; i < widthPadding; i++) {
+                    generator(reader);
                 }
             }
 

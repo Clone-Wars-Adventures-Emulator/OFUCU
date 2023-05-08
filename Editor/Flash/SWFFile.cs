@@ -72,10 +72,6 @@ namespace CWAEmu.FlashConverter.Flash {
                     case 36: // DefineBitsLossless2
                         readBitsLossless(2, header, reader);
                         break;
-                    case 6:  // DefineBits
-                    case 8:  // JPEGTables
-                    case 21: // DefineBitsJPEG2
-                    case 35: // DefineBitsJPEG3
 
                     case 34: // DefineButton2
 
@@ -91,6 +87,12 @@ namespace CWAEmu.FlashConverter.Flash {
                     case 88: // DefineFontName
 
                     //  = = = = = = = = = = No need to parse = = = = = = = = = =
+                    // SKIPPING THESE, JPEG ALGO is GARBAGE
+                    case 6:  // DefineBits
+                    case 8:  // JPEGTables
+                    case 21: // DefineBitsJPEG2
+                    case 35: // DefineBitsJPEG3
+
                     case 9:  // SetBackgroundColor
                     case 24: // Protect
                     case 56: // ExportAssets
