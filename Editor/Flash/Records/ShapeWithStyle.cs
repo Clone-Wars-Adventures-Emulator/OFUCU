@@ -172,7 +172,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
         public EnumFillStyleType Type { get; private set; }
 
-        public RGBA Color { get; private set; }
+        public Color Color { get; private set; }
         public Matrix GradientMatrix { get; private set; }
         public Gradient Gradient { get; private set; }
         public FocalGradient FocalGradient { get; private set; }
@@ -186,9 +186,9 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
             if (fs.Type == EnumFillStyleType.Solid) {
                 if (shapeTagType >= 3) {
-                    fs.Color = RGBA.readRGBA(reader);
+                    fs.Color = Color.readRGBA(reader);
                 } else {
-                    fs.Color = RGBA.readRGBasRGBA(reader);
+                    fs.Color = Color.readRGB(reader);
                 }
             }
 
@@ -234,7 +234,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
     public class LineStyle {
         public ushort Width { get; private set; }
-        public RGBA Color { get; private set; }
+        public Color Color { get; private set; }
 
         public static LineStyle readLineStyle(Reader reader, int shapeTagType) {
             LineStyle lineStyle = new();
@@ -242,9 +242,9 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             lineStyle.Width = reader.readUInt16();
                 
             if (shapeTagType == 3) {
-                lineStyle.Color = RGBA.readRGBA(reader);
+                lineStyle.Color = Color.readRGBA(reader);
             } else {
-                lineStyle.Color = RGBA.readRGBasRGBA(reader);
+                lineStyle.Color = Color.readRGB(reader);
             }
 
             return lineStyle;
@@ -262,7 +262,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public bool NoClose { get; private set; }
         public byte EndCapStyle { get; private set; }
         public ushort MiterLimitFactor { get; private set; }
-        public RGBA Color { get; private set; }
+        public Color Color { get; private set; }
         public FillStyle FillType { get; private set; }
 
         public static LineStyle2 readLineStyle2(Reader reader, int shapeTagType) {
@@ -285,7 +285,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             }
                 
             if (lineStyle.HasFillFlag) {
-                lineStyle.Color = RGBA.readRGBA(reader);
+                lineStyle.Color = Color.readRGBA(reader);
             } else {
                 lineStyle.FillType = FillStyle.readFillStyle(reader, shapeTagType);
             }

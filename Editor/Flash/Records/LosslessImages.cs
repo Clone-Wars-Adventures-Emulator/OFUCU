@@ -4,11 +4,11 @@ namespace CWAEmu.FlashConverter.Flash.Records {
     public abstract class FlashImage {
         public int Width { get; protected set; }
         public int Height { get; protected set; }
-        public abstract RGBA readPixelAt(int x, int y);
+        public abstract Color readPixelAt(int x, int y);
     }
 
     public class ColorMapData : FlashImage {
-        public RGBA[] ColorTableRGB { get; private set; }
+        public Color[] ColorTableRGB { get; private set; }
         public int[,] ImgData { get; private set; }
 
         public static ColorMapData readColorMapData(Reader reader, int colorTableSize, int losslessType, int width, int height, int widthPadding) {
@@ -16,12 +16,12 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             cmd.Width = width;
             cmd.Height = height;
 
-            Func<Reader, RGBA> generator = RGBA.readRGBA;
+            Func<Reader, Color> generator = Color.readRGBA;
             if (losslessType == 1) {
-                generator = RGBA.readRGBasRGBA;
+                generator = Color.readRGB;
             }
 
-            cmd.ColorTableRGB = new RGBA[colorTableSize];
+            cmd.ColorTableRGB = new Color[colorTableSize];
             for (int i = 0; i < colorTableSize; i++) {
                 cmd.ColorTableRGB[i] = generator(reader);
             }
@@ -40,29 +40,29 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             return cmd;
         }
 
-        public override RGBA readPixelAt(int x, int y) {
+        public override Color readPixelAt(int x, int y) {
             return ColorTableRGB[ImgData[x, y]];
         }
     }
 
     public class BitMapData : FlashImage {
-        public RGBA[,] ImgData { get; private set; }
+        public Color[,] ImgData { get; private set; }
 
         public static BitMapData readBitMapData(Reader reader, int losslessType, int bitmapFormat, int width, int height, int widthPadding) {
             BitMapData bmd = new();
             bmd.Width = width;
             bmd.Height = height;
 
-            Func<Reader, RGBA> generator = RGBA.readARGBasRGBA;
+            Func<Reader, Color> generator = Color.readARGB;
             if (losslessType == 1) {
                 if (bitmapFormat == 4) {
-                    generator = RGBA.readPIX15asRGBA;
+                    generator = Color.readPIX15;
                 } else {
-                    generator = RGBA.readPIX24asRGBA;
+                    generator = Color.readPIX24;
                 }
             }
 
-            bmd.ImgData = new RGBA[width, height];
+            bmd.ImgData = new Color[width, height];
             for (int r = 0; r < height; r++) {
                 for (int c = 0; c < width; c++) {
                     bmd.ImgData[r, c] = generator(reader);
@@ -76,7 +76,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             return bmd;
         }
 
-        public override RGBA readPixelAt(int x, int y) {
+        public override Color readPixelAt(int x, int y) {
             return ImgData[x, y];
         }
     }

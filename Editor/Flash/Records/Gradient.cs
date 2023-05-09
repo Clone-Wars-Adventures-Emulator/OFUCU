@@ -52,7 +52,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
     public class GradientRecord {
         public byte Ratio { get; private set; }
-        public RGBA Color { get; private set; }
+        public Color Color { get; private set; }
 
         public static GradientRecord readGradientRecord(Reader reader, int shapeTagType) {
             GradientRecord gradientRecord = new() {
@@ -60,9 +60,9 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             };
 
             if (shapeTagType >= 3) {
-                gradientRecord.Color = RGBA.readRGBA(reader);
+                gradientRecord.Color = Color.readRGBA(reader);
             } else {
-                gradientRecord.Color = RGBA.readRGBasRGBA(reader);
+                gradientRecord.Color = Color.readRGB(reader);
             }
 
             return gradientRecord;

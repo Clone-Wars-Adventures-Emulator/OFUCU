@@ -1,12 +1,23 @@
 namespace CWAEmu.FlashConverter.Flash.Records {
-    public class RGBA {
+    public class Color {
         public byte R { get; private set; }
         public byte G { get; private set; }
         public byte B { get; private set; }
         public byte A { get; private set; }
 
-        public static RGBA readRGBA(Reader reader) {
-            RGBA rgba = new() {
+        public static Color readARGB(Reader reader) {
+            Color argb = new() {
+                A = reader.readUInt8(),
+                R = reader.readUInt8(),
+                G = reader.readUInt8(),
+                B = reader.readUInt8()
+            };
+
+            return argb;
+        }
+
+        public static Color readRGBA(Reader reader) {
+            Color rgba = new() {
                 R = reader.readUInt8(),
                 G = reader.readUInt8(),
                 B = reader.readUInt8(),
@@ -16,8 +27,8 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             return rgba;
         }
 
-        public static RGBA readRGBasRGBA(Reader reader) {
-            RGBA rgba = new() {
+        public static Color readRGB(Reader reader) {
+            Color rgba = new() {
                 R = reader.readUInt8(),
                 G = reader.readUInt8(),
                 B = reader.readUInt8(),
@@ -27,20 +38,9 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             return rgba;
         }
 
-        public static RGBA readARGBasRGBA(Reader reader) {
-            RGBA rgba = new() {
-                A = reader.readUInt8(),
-                R = reader.readUInt8(),
-                G = reader.readUInt8(),
-                B = reader.readUInt8()
-            };
-
-            return rgba;
-        }
-
-        public static RGBA readPIX24asRGBA(Reader reader) {
+        public static Color readPIX24(Reader reader) {
             reader.readUInt8();
-            RGBA rgba = new() {
+            Color rgba = new() {
                 R = reader.readUInt8(),
                 G = reader.readUInt8(),
                 B = reader.readUInt8(),
@@ -50,9 +50,9 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             return rgba;
         }
 
-        public static RGBA readPIX15asRGBA(Reader reader) {
+        public static Color readPIX15(Reader reader) {
             reader.readBits(1);
-            RGBA rgba = new() {
+            Color rgba = new() {
                 R = (byte)reader.readUBits(5),
                 G = (byte)reader.readUBits(5),
                 B = (byte)reader.readUBits(5),
@@ -63,5 +63,6 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
             return rgba;
         }
+
     }
 }
