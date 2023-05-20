@@ -17,10 +17,13 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
             BitmapWidth = reader.readUInt16();
             BitmapHeight = reader.readUInt16();
 
-            (int numBytes, int padding) = calculateNumBytes(BitmapFormat, BitmapWidth, BitmapHeight);
+            int bytesOfTagread = 7;
+
+            int padding = calculatePadding(BitmapFormat, BitmapWidth, BitmapHeight);
 
             if (BitmapFormat == 3) {
                 BitmapColorTableSize = reader.readByte() + 1;
+                bytesOfTagread++;
 
                 int colorTableBytes;
                 if (BitsLosslessType == 1) {
@@ -29,17 +32,16 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
                     colorTableBytes = 4 * BitmapColorTableSize;
                 }
 
-                numBytes += colorTableBytes;
-                Reader decompressed = reader.readZLibBytes(numBytes);
+                Reader decompressed = reader.readZLibBytes(Header.TagLength - bytesOfTagread);
 
                 ImageData = ColorMapData.readColorMapData(decompressed, BitmapColorTableSize, BitsLosslessType, BitmapWidth, BitmapHeight, padding);
             } else if (BitmapFormat == 4 || BitmapFormat == 5) {
-                Reader decompressed = reader.readZLibBytes(numBytes);
+                Reader decompressed = reader.readZLibBytes(Header.TagLength - bytesOfTagread);
                 ImageData = BitMapData.readBitMapData(decompressed, BitsLosslessType, BitmapFormat, BitmapWidth, BitmapHeight, padding);
             }
         }
 
-        private static (int numBytes, int padding) calculateNumBytes(byte bitmapFormat, ushort width, ushort height) {
+        private static int calculatePadding(byte bitmapFormat, ushort width, ushort height) {
             int bytesPerPixel = 0;
 
             if (bitmapFormat == 3) {
@@ -55,11 +57,7 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
             if (rowBytes % 4 != 0) {
                 padding = 4 - (rowBytes % 4);
             }
-            rowBytes += padding;
-
-            int imagePixelBytes = rowBytes * height;
-
-            return (imagePixelBytes, padding / bytesPerPixel);
+            return padding / bytesPerPixel;
         }
     }
 }

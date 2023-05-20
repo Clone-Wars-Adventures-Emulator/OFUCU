@@ -26,7 +26,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
                 cmd.ColorTableRGB[i] = generator(reader);
             }
 
-            cmd.ImgData = new int[width, height];
+            cmd.ImgData = new int[height, width];
             for (int r = 0; r < height; r++) {
                 for (int c = 0; c < width; c++) {
                     cmd.ImgData[r, c] = reader.readByte();
@@ -62,7 +62,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
                 }
             }
 
-            bmd.ImgData = new Color[width, height];
+            bmd.ImgData = new Color[height, width];
             for (int r = 0; r < height; r++) {
                 for (int c = 0; c < width; c++) {
                     bmd.ImgData[r, c] = generator(reader);

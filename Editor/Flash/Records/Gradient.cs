@@ -5,7 +5,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public byte SpreadMode { get; private set; }
         public byte InterpolationMode { get; private set; }
         public byte NumGradients { get; private set; }
-        public List<GradientRecord> GradientRecords { get; private set; }
+        public List<GradientRecord> GradientRecords { get; private set; } = new();
 
         public static Gradient readGradient(Reader reader, int shapeTagType) {
             Gradient grad = new() {
@@ -28,7 +28,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public byte SpreadMode { get; private set; }
         public byte InterpolationMode { get; private set; }
         public byte NumGradients { get; private set; }
-        public List<GradientRecord> GradientRecords { get; private set; }
+        public List<GradientRecord> GradientRecords { get; private set; } = new();
         public float FocalPoint { get; private set; }
 
         public static FocalGradient readGradient(Reader reader, int shapeTagType) {

@@ -6,7 +6,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public LineStyleArray LineStyles { get; private set; }
         public uint NumFillBits { get; private set; }
         public uint NumLineBits { get; private set; }
-        public List<ShapeRecord> ShapeRecords { get; private set; }
+        public List<ShapeRecord> ShapeRecords { get; private set; } = new();
 
         public static ShapeWithStyle readShapeWithStyle(Reader reader, int shapeTagType) {
             ShapeWithStyle style = new();
@@ -43,8 +43,8 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
                     if (stateMoveTo) {
                         scr.MoveBits = reader.readUBits(5);
-                        scr.MoveDeltaX = reader.readBits(scr.MoveBits);
-                        scr.MoveDeltaY = reader.readBits(scr.MoveBits);
+                        scr.MoveDeltaXTwips = reader.readBits(scr.MoveBits);
+                        scr.MoveDeltaYTwips = reader.readBits(scr.MoveBits);
                     }
 
                     if (stateFillStyle0) {
@@ -114,8 +114,10 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public bool StateFillStyle0 { get; set; }
         public bool StateMoveTo { get; set; }
         public uint MoveBits { get; set; }
-        public int MoveDeltaX { get; set; }
-        public int MoveDeltaY { get; set; }
+        public int MoveDeltaXTwips { get; set; }
+        public int MoveDeltaYTwips { get; set; }
+        public float MoveDeltaX => MoveDeltaXTwips / 20.0f;
+        public float MoveDeltaY => MoveDeltaYTwips / 20.0f;
         public uint FillStyle0 { get; set; }
         public uint FillStyle1 { get; set; }
         public uint LineStyle { get; set; }
@@ -139,7 +141,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
 
     public class FillStyleArray {
-        public List<FillStyle> Array { get; private set; }
+        public List<FillStyle> Array { get; private set; } = new();
 
         public static FillStyleArray readFillStyleArray(Reader reader, int shapeTagType) {
             FillStyleArray fsa = new();
@@ -211,8 +213,8 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
     }
     public class LineStyleArray {
-        public List<LineStyle> Array { get; private set; }
-        public List<LineStyle2> Array2 { get; private set; }
+        public List<LineStyle> Array { get; private set; } = new();
+        public List<LineStyle2> Array2 { get; private set; } = new();
 
         public static LineStyleArray readLineStyleArray(Reader reader, int shapeTagType) {
             LineStyleArray fsa = new();
