@@ -65,15 +65,19 @@ namespace CWAEmu.FlashConverter.Flash.Records {
                         style.NumFillBits = reader.readUBits(4);
                         style.NumLineBits = reader.readUBits(4);
                     }
+
+                    style.ShapeRecords.Add(scr);
                 } else {
                     bool straightFlag = reader.readBitFlag();
 
                     if (straightFlag) {
-                        StraightEdgeRecord ser = new() {
-                            NumBits = reader.readUBits(4),
-                            GeneralLineFlag = reader.readBitFlag(),
-                            VertLineFlag = reader.readBitFlag()
-                        };
+                        StraightEdgeRecord ser = new();
+                        ser.NumBits = reader.readUBits(4);
+                        ser.GeneralLineFlag = reader.readBitFlag();
+
+                        if (!ser.GeneralLineFlag) {
+                            ser.VertLineFlag = reader.readBitFlag();
+                        }
 
                         if (ser.GeneralLineFlag || !ser.VertLineFlag) {
                             ser.DeltaX = reader.readBits(ser.NumBits + 2);
@@ -98,6 +102,8 @@ namespace CWAEmu.FlashConverter.Flash.Records {
                     }
                 }
             }
+
+            reader.endBitRead();
 
             return style;
         }

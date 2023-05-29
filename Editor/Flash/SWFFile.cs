@@ -7,6 +7,8 @@ using UnityEngine;
 using Rect = CWAEmu.FlashConverter.Flash.Records.Rect;
 
 namespace CWAEmu.FlashConverter.Flash {
+    // G:\Programming\CWAEmu\OldCWAData\____.swf
+    // G:\Programming\CWAEmu\OldCWAData\StuntGungan.swf
     public class SWFFile {
         public char Signature1 { get; private set; }
         public char Signature2 { get; private set; }
@@ -17,10 +19,10 @@ namespace CWAEmu.FlashConverter.Flash {
         public float FrameRate { get; private set; }
         public ushort FrameCount { get; private set; }
         public FileAttributesTag AttributesTag { get; private set; }
-        public Dictionary<int, CharacterTag> CharacterTags { get; private set; }
-        public Dictionary<int, DefineShape> Shapes { get; private set; }
-        public Dictionary<int, FlashImage> Images { get; private set; }
-
+        public List<FlashTagHeader> TagHeaders { get; private set; } = new();
+        public Dictionary<int, CharacterTag> CharacterTags { get; private set; } = new();
+        public Dictionary<int, DefineShape> Shapes { get; private set; } = new();
+        public Dictionary<int, FlashImage> Images { get; private set; } = new();
 
         private SWFFile(string name) {
             Name = name;
@@ -40,10 +42,11 @@ namespace CWAEmu.FlashConverter.Flash {
             // read all tags until completion
             while (!reader.ReachedEnd) {
                 FlashTagHeader header = reader.readFlashTagHeader();
+                TagHeaders.Add(header);
 
                 // if end tag, stop parsing
                 if (header.TagType == 0) {
-                    Debug.Log($"End Tag found");
+                    Debug.Log($"================ End Tag found ================");
                     break;
                 }
 
@@ -56,15 +59,12 @@ namespace CWAEmu.FlashConverter.Flash {
                         readShape(2, header, reader);
                         break;
                     case 32: // DefineShape3
-                        readShape(3, header, reader);
-                        break;
+                        //readShape(3, header, reader);
+                        //break;
                     case 83: // DefineShape4
-                        readShape(4, header, reader);
-                        break;
-
-                    case 39: // DefineSprite
-
-                    case 26: // PlaceObject2
+                        //readShape(4, header, reader);
+                        //break;
+                        goto case 59;
 
                     case 20: // DefineBitsLossless
                         readBitsLossless(1, header, reader);
@@ -72,6 +72,10 @@ namespace CWAEmu.FlashConverter.Flash {
                     case 36: // DefineBitsLossless2
                         readBitsLossless(2, header, reader);
                         break;
+
+                    case 39: // DefineSprite
+
+                    case 26: // PlaceObject2
 
                     case 34: // DefineButton2
 
@@ -105,6 +109,19 @@ namespace CWAEmu.FlashConverter.Flash {
                         break;
                 }
             }
+
+            Dictionary<int, int> count = new();
+            foreach (var header in TagHeaders) {
+                if (count.ContainsKey(header.TagType)) {
+                    count[header.TagType]++;
+                } else {
+                    count.Add(header.TagType, 1);
+                }
+            }
+
+            foreach (var tagType in count.Keys) {
+                Debug.Log($"There are {count[tagType]} tags of type {tagType}");
+            }
         }
 
         private void readShape(int shapeType, FlashTagHeader header, Reader reader) {
@@ -125,6 +142,10 @@ namespace CWAEmu.FlashConverter.Flash {
 
             CharacterTags.Add(bits.CharacterId, bits);
             Images.Add(bits.CharacterId, bits.ImageData);
+        }
+
+        private void readSprite(FlashTagHeader header, Reader reader) {
+
         }
 
         public static SWFFile readFull(string path) {
@@ -167,7 +188,7 @@ namespace CWAEmu.FlashConverter.Flash {
                 using var targetStream = new MemoryStream();
 
                 using var compressedStream = new MemoryStream(rawBytes);
-                using var decompressStream = new ZlibStream(compressedStream, Ionic.Zlib.CompressionMode.Decompress);
+                using var decompressStream = new ZlibStream(compressedStream, CompressionMode.Decompress);
 
                 decompressStream.CopyTo(targetStream);
 

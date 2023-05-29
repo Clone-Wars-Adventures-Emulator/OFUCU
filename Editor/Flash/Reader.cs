@@ -131,6 +131,10 @@ namespace CWAEmu.FlashConverter.Flash {
         public uint readUBits(int numBits) {
             uint result = 0;
 
+            if (numBits == 0) {
+                return result;
+            }
+
             int skippedBits = bitOffset % 8;
 
             int readBit = 7 - skippedBits;
