@@ -1,7 +1,7 @@
 using UnityEngine;
 
 namespace CWAEmu.FlashConverter.Flash.Tags {
-    public class DefineSpriteTag : CharacterTag {
+    public class DefineSprite : CharacterTag {
         public ushort NumFrames { get; private set; }
 
         public override void read(Reader reader) {
@@ -15,7 +15,7 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
 
                 // if end tag, stop parsing
                 if (header.TagType == 0) {
-                    Debug.Log($"End Tag found");
+                    Debug.Log($"Sprite End Tag found");
                     break;
                 }
 

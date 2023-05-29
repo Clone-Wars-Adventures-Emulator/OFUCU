@@ -23,6 +23,7 @@ namespace CWAEmu.FlashConverter.Flash {
         public Dictionary<int, CharacterTag> CharacterTags { get; private set; } = new();
         public Dictionary<int, DefineShape> Shapes { get; private set; } = new();
         public Dictionary<int, FlashImage> Images { get; private set; } = new();
+        public Dictionary<int, DefineSprite> Sprites { get; private set; } = new();
 
         private SWFFile(string name) {
             Name = name;
@@ -73,6 +74,8 @@ namespace CWAEmu.FlashConverter.Flash {
                         break;
 
                     case 39: // DefineSprite
+                        readSprite(header, reader);
+                        break;
 
                     case 26: // PlaceObject2
 
@@ -144,7 +147,12 @@ namespace CWAEmu.FlashConverter.Flash {
         }
 
         private void readSprite(FlashTagHeader header, Reader reader) {
+            DefineSprite ds = new();
+            ds.Header = header;
+            ds.read(reader);
 
+            CharacterTags.Add(ds.CharacterId, ds);
+            Sprites.Add(ds.CharacterId, ds);
         }
 
         public static SWFFile readFull(string path) {
