@@ -1,6 +1,6 @@
 using CWAEmu.FlashConverter.Flash.Records;
 using CWAEmu.FlashConverter.Flash.Tags;
-using Ionic.Zlib;
+using CWAEmu.Ionic.Zlib;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;

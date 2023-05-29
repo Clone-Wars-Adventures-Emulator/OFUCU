@@ -1,5 +1,5 @@
 using CWAEmu.FlashConverter.Flash.Tags;
-using Ionic.Zlib;
+using CWAEmu.Ionic.Zlib;
 using System;
 using System.Collections.Generic;
 using System.IO;

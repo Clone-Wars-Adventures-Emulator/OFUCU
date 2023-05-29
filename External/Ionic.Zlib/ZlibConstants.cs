@@ -61,9 +61,7 @@
 // -----------------------------------------------------------------------
 
 
-using System;
-
-namespace Ionic.Zlib
+namespace CWAEmu.Ionic.Zlib
 {
     /// <summary>
     /// A bunch of constants used in the Zlib interface.

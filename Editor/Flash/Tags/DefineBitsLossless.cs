@@ -25,13 +25,6 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
                 BitmapColorTableSize = reader.readByte() + 1;
                 bytesOfTagread++;
 
-                int colorTableBytes;
-                if (BitsLosslessType == 1) {
-                    colorTableBytes = 3 * BitmapColorTableSize;
-                } else {
-                    colorTableBytes = 4 * BitmapColorTableSize;
-                }
-
                 Reader decompressed = reader.readZLibBytes(Header.TagLength - bytesOfTagread);
 
                 ImageData = ColorMapData.readColorMapData(decompressed, BitmapColorTableSize, BitsLosslessType, BitmapWidth, BitmapHeight, padding);

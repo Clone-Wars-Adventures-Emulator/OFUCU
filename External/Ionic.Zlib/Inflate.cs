@@ -63,7 +63,7 @@
 
 
 using System;
-namespace Ionic.Zlib
+namespace CWAEmu.Ionic.Zlib
 {
     sealed class InflateBlocks
     {
