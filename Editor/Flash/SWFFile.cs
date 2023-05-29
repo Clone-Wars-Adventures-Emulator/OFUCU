@@ -59,12 +59,11 @@ namespace CWAEmu.FlashConverter.Flash {
                         readShape(2, header, reader);
                         break;
                     case 32: // DefineShape3
-                        //readShape(3, header, reader);
-                        //break;
+                        readShape(3, header, reader);
+                        break;
                     case 83: // DefineShape4
-                        //readShape(4, header, reader);
-                        //break;
-                        goto case 59;
+                        readShape(4, header, reader);
+                        break;
 
                     case 20: // DefineBitsLossless
                         readBitsLossless(1, header, reader);

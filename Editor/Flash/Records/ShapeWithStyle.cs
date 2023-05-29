@@ -60,10 +60,15 @@ namespace CWAEmu.FlashConverter.Flash.Records {
                     }
 
                     if (stateNewStyles) {
-                        style.FillStyles = FillStyleArray.readFillStyleArray(reader, shapeTagType);
-                        style.LineStyles = LineStyleArray.readLineStyleArray(reader, shapeTagType);
-                        style.NumFillBits = reader.readUBits(4);
-                        style.NumLineBits = reader.readUBits(4);
+                        scr.FillStyles = FillStyleArray.readFillStyleArray(reader, shapeTagType);
+                        scr.LineStyles = LineStyleArray.readLineStyleArray(reader, shapeTagType);
+                        scr.NumFillBits = reader.readUBits(4);
+                        scr.NumLineBits = reader.readUBits(4);
+
+                        style.FillStyles = scr.FillStyles;
+                        style.LineStyles = scr.LineStyles;
+                        style.NumFillBits = scr.NumFillBits;
+                        style.NumLineBits = scr.NumLineBits;
                     }
 
                     style.ShapeRecords.Add(scr);
@@ -127,6 +132,10 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public uint FillStyle0 { get; set; }
         public uint FillStyle1 { get; set; }
         public uint LineStyle { get; set; }
+        public FillStyleArray FillStyles { get; set; }
+        public LineStyleArray LineStyles { get; set; }
+        public uint NumFillBits { get; set; }
+        public uint NumLineBits { get; set; }
     }
 
     public class StraightEdgeRecord : ShapeRecord {
@@ -220,10 +229,9 @@ namespace CWAEmu.FlashConverter.Flash.Records {
     }
     public class LineStyleArray {
         public List<LineStyle> Array { get; private set; } = new();
-        public List<LineStyle2> Array2 { get; private set; } = new();
 
         public static LineStyleArray readLineStyleArray(Reader reader, int shapeTagType) {
-            LineStyleArray fsa = new();
+            LineStyleArray lsa = new();
 
             byte bCount = reader.readByte();
             int count = bCount;
@@ -232,17 +240,20 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             }
 
             for (int i = 0; i < count; i++) {
-                // TODO: fix this to handle defineshape4
-                fsa.Array.Add(LineStyle.readLineStyle(reader, shapeTagType));
+                if (shapeTagType == 4) {
+                    lsa.Array.Add(LineStyle2.readLineStyle2(reader, shapeTagType));
+                } else {
+                    lsa.Array.Add(LineStyle.readLineStyle(reader, shapeTagType));
+                }
             }
 
-            return fsa;
+            return lsa;
         }
     }
 
     public class LineStyle {
-        public ushort Width { get; private set; }
-        public Color Color { get; private set; }
+        public ushort Width { get; protected set; }
+        public Color Color { get; protected set; }
 
         public static LineStyle readLineStyle(Reader reader, int shapeTagType) {
             LineStyle lineStyle = new();
@@ -259,8 +270,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         }
     }
 
-    public class LineStyle2 {
-        public ushort Width { get; private set; }
+    public class LineStyle2 : LineStyle {
         public byte StartCapStyle { get; private set; }
         public byte JoinStyle { get; private set; }
         public bool HasFillFlag { get; private set; }
@@ -270,7 +280,6 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public bool NoClose { get; private set; }
         public byte EndCapStyle { get; private set; }
         public ushort MiterLimitFactor { get; private set; }
-        public Color Color { get; private set; }
         public FillStyle FillType { get; private set; }
 
         public static LineStyle2 readLineStyle2(Reader reader, int shapeTagType) {
@@ -292,7 +301,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
                 lineStyle.MiterLimitFactor = reader.readUInt16();
             }
                 
-            if (lineStyle.HasFillFlag) {
+            if (!lineStyle.HasFillFlag) {
                 lineStyle.Color = Color.readRGBA(reader);
             } else {
                 lineStyle.FillType = FillStyle.readFillStyle(reader, shapeTagType);

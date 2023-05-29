@@ -10,17 +10,15 @@ namespace CWAEmu.FlashConverter.Flash {
         private const float FIXED_16_CONVERT = 0x10000;
         private const float FIXED_8_CONVERT = 0x100;
 
-        private byte[] data;
-        private byte flashVersion;
+        private readonly byte[] data;
+        private readonly byte flashVersion;
         private int index;
         private int bitOffset;
-        private bool readingBits;
 
         public Reader(byte[] data, byte flashVersion) {
             this.data = data;
             this.flashVersion = flashVersion;
             index = 0;
-            readingBits = false;
             bitOffset = 0;
         }
 
@@ -30,14 +28,36 @@ namespace CWAEmu.FlashConverter.Flash {
 
         public void skip(int bytes) => index += bytes;
 
-        public byte readByte() => data[index++];
-        public sbyte readSByte() => (sbyte)data[index++];
-        public char readChar() => (char)data[index++];
-        public byte readUInt8() => readByte();
-        public sbyte readInt8() => readSByte();
+        public byte readByte() {
+            endBitRead();
 
-        // TODO: error checking, not mixing bit reading with byte reading
+            return data[index++];
+        }
+
+        public sbyte readSByte() {
+            endBitRead();
+
+            return (sbyte)data[index++];
+        }
+
+        public char readChar() {
+            endBitRead();
+            return (char)data[index++];
+        }
+
+        public byte readUInt8() {
+            endBitRead();
+            return readByte();
+        }
+
+        public sbyte readInt8() {
+            endBitRead();
+            return readSByte();
+        }
+
         public byte[] readBytes(int count) {
+            endBitRead();
+
             byte[] bytes = new byte[count];
             for (int i = 0; i < count; i++) {
                 bytes[i] = data[index++];
@@ -47,6 +67,8 @@ namespace CWAEmu.FlashConverter.Flash {
         }
 
         public char[] readChars(int count) {
+            endBitRead();
+
             char[] chars = new char[count];
             for (int i = 0; i < count; i++) {
                 chars[i] = (char)data[index++];
