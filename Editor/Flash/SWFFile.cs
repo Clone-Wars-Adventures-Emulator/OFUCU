@@ -24,6 +24,7 @@ namespace CWAEmu.FlashConverter.Flash {
         public Dictionary<int, DefineShape> Shapes { get; private set; } = new();
         public Dictionary<int, FlashImage> Images { get; private set; } = new();
         public Dictionary<int, DefineSprite> Sprites { get; private set; } = new();
+        public List<Frame> Frames { get; private set; } = new();
 
         private SWFFile(string name) {
             Name = name;
@@ -39,6 +40,8 @@ namespace CWAEmu.FlashConverter.Flash {
 
                 AttributesTag = FileAttributesTag.readTag(header, reader);
             }
+
+            Frame curFrame = new();
 
             // read all tags until completion
             while (!reader.ReachedEnd) {
@@ -78,6 +81,17 @@ namespace CWAEmu.FlashConverter.Flash {
                         break;
 
                     case 26: // PlaceObject2
+                        PlaceObject2 po2 = new();
+                        po2.Header = header;
+                        po2.read(reader);
+
+                        curFrame.addTag(po2);
+                        break;
+
+                    case 1:  // ShowFrame
+                        Frames.Add(curFrame);
+                        curFrame = new();
+                        break;
 
                     case 34: // DefineButton2
 
@@ -85,7 +99,6 @@ namespace CWAEmu.FlashConverter.Flash {
                     case 74: // CSMTextSettings           IMPORTANT
 
                     //  = = = = = = = = = = Unknown how to handle = = = = = = = = = =
-                    case 1:  // ShowFrame
                     case 71: // ImportAssets2
                     case 75: // DefineFont3
                     case 73: // DefineFontAlignZones

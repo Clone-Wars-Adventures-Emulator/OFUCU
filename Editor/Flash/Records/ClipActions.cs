@@ -14,7 +14,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
             ca.AllEventFlags = ClipEventFlags.readClipEventFlags(reader);
 
             ClipEventFlags lastFlags = ClipEventFlags.readClipEventFlags(reader);
-            while (!lastFlags.allZero()) {
+            while (lastFlags.notAllZero()) {
                 ClipActionRecord car = ClipActionRecord.readClipActionRecord(reader, lastFlags);
                 ca.Records.Add(car);
 
@@ -29,7 +29,7 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public ClipEventFlags EventFlags { get; private set; }
         public uint RecordSize { get; private set; }
         public byte KeyCode { get; private set; }
-        public List<ActionRecord> Actions { get; private set; }
+        public List<ActionRecord> Actions { get; private set; } = new();
 
         public static ClipActionRecord readClipActionRecord(Reader reader, ClipEventFlags flags) {
             ClipActionRecord car = new();
@@ -76,10 +76,10 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public bool DragOut { get; private set; }
         public byte Reserved2 { get; private set; }
 
-        public bool allZero() {
+        public bool notAllZero() {
             return KeyUp || KeyDown || MouseUp || MouseDown || MouseMove || Unload || EnterFrame || Load 
                 || DragOver || RollOut || RollOver || ReleaseOutside || Release || Press || Initialize 
-                || Data || Reserved1 == 0 || Construct || KeyPress || DragOut || Reserved2 == 0;
+                || Data || Reserved1 != 0 || Construct || KeyPress || DragOut || Reserved2 != 0;
         }
 
         public static ClipEventFlags readClipEventFlags(Reader reader) {

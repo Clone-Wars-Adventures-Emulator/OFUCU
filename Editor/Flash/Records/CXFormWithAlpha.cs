@@ -1,6 +1,6 @@
 namespace CWAEmu.FlashConverter.Flash.Records {
     public class CXFormWithAlpha {
-        private int nBits;
+        private uint nBits;
 
         public float RMult { get; private set; } = 1;
         public float GMult { get; private set; } = 1;
@@ -16,21 +16,23 @@ namespace CWAEmu.FlashConverter.Flash.Records {
 
             bool hasAdd = reader.readBitFlag();
             bool hasMult = reader.readBitFlag();
-            cxform.nBits = reader.readBits(4);
+            cxform.nBits = reader.readUBits(4);
 
             if (hasMult) {
-                cxform.RMult = reader.readBits(cxform.nBits);
-                cxform.GMult = reader.readBits(cxform.nBits);
-                cxform.BMult = reader.readBits(cxform.nBits);
-                cxform.AMult = reader.readBits(cxform.nBits);
+                cxform.RMult = reader.readUBits(cxform.nBits);
+                cxform.GMult = reader.readUBits(cxform.nBits);
+                cxform.BMult = reader.readUBits(cxform.nBits);
+                cxform.AMult = reader.readUBits(cxform.nBits);
             }
 
             if (hasAdd) {
-                cxform.RAdd = reader.readBits(cxform.nBits);
-                cxform.GAdd = reader.readBits(cxform.nBits);
-                cxform.BAdd = reader.readBits(cxform.nBits);
-                cxform.AAdd = reader.readBits(cxform.nBits);
+                cxform.RAdd = reader.readUBits(cxform.nBits);
+                cxform.GAdd = reader.readUBits(cxform.nBits);
+                cxform.BAdd = reader.readUBits(cxform.nBits);
+                cxform.AAdd = reader.readUBits(cxform.nBits);
             }
+
+            reader.endBitRead();
 
             return cxform;
         }
