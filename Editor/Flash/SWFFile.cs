@@ -192,7 +192,7 @@ namespace CWAEmu.FlashConverter.Flash {
             }
 
             if (file.Version > 9) {
-                Debug.LogError("File version must be 9 or older.");
+                Debug.LogError($"File version {file.Version} is too new! Must be 9 or older.");
                 return null;
             }
 

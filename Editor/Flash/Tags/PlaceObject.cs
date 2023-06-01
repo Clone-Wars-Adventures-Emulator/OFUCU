@@ -68,6 +68,8 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
     }
 
     public class PlaceObject3 : PlaceObject2 {
+        public bool OpaqueBackground { get; protected set; } // SWF 11
+        public bool HasVisible { get; protected set; } // SWF 11
         public bool HasImage { get; protected set; }
         public bool HasClassName { get; protected set; }
         public bool HasCacheAsBitmap { get; protected set; }
@@ -77,6 +79,9 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
         public string ClassName { get; protected set; }
         public byte BlendMode { get; protected set; }
         public FilterList SurfaceFilterList { get; protected set; }
+        public byte BitmapCache { get; protected set; }
+        public byte Visible { get; protected set; } // SWF 11
+        public Color BackgroundColor { get; protected set; } // SWF 11
 
         public override void read(Reader reader) {
             HasClipActions = reader.readBitFlag();
@@ -89,8 +94,10 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
             Move = reader.readBitFlag();
 
             // reserved
-            reader.readUBits(3);
+            reader.readUBits(1);
 
+            OpaqueBackground = reader.readBitFlag();
+            HasVisible = reader.readBitFlag();
             HasImage = reader.readBitFlag();
             HasClassName = reader.readBitFlag();
             HasCacheAsBitmap = reader.readBitFlag();
@@ -134,6 +141,12 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
             if (HasBlendMode) {
                 BlendMode = reader.readByte();
             }
+
+            if (HasCacheAsBitmap) {
+                BitmapCache = reader.readByte();
+            }
+
+            // TODO: swf 11 parsing??
 
             if (HasClipActions) {
                 ClipActions = ClipActions.readClipActions(reader);
