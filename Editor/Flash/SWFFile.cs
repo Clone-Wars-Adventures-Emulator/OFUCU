@@ -10,6 +10,9 @@ namespace CWAEmu.FlashConverter.Flash {
     // G:\Programming\CWAEmu\OldCWAData\____.swf
     // G:\Programming\CWAEmu\OldCWAData\StuntGungan.swf
     public class SWFFile {
+        // TODO make this a config value of the plugin
+        public static readonly bool IndepthLogging = false;
+
         public char Signature1 { get; private set; }
         public char Signature2 { get; private set; }
         public char Signature3 { get; private set; }
@@ -50,7 +53,9 @@ namespace CWAEmu.FlashConverter.Flash {
 
                 // if end tag, stop parsing
                 if (header.TagType == 0) {
-                    Debug.Log($"================ End Tag found ================");
+                    if (IndepthLogging) {
+                        Debug.Log($"================ End Tag found ================");
+                    }
                     break;
                 }
 
@@ -119,7 +124,7 @@ namespace CWAEmu.FlashConverter.Flash {
                         reader.skip(header.TagLength);
                         break;
                     default:
-                        Debug.Log($"Skipping {header.TagLength} bytes for tag {header.TagType}");
+                        Debug.LogWarning($"Skipping {header.TagLength} bytes for tag {header.TagType}");
                         reader.skip(header.TagLength);
                         break;
                 }
@@ -134,8 +139,10 @@ namespace CWAEmu.FlashConverter.Flash {
                 }
             }
 
-            foreach (var tagType in count.Keys) {
-                Debug.Log($"There are {count[tagType]} tags of type {tagType}");
+            if (IndepthLogging) {
+                foreach (var tagType in count.Keys) {
+                    Debug.Log($"There are {count[tagType]} tags of type {tagType}");
+                }
             }
         }
 

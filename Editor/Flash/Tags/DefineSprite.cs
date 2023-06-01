@@ -23,7 +23,9 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
                         Debug.LogError("Sprite end tag reached with a frame having contents");
                         Frames.Add(curFrame);
                     }
-                    Debug.Log($"Sprite End Tag found");
+                    if (SWFFile.IndepthLogging) {
+                        Debug.Log($"Sprite End Tag found");
+                    }
                     break;
                 }
 
@@ -77,7 +79,7 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
                     //reader.skip(header.TagLength);
                     //break;
                     default:
-                        Debug.Log($"Sprite {CharacterId} Skipping {header.TagLength} bytes for tag {header.TagType}");
+                        Debug.LogWarning($"Sprite {CharacterId} Skipping {header.TagLength} bytes for tag {header.TagType}");
                         reader.skip(header.TagLength);
                         break;
                 }
