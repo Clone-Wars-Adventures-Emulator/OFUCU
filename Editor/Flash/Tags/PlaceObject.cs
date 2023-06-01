@@ -131,6 +131,10 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
                 SurfaceFilterList = FilterList.readFilterList(reader);
             }
 
+            if (HasBlendMode) {
+                BlendMode = reader.readByte();
+            }
+
             if (HasClipActions) {
                 ClipActions = ClipActions.readClipActions(reader);
             }

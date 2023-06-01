@@ -34,6 +34,13 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
                         curFrame = new();
                         break;
 
+                    case 43: // FrameLabel
+                        FrameLabel fl = new();
+                        fl.Header = header;
+                        fl.read(reader);
+
+                        curFrame.addTag(fl);
+                        break;
 
                     case 26: // PlaceObject2
                         PlaceObject2 po2 = new();
@@ -43,8 +50,32 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
                         curFrame.addTag(po2);
                         break;
 
-                        //reader.skip(header.TagLength);
-                        //break;
+                    case 70: // RemoveObject3
+                        PlaceObject3 po3 = new();
+                        po3.Header = header;
+                        po3.read(reader);
+
+                        curFrame.addTag(po3);
+                        break;
+
+                    case 5: // RemoveObject
+                        RemoveObject ro = new();
+                        ro.Header = header;
+                        ro.read(reader);
+
+                        curFrame.addTag(ro);
+                        break;
+
+                    case 28: // RemoveObject2
+                        RemoveObject2 ro2 = new();
+                        ro2.Header = header;
+                        ro2.read(reader);
+
+                        curFrame.addTag(ro2);
+                        break;
+
+                    //reader.skip(header.TagLength);
+                    //break;
                     default:
                         Debug.Log($"Sprite {CharacterId} Skipping {header.TagLength} bytes for tag {header.TagType}");
                         reader.skip(header.TagLength);
