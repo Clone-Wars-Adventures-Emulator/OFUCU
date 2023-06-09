@@ -76,8 +76,11 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
                         curFrame.addTag(ro2);
                         break;
 
-                    //reader.skip(header.TagLength);
-                    //break;
+                    //  = = = = = = = = = = No need to parse = = = = = = = = = =
+                    case 12: // DoAction
+                        reader.skip(header.TagLength);
+                        break;
+
                     default:
                         Debug.LogWarning($"Sprite {CharacterId} Skipping {header.TagLength} bytes for tag {header.TagType}");
                         reader.skip(header.TagLength);

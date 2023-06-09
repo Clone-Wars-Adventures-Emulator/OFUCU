@@ -28,6 +28,7 @@ namespace CWAEmu.FlashConverter.Flash {
         public Dictionary<int, FlashImage> Images { get; private set; } = new();
         public Dictionary<int, DefineSprite> Sprites { get; private set; } = new();
         public List<Frame> Frames { get; private set; } = new();
+        public List<DefineScalingGrid> ScalingGrids { get; private set; } = new();
 
         private SWFFile(string name) {
             Name = name;
@@ -120,6 +121,14 @@ namespace CWAEmu.FlashConverter.Flash {
                         det.read(reader);
 
                         CharacterTags.Add(det.CharacterId, det);
+                        break;
+
+                    case 78: // DefineScalingGrid
+                        DefineScalingGrid dsg = new();
+                        dsg.Header = header;
+                        dsg.read(reader);
+
+                        ScalingGrids.Add(dsg);
                         break;
 
                     case 74: // CSMTextSettings           IMPORTANT
