@@ -29,21 +29,26 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
         public override void read(Reader reader) {
             CharacterId = reader.readUInt16();
 
-            // TODO: dont need this for logic, why did they have this
+            Reserved = (byte)reader.readUBits(7);
+
+            TrackAsMenu = reader.readBitFlag();
+
             ushort actionOffset = reader.readUInt16();
 
             byte first = reader.readByte();
             while (first != 0) {
-                ButtonRecords.Add(ButtonRecord.ReadButtonRecord(reader, first, 1));
+                ButtonRecords.Add(ButtonRecord.ReadButtonRecord(reader, first, 2));
 
                 first = reader.readByte();
             }
 
-            ushort condActionSize = reader.readUInt16();
-            while (condActionSize != 0) {
-                Actions.Add(ButtonCondAction.readButtonCondAction(reader, condActionSize));
+            if (actionOffset != 0) {
+                ushort condActionSize = reader.readUInt16();
+                while (condActionSize != 0) {
+                    Actions.Add(ButtonCondAction.readButtonCondAction(reader, condActionSize));
 
-                condActionSize = reader.readUInt16();
+                    condActionSize = reader.readUInt16();
+                }
             }
         }
     }
