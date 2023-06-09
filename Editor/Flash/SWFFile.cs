@@ -30,8 +30,11 @@ namespace CWAEmu.FlashConverter.Flash {
         public List<Frame> Frames { get; private set; } = new();
         public List<DefineScalingGrid> ScalingGrids { get; private set; } = new();
 
-        private SWFFile(string name) {
+        private bool parseImages;
+
+        private SWFFile(string name, bool parseImages = true) {
             Name = name;
+            this.parseImages = parseImages;
         }
 
         private void parseFull(Reader reader) {
@@ -187,6 +190,11 @@ namespace CWAEmu.FlashConverter.Flash {
         }
 
         private void readBitsLossless(int type, FlashTagHeader header, Reader reader) {
+            if (!parseImages) {
+                reader.readBytes(header.TagLength);
+                return;
+            }
+
             DefineBitsLossless bits = new();
             bits.Header = header;
             bits.BitsLosslessType = type;
@@ -205,14 +213,14 @@ namespace CWAEmu.FlashConverter.Flash {
             Sprites.Add(ds.CharacterId, ds);
         }
 
-        public static SWFFile readFull(string path) {
+        public static SWFFile readFull(string path, bool parseImages = true) {
             if (!File.Exists(path)) {
                 Debug.LogError($"File `{path}` does not exist!");
                 return null;
             }
 
             string name = Path.GetFileName(path);
-            SWFFile file = new(name);
+            SWFFile file = new(name, parseImages);
 
             var stream = File.OpenRead(path);
             var binReader = new BinaryReader(stream);

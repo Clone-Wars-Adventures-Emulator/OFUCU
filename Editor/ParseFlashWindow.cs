@@ -6,6 +6,7 @@ using CWAEmu.FlashConverter.Flash;
 namespace CWAEmu.FlashConverter {
     public class ParseFlashWindow : EditorWindow {
         private string swfPath;
+        private bool parseImages;
 
         [MenuItem("Flash Tools/Parse Flash")]
         public static void showWindow() {
@@ -28,7 +29,15 @@ namespace CWAEmu.FlashConverter {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            swfPath = EditorGUILayout.TextField(swfPath);
+            swfPath = GUILayout.TextField(swfPath);
+
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
+            parseImages = GUILayout.Toggle(parseImages, "Parse Images");
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -47,7 +56,7 @@ namespace CWAEmu.FlashConverter {
         }
 
         private void attemptSWFRead() {
-            SWFFile file = SWFFile.readFull(swfPath);
+            SWFFile file = SWFFile.readFull(swfPath, parseImages);
         }
     }
 }
