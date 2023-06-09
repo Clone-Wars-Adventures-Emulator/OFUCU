@@ -98,9 +98,30 @@ namespace CWAEmu.FlashConverter.Flash {
                         curFrame = new();
                         break;
 
+                    case 7: // DefineButton
+                        DefineButton db = new();
+                        db.Header = header;
+                        db.read(reader);
+
+                        CharacterTags.Add(db.CharacterId, db);
+                        break;
+
                     case 34: // DefineButton2
+                        DefineButton2 db2 = new();
+                        db2.Header = header;
+                        db2.read(reader);
+
+                        CharacterTags.Add(db2.CharacterId, db2);
+                        break;
 
                     case 37: // DefineEditText
+                        DefineEditText det = new();
+                        det.Header = header;
+                        det.read(reader);
+
+                        CharacterTags.Add(det.CharacterId, det);
+                        break;
+
                     case 74: // CSMTextSettings           IMPORTANT
 
                     //  = = = = = = = = = = Unknown how to handle = = = = = = = = = =
