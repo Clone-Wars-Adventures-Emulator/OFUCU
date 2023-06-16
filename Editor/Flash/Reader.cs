@@ -14,15 +14,18 @@ namespace CWAEmu.FlashConverter.Flash {
         private readonly byte flashVersion;
         private int index;
         private int bitOffset;
+        private bool skipImageData;
 
-        public Reader(byte[] data, byte flashVersion) {
+        public Reader(byte[] data, byte flashVersion, bool skipImageData = false) {
             this.data = data;
             this.flashVersion = flashVersion;
+            this.skipImageData = skipImageData;
             index = 0;
             bitOffset = 0;
         }
 
         public int Version => flashVersion;
+        public bool SkipImageData => skipImageData;
         public bool ReachedEnd => index == data.Length;
         public int Remaining => data.Length - index;
 

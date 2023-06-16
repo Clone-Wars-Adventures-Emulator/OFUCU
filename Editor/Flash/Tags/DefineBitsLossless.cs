@@ -16,6 +16,13 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
 
             BitmapWidth = reader.readUInt16();
             BitmapHeight = reader.readUInt16();
+            
+            if (reader.SkipImageData) {
+                // skip (taglength - 7) bytes, as 7 bytes were already read from the tag.
+                reader.readBytes(header.TagLength - 7);
+                ImageData = DummyImage.createDummyImage(BitmapWidth, BitmapHeight);
+                return;
+            }
 
             int bytesOfTagread = 7;
 

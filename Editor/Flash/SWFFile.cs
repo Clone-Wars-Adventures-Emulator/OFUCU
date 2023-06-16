@@ -190,11 +190,6 @@ namespace CWAEmu.FlashConverter.Flash {
         }
 
         private void readBitsLossless(int type, FlashTagHeader header, Reader reader) {
-            if (!parseImages) {
-                reader.readBytes(header.TagLength);
-                return;
-            }
-
             DefineBitsLossless bits = new();
             bits.Header = header;
             bits.BitsLosslessType = type;
@@ -260,7 +255,7 @@ namespace CWAEmu.FlashConverter.Flash {
                 data = targetStream.ToArray();
             }
 
-            Reader reader = new(data, file.Version);
+            Reader reader = new(data, file.Version, parseImages);
             file.FrameSize = Rect.readRect(reader);
             file.FrameRate = reader.readUInt16() / 256.0f;
             file.FrameCount = reader.readUInt16();
