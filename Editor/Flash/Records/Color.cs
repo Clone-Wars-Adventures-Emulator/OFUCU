@@ -4,6 +4,9 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public byte G { get; private set; }
         public byte B { get; private set; }
         public byte A { get; private set; }
+        
+        public Color Black => new Color() { r = 0, b = 0, g = 0, a = 255 };
+        public Color White => new Color() { r = 255, b = 255, g = 255, a = 255 };
 
         public static Color readARGB(Reader reader) {
             Color argb = new() {

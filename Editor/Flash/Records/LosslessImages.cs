@@ -6,6 +6,20 @@ namespace CWAEmu.FlashConverter.Flash.Records {
         public int Height { get; protected set; }
         public abstract Color readPixelAt(int x, int y);
     }
+    
+    public class DummyImage : FlashImage {
+        public static DummyImage createDummyImage(int width, int height) {
+            DummyImage di = new();
+            di.Width = width;
+            di.Height = height;
+            
+            return di;
+        }
+        
+        public override Color readPixelAt(int x, int y) {
+            return Color.Black;
+        }
+    }
 
     public class ColorMapData : FlashImage {
         public Color[] ColorTableRGB { get; private set; }
