@@ -1,3 +1,5 @@
+using System;
+
 namespace CWAEmu.FlashConverter.Flash.Records {
     public class Rect {
         private int nBits;
