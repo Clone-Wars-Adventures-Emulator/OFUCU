@@ -19,7 +19,7 @@ namespace CWAEmu.FlashConverter.Flash.Tags {
             
             if (reader.SkipImageData) {
                 // skip (taglength - 7) bytes, as 7 bytes were already read from the tag.
-                reader.readBytes(header.TagLength - 7);
+                reader.readBytes(Header.TagLength - 7);
                 ImageData = DummyImage.createDummyImage(BitmapWidth, BitmapHeight);
                 return;
             }
