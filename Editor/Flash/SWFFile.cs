@@ -10,6 +10,7 @@ namespace CWAEmu.FlashConverter.Flash {
     // G:\Programming\CWAEmu\OldCWAData\____.swf
     // G:\Programming\CWAEmu\OldCWAData\StuntGungan.swf
     // G:\Programming\CWAEmu\OldCWAData\StarTyper.swf
+    // G:\Programming\CWAEmu\OldCWAData\FleetCommander.swf
     public class SWFFile {
         // TODO make this a config value of the plugin
         public static readonly bool IndepthLogging = false;

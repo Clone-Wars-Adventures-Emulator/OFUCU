@@ -29,7 +29,7 @@ namespace CWAEmu.FlashConverter {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            swfPath = GUILayout.TextField(swfPath);
+            swfPath = EditorGUILayout.TextField(swfPath);
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -57,6 +57,13 @@ namespace CWAEmu.FlashConverter {
 
         private void attemptSWFRead() {
             SWFFile file = SWFFile.readFull(swfPath, parseImages);
+
+            if (file == null) {
+                Debug.LogError("That file does not exist bozo head. Skill issue, git gud, be better.");
+                return;
+            }
+
+            new FlashToUnityOneShot(file);
         }
     }
 }
