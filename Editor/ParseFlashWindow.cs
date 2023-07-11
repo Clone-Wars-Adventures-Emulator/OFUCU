@@ -7,6 +7,7 @@ namespace CWAEmu.FlashConverter {
     public class ParseFlashWindow : EditorWindow {
         private string swfPath;
         private bool parseImages;
+        private bool trimUnused;
 
         [MenuItem("Flash Tools/Parse Flash")]
         public static void showWindow() {
@@ -45,6 +46,14 @@ namespace CWAEmu.FlashConverter {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
+            trimUnused = GUILayout.Toggle(trimUnused, "Trim Unused Tags");
+
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
             if (GUILayout.Button("Read SWF")) {
                 attemptSWFRead();
             }
@@ -63,7 +72,7 @@ namespace CWAEmu.FlashConverter {
                 return;
             }
 
-            new FlashToUnityOneShot(file);
+            new FlashToUnityOneShot(file, trimUnused);
         }
     }
 }

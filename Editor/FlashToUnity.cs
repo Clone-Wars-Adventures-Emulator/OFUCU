@@ -18,8 +18,12 @@ namespace CWAEmu.FlashConverter {
         private Dictionary<int, (GameObject go, RectTransform rt)> dictonary = new();
         private Dictionary<int, int> usageCount = new();
 
-        public FlashToUnityOneShot(SWFFile file) {
+        public FlashToUnityOneShot(SWFFile file, bool trimFile = false) {
             this.file = file;
+
+            if (trimFile) {
+                file.destructivelyTrimUnused();
+            }
 
             loadSwfFileInScene();
         }

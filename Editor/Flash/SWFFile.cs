@@ -1,6 +1,7 @@
 using CWAEmu.FlashConverter.Flash.Records;
 using CWAEmu.FlashConverter.Flash.Tags;
 using CWAEmu.Ionic.Zlib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -267,6 +268,140 @@ namespace CWAEmu.FlashConverter.Flash {
             file.parseFull(reader);
 
             return file;
+        }
+
+        // NOTE: this has ZERO knowledge of any usage in actionscript
+        public void destructivelyTrimUnused() {
+            Dictionary<int, int> usageCount = new();
+
+            foreach (int id in CharacterTags.Keys) {
+                usageCount.Add(id, 0);
+            }
+
+            foreach (var shape in Shapes.Values) {
+                FillStyleArray fsa = shape.Shapes.FillStyles;
+                LineStyleArray lsa = shape.Shapes.LineStyles;
+                int fill0Idx = -1;
+                int fill1Idx = -1;
+                int lineIdx = -1;
+                bool dontEndOnSCR = true;
+
+                Action onEndShape = () => {
+                    if (fill0Idx != -1 && fill1Idx != -1) {
+                        // ignore
+                        return;
+                    }
+
+                    FillStyle singleStyle = null;
+                    if (fill0Idx != -1) {
+                        singleStyle = fsa[fill0Idx];
+                    }
+
+                    if (fill1Idx != -1) {
+                        singleStyle = fsa[fill1Idx];
+                    }
+
+                    if (singleStyle == null) {
+                        return;
+                    }
+
+                    byte fillTypeAsByte = ((byte)singleStyle.Type);
+                    if ((fillTypeAsByte & 0x40) != 0x40) {
+                        // ignore
+                        return;
+                    }
+
+                    // incase the image didnt get parsed or something
+                    if (usageCount.ContainsKey(singleStyle.BitmapId)) {
+                        usageCount[singleStyle.BitmapId]++;
+                    }
+                };
+
+                foreach (var record in shape.Shapes.ShapeRecords) {
+                    if (record is StyleChangeRecord) {
+                        var scr = record as StyleChangeRecord;
+
+                        // case signifying end of shape
+                        if (!dontEndOnSCR) {
+                            onEndShape();
+                        }
+                        dontEndOnSCR = true;
+
+                        if (scr.StateNewStyles) {
+                            fsa = scr.FillStyles;
+                            lsa = scr.LineStyles;
+                        }
+
+                        if (scr.StateFillStyle0) {
+                            fill0Idx = (int)scr.FillStyle0 - 1;
+                        }
+
+                        if (scr.StateFillStyle1) {
+                            fill1Idx = (int)scr.FillStyle1 - 1;
+                        }
+
+                        if (scr.StateLineStyle) {
+                            lineIdx = (int)scr.LineStyle - 1;
+                        }
+                    }
+
+                    if (record is EndShapeRecord) {
+                        onEndShape();
+                    }
+                }
+            }
+
+            foreach (var sprite in Sprites.Values) {
+                foreach (var frame in sprite.Frames) {
+                    foreach (var tag in frame.Tags) {
+                        // also handles place object 3
+                        if (tag is PlaceObject2) {
+                            PlaceObject2 po2 = tag as PlaceObject2;
+
+                            if (po2.HasCharacter) {
+                                if (usageCount.ContainsKey(po2.CharacterId)) {
+                                    usageCount[po2.CharacterId]++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (var frame in Frames) {
+                foreach (var tag in frame.Tags) {
+                    // also handles place object 3
+                    if (tag is PlaceObject2) {
+                        PlaceObject2 po2 = tag as PlaceObject2;
+
+                        if (po2.HasCharacter) {
+                            if (usageCount.ContainsKey(po2.CharacterId)) {
+                                usageCount[po2.CharacterId]++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // remove and log which are being removed
+            foreach (var pair in usageCount) {
+                if (pair.Value == 0) {
+                    int id = pair.Key;
+                    CharacterTags.Remove(id);
+
+                    if (Images.ContainsKey(id)) {
+                        Images.Remove(id);
+                    }
+
+                    if (Shapes.ContainsKey(id)) {
+                        Shapes.Remove(id);
+                    }
+
+                    if (Sprites.ContainsKey(id)) {
+                        Sprites.Remove(id);
+                    }
+                }
+            }
         }
     }
 }
