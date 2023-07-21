@@ -68,7 +68,8 @@ namespace CWAEmu.FlashConverter {
             }
 
             foreach (var sprite in file.Sprites) {
-
+                usageCount.Add(sprite.Value.CharacterId, 0);
+                createSpriteObject(sprite.Value);
             }
 
             // Clean up so i dont have so many objects
@@ -260,7 +261,30 @@ namespace CWAEmu.FlashConverter {
         }
 
         private void createSpriteObject(DefineSprite sprite) {
+            var (rootObj, rootTransform) = createUIObj($"Sprite {sprite.CharacterId}");
+            rootTransform.SetParent(vfswfhT, false);
+            rootTransform.pivot = new Vector2(0, 1);
 
+            var frames = generateFramesAsObjects(sprite.Frames);
+
+            foreach (var framePair in frames) {
+                RectTransform rt = framePair.rt;
+                rt.SetParent(rootTransform, false);
+                rt.anchoredPosition = new Vector2();
+            }
+
+            dictonary.Add(sprite.CharacterId, (rootObj, rootTransform));
+        }
+
+        private List<(GameObject go, RectTransform rt)> generateFramesAsObjects(List<Frame> frames) {
+            List<(GameObject go, RectTransform rt)> frameObjs = new();
+
+            foreach (Frame frame in frames) {
+                // TODO: iterate over frames and create each object individually. Also create an intermediate representation to track deltas so we dont have 
+                // to duplicate everything all the time. 
+            }
+
+            return frameObjs;
         }
 
         private (GameObject, RectTransform) createUIObj(string name) {
