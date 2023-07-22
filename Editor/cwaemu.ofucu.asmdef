@@ -1,8 +1,8 @@
 {
-    "name": "cwaemu.flash-converter.flash",
-    "rootNamespace": "CWAEmu.FlashConverter.Flash",
+    "name": "cwaemu.ofucu",
+    "rootNamespace": "CWAEmu.OFUCU",
     "references": [
-        "GUID:e39e5d39f3b15f24fad3d0fe5b9ee361"
+        "GUID:025850e66641d6e42b006c5f4364cfe0"
     ],
     "includePlatforms": [],
     "excludePlatforms": [

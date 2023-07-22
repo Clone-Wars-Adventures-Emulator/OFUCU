@@ -1,6 +1,6 @@
 {
-    "name": "cwaemu.flash-converter.external.zlib",
-    "rootNamespace": "CWAEmu.FlashConverter.External.Zlib",
+    "name": "cwaemu.ofucu.external.zlib",
+    "rootNamespace": "CWAEmu.OFUCU.External.Zlib",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [
