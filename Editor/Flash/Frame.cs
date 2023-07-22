@@ -1,7 +1,7 @@
-using CWAEmu.FlashConverter.Flash.Tags;
+using CWAEmu.OFUCU.Flash.Tags;
 using System.Collections.Generic;
 
-namespace CWAEmu.FlashConverter.Flash {
+namespace CWAEmu.OFUCU.Flash {
     public class Frame {
         public List<FlashTag> Tags { get; private set; } = new();
 

@@ -1,7 +1,7 @@
-using CWAEmu.FlashConverter.Flash.Records;
+using CWAEmu.OFUCU.Flash.Records;
 using System.Collections.Generic;
 
-namespace CWAEmu.FlashConverter.Flash.Tags {
+namespace CWAEmu.OFUCU.Flash.Tags {
     public class DefineButton : CharacterTag {
         public List<ButtonRecord> ButtonRecords { get; private set; } = new();
         public List<ActionRecord> Actions { get; private set; } = new();

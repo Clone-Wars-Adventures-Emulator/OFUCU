@@ -1,6 +1,6 @@
 using System;
 
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public abstract class FlashImage {
         public int Width { get; protected set; }
         public int Height { get; protected set; }

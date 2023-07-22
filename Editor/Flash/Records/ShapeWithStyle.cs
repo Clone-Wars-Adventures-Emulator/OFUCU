@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class ShapeWithStyle {
         public FillStyleArray FillStyles { get; private set; }
         public LineStyleArray LineStyles { get; private set; }

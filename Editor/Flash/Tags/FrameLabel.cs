@@ -1,4 +1,4 @@
-namespace CWAEmu.FlashConverter.Flash.Tags {
+namespace CWAEmu.OFUCU.Flash.Tags {
     public class FrameLabel : FlashTag {
         public string Label { get; private set; }
 

@@ -1,4 +1,4 @@
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class CXFormWithAlpha {
         private uint nBits;
 

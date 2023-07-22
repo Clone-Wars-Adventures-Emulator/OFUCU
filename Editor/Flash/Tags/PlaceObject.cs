@@ -1,6 +1,6 @@
-using CWAEmu.FlashConverter.Flash.Records;
+using CWAEmu.OFUCU.Flash.Records;
 
-namespace CWAEmu.FlashConverter.Flash.Tags {
+namespace CWAEmu.OFUCU.Flash.Tags {
     public class PlaceObject : FlashTag {
         public override void read(Reader reader) {
             throw new System.NotImplementedException("PlaceObject tag is unsupported.");

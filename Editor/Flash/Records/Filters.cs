@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class FilterList {
         public byte NumFilters { get; private set; }
         public List<Filter> Filters { get; private set; } = new();

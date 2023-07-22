@@ -1,4 +1,4 @@
-namespace CWAEmu.FlashConverter.Flash.Tags {
+namespace CWAEmu.OFUCU.Flash.Tags {
     public class FileAttributesTag : FlashTag {
         public const ushort TAG_TYPE = 69;
 

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class ClipActions {
         public ClipEventFlags AllEventFlags { get; private set; }
         public List<ClipActionRecord> Records { get; private set; } = new();

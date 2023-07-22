@@ -1,13 +1,13 @@
-using CWAEmu.FlashConverter.Flash.Records;
-using CWAEmu.FlashConverter.Flash.Tags;
+using CWAEmu.OFUCU.Flash.Records;
+using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.Ionic.Zlib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
-using Rect = CWAEmu.FlashConverter.Flash.Records.Rect;
+using Rect = CWAEmu.OFUCU.Flash.Records.Rect;
 
-namespace CWAEmu.FlashConverter.Flash {
+namespace CWAEmu.OFUCU.Flash {
     // G:\Programming\CWAEmu\OldCWAData\____.swf
     // G:\Programming\CWAEmu\OldCWAData\StuntGungan.swf
     // G:\Programming\CWAEmu\OldCWAData\StarTyper.swf

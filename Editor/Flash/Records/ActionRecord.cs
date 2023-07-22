@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class ActionRecord  {
         public byte ActionCode { get; set; }
         public byte[] AdditionalData { get; set; } = null;

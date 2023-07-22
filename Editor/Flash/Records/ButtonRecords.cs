@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class ButtonRecord {
         public byte Reserved { get; private set; }
         public bool HasBlendMode { get; private set; }

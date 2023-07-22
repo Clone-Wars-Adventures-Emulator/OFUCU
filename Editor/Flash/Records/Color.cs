@@ -1,4 +1,4 @@
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class Color {
         public byte R { get; private set; }
         public byte G { get; private set; }

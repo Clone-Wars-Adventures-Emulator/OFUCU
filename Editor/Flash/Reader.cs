@@ -1,11 +1,11 @@
-using CWAEmu.FlashConverter.Flash.Tags;
+using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.Ionic.Zlib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace CWAEmu.FlashConverter.Flash {
+namespace CWAEmu.OFUCU.Flash {
     public class Reader  {
         private const float FIXED_16_CONVERT = 0x10000;
         private const float FIXED_8_CONVERT = 0x100;

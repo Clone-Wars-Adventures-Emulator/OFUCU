@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class Gradient {
         public byte SpreadMode { get; private set; }
         public byte InterpolationMode { get; private set; }

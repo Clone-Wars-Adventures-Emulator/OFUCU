@@ -1,4 +1,4 @@
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class Matrix {
         private int nScaleBits = 0;
         private int nRotateBits = 0;

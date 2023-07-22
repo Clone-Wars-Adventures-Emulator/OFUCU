@@ -1,6 +1,6 @@
-using CWAEmu.FlashConverter.Flash.Records;
+using CWAEmu.OFUCU.Flash.Records;
 
-namespace CWAEmu.FlashConverter.Flash.Tags {
+namespace CWAEmu.OFUCU.Flash.Tags {
     public class DefineScalingGrid : FlashTag {
         public ushort CharacterId { get; private set; }
         public Rect Splitter { get; private set; }

@@ -1,6 +1,6 @@
 using System;
 
-namespace CWAEmu.FlashConverter.Flash.Records {
+namespace CWAEmu.OFUCU.Flash.Records {
     public class Rect {
         private int nBits;
         public int ByteLength => (5 + nBits * 4) / 8 + 1;

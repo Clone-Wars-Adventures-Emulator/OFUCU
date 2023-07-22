@@ -1,14 +1,14 @@
-using CWAEmu.FlashConverter.Flash;
-using CWAEmu.FlashConverter.Flash.Records;
-using CWAEmu.FlashConverter.Flash.Tags;
+using CWAEmu.OFUCU.Flash;
+using CWAEmu.OFUCU.Flash.Records;
+using CWAEmu.OFUCU.Flash.Tags;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Color = CWAEmu.FlashConverter.Flash.Records.Color;
+using Color = CWAEmu.OFUCU.Flash.Records.Color;
 using UObject = UnityEngine.Object;
 
-namespace CWAEmu.FlashConverter {
+namespace CWAEmu.OFUCU {
     public class FlashToUnityOneShot {
         private SWFFile file;
 

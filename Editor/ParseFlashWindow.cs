@@ -1,9 +1,9 @@
 using UnityEditor;
 using UnityEngine;
 
-using CWAEmu.FlashConverter.Flash;
+using CWAEmu.OFUCU.Flash;
 
-namespace CWAEmu.FlashConverter {
+namespace CWAEmu.OFUCU {
     public class ParseFlashWindow : EditorWindow {
         private string swfPath;
         private bool parseImages;

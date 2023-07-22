@@ -1,6 +1,6 @@
-using CWAEmu.FlashConverter.Flash.Records;
+using CWAEmu.OFUCU.Flash.Records;
 
-namespace CWAEmu.FlashConverter.Flash.Tags {
+namespace CWAEmu.OFUCU.Flash.Tags {
     public class DefineBitsLossless : CharacterTag {
         public int BitsLosslessType { get; set; }
         public byte BitmapFormat { get; private set; }

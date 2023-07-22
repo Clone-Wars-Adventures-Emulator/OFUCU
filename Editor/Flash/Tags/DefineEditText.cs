@@ -1,6 +1,6 @@
-using CWAEmu.FlashConverter.Flash.Records;
+using CWAEmu.OFUCU.Flash.Records;
 
-namespace CWAEmu.FlashConverter.Flash.Tags {
+namespace CWAEmu.OFUCU.Flash.Tags {
     public class DefineEditText : CharacterTag {
         public Rect Bounds { get; private set; }
         public bool HasText { get; private set; }
