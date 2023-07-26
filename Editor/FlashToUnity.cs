@@ -146,7 +146,9 @@ namespace CWAEmu.OFUCU {
 
             if (singleStyle.Type == FillStyle.EnumFillStyleType.Solid) {
                 Color fillColor = singleStyle.Color;
-                // TODO: allow this type of fill
+                // TODO: this fill will be using an image component and: 
+                //   Leaving the sprite field blank
+                //   setting the color field to the above fill color
                 return;
             }
 
@@ -200,6 +202,11 @@ namespace CWAEmu.OFUCU {
             foreach (Frame frame in sprite.Frames) {
                 foreach (FlashTag tag in frame.Tags) {
                     if (tag is PlaceObject2 po2 && po2.HasCharacter) {
+                        if (dictonary.TryGetValue(po2.CharacterId, out var dictE) && dictE.CharacterType == DictonaryEntry.EnumDictonaryCharacterType.Image) {
+                            // this should never happen, but just in case
+                            Debug.LogWarning($"Sprite {spriteName} directly relys on image {po2.CharacterId}. This is not good.");
+                        }
+
                         de.addDependency(po2.CharacterId);
                     }
                 }
