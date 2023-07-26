@@ -102,7 +102,9 @@ namespace CWAEmu.OFUCU.Flash {
 
                     case 1:  // ShowFrame
                         Frames.Add(curFrame);
+                        int nextIdx = curFrame.FrameIndex + 1;
                         curFrame = new();
+                        curFrame.FrameIndex = nextIdx;
                         break;
 
                     case 7: // DefineButton
@@ -138,6 +140,7 @@ namespace CWAEmu.OFUCU.Flash {
                         break;
 
                     case 74: // CSMTextSettings           IMPORTANT
+                    case 56: // ExportAssets              THIS NAMES SPRITES IT NEEDS TO BE PARSED
 
                     //  = = = = = = = = = = Unknown how to handle = = = = = = = = = =
                     case 71: // ImportAssets2
@@ -155,7 +158,6 @@ namespace CWAEmu.OFUCU.Flash {
 
                     case 9:  // SetBackgroundColor
                     case 24: // Protect
-                    case 56: // ExportAssets
                     case 59: // DoInitAction
                         reader.skip(header.TagLength);
                         break;

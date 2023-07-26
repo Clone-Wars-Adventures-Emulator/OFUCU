@@ -33,7 +33,9 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                     // = = = = = = = = = = Need to parse = = = = = = = = = =
                     case 1:  // ShowFrame
                         Frames.Add(curFrame);
+                        int nextIdx = curFrame.FrameIndex + 1;
                         curFrame = new();
+                        curFrame.FrameIndex = nextIdx;
                         break;
 
                     case 43: // FrameLabel

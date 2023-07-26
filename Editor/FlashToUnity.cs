@@ -14,8 +14,9 @@ namespace CWAEmu.OFUCU {
 
         private GameObject rootObj;
         private RectTransform vfswfhT;
+        private RectTransform dictonaryT;
 
-        private Dictionary<int, (GameObject go, RectTransform rt)> dictonary = new();
+        private Dictionary<int, DictonaryEntry> dictonary = new();
         private Dictionary<int, int> usageCount = new();
 
         public FlashToUnityOneShot(SWFFile file, bool trimFile = false) {
@@ -25,11 +26,12 @@ namespace CWAEmu.OFUCU {
                 file.destructivelyTrimUnused();
             }
 
-            loadSwfFileInScene();
+            loadDictonaryToScene();
         }
 
-        private void loadSwfFileInScene() {
+        private void loadDictonaryToScene() {
             rootObj = new($"SWF Root: {file.Name}");
+            PlacedSWFFile placed = rootObj.AddComponent<PlacedSWFFile>();
             Canvas canvas = rootObj.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
@@ -51,11 +53,9 @@ namespace CWAEmu.OFUCU {
             vfswfhT.SetParent(canvas.transform, false);
             vfswfhT.sizeDelta = new Vector2(file.FrameSize.Width, file.FrameSize.Height);
 
-            if (file.FrameCount != 1) {
-                // TODO: unsupported
-                Debug.LogError($"SWFFile {file.Name} has more than one frame. This is unsupported at this time.");
-                return;
-            }
+            GameObject dictonaryRoot = new($"Dictonary", typeof(RectTransform));
+            dictonaryT = dictonaryRoot.transform as RectTransform;
+            dictonaryT.SetParent(canvas.transform, false);
 
             foreach (var image in file.Images) {
                 usageCount.Add(image.Key, 0);
@@ -71,118 +71,40 @@ namespace CWAEmu.OFUCU {
                 usageCount.Add(sprite.Value.CharacterId, 0);
                 createSpriteObject(sprite.Value);
             }
-
-            // Clean up so i dont have so many objects
-            foreach (var pair in usageCount) {
-                if (pair.Value > 0) {
-                    UObject.DestroyImmediate(dictonary[pair.Key].go);
-                }
-            }
         }
 
         private void createImageObject(int charId, FlashImage image) {
-            var (obj, transform) = createUIObj($"Image {charId}");
+            var (rt, de) = createDictonaryEntry(image, $"Image {charId}");
 
-            transform.SetParent(vfswfhT, false);
+            rt.SetParent(dictonaryT, false);
 
-            transform.pivot = new Vector2(0, 1);
-            transform.sizeDelta = new Vector2(image.Width, image.Height);
+            rt.pivot = new Vector2(0, 1);
+            rt.sizeDelta = new Vector2(image.Width, image.Height);
 
-            dictonary.Add(charId, (obj, transform));
+            dictonary.Add(charId, de);
         }
 
         private void createShapeObject(DefineShape shape) {
-            var (rootObj, rootTransform) = createUIObj($"Shape {shape.CharacterId}");
-            rootTransform.SetParent(vfswfhT, false);
-            rootTransform.pivot = new Vector2(0, 1);
-            rootTransform.sizeDelta = new Vector2(shape.ShapeBounds.Width, shape.ShapeBounds.Height);
+            var (rt, de) = createDictonaryEntry(shape, $"Shape {shape.CharacterId}");
+            rt.SetParent(dictonaryT, false);
+            rt.pivot = new Vector2(0, 1);
+            rt.sizeDelta = new Vector2(shape.ShapeBounds.Width, shape.ShapeBounds.Height);
 
             var (_, absZeroTrans) = createUIObj($"ShapeAbsZero");
-            absZeroTrans.SetParent(rootTransform, false);
+            absZeroTrans.SetParent(rt, false);
             absZeroTrans.anchorMin = new Vector2(0, 1);
             absZeroTrans.anchorMax = new Vector2(0, 1);
             absZeroTrans.pivot = new Vector2(0, 1);
             absZeroTrans.anchoredPosition = new Vector2(-shape.ShapeBounds.X, shape.ShapeBounds.Y);
 
-            // parse the child placed shapes
-            Vector2 cursorPos = new(0, 0);
-            List<Vector2> boxPoints = new();
+            shape.iterateOnShape((fsa, lsa, fill0, fill1, line, boxPoints, shapeId) => {
+                fillInShape(fsa, lsa, fill0, fill1, line, boxPoints, absZeroTrans, shapeId, de);
+            });
 
-            FillStyleArray fsa = shape.Shapes.FillStyles;
-            LineStyleArray lsa = shape.Shapes.LineStyles;
-            int fill0Idx = -1;
-            int fill1Idx = -1;
-            int lineIdx = -1;
-            bool dontEndOnSCR = true;
-
-            foreach (var record in shape.Shapes.ShapeRecords) {
-                if (record is StyleChangeRecord) {
-                    var scr = record as StyleChangeRecord;
-
-                    // case signifying end of shape
-                    if (!dontEndOnSCR) {
-                        fillInShape(fsa, lsa, fill0Idx, fill1Idx, lineIdx, boxPoints, absZeroTrans, shape.CharacterId);
-                    }
-                    dontEndOnSCR = true;
-
-                    if (scr.StateNewStyles) {
-                        fsa = scr.FillStyles;
-                        lsa = scr.LineStyles;
-                    }
-
-                    if (scr.StateMoveTo) {
-                        boxPoints.Clear();
-                        cursorPos = new Vector2(scr.MoveDeltaX, scr.MoveDeltaY);
-                        boxPoints.Add(cursorPos);
-                    }
-                    
-                    if (scr.StateFillStyle0) {
-                        fill0Idx = (int)scr.FillStyle0 - 1;
-                    }
-
-                    if (scr.StateFillStyle1) {
-                        fill1Idx = (int)scr.FillStyle1 - 1;
-                    }
-
-                    if (scr.StateLineStyle) {
-                        lineIdx = (int)scr.LineStyle - 1;
-                    }
-                }
-
-                if (record is StraightEdgeRecord) {
-                    dontEndOnSCR = false;
-                    var ser = record as StraightEdgeRecord;
-
-                    float dx = 0;
-                    float dy = 0;
-
-                    if (ser.GeneralLineFlag || !ser.VertLineFlag) {
-                        dx = ser.DeltaX;
-                    }
-
-                    if (ser.GeneralLineFlag || ser.VertLineFlag) {
-                        dy = ser.DeltaY;
-                    }
-
-                    cursorPos = new(cursorPos.x + dx, cursorPos.y + dy);
-                    boxPoints.Add(cursorPos);
-                }
-
-                // TODO: curve edge record
-                if (record is CurvedEdgeRecord) {
-                    dontEndOnSCR = false;
-                    Debug.LogError($"Curved edge record in shape {shape.CharacterId} definition, how do i handle this");
-                }
-
-                if (record is EndShapeRecord) {
-                    fillInShape(fsa, lsa, fill0Idx, fill1Idx, lineIdx, boxPoints, absZeroTrans, shape.CharacterId);
-                }
-            }
-
-            dictonary.Add(shape.CharacterId, (rootObj, rootTransform));
+            dictonary.Add(shape.CharacterId, de);
         }
 
-        private void fillInShape(FillStyleArray fsa, LineStyleArray lsa, int fill0, int fill1, int line, List<Vector2> boxPoints, RectTransform absZeroTrans, int shapeId) {
+        private void fillInShape(FillStyleArray fsa, LineStyleArray lsa, int fill0, int fill1, int line, List<Vector2> boxPoints, RectTransform absZeroTrans, int shapeId, DictonaryEntry entry) {
             // TODO: proper pathing instead of just bounds checking
             float minX = float.MaxValue;
             float minY = float.MaxValue;
@@ -247,44 +169,43 @@ namespace CWAEmu.OFUCU {
             Debug.LogWarning($"Shape rendering a fill style ({shapeId}) with bitmap types smooth:{smoothed} clipped:{clipped}");
 
             // duplicate the existing image object so we can possibly modify it for this sprite
-            GameObject imageObj = dictonary[singleStyle.BitmapId].go;
             usageCount[singleStyle.BitmapId]++;
-            var (obj, rt) = duplicateObject(imageObj, absZeroTrans);
+            var (rt, placed) = createDictonaryReference(dictonary[singleStyle.BitmapId]);
+            entry.addDependency(singleStyle.BitmapId);
             if (rt == null) {
                 Debug.LogWarning("Failure in duplication of object");
                 return;
             }
 
+            rt.SetParent(absZeroTrans, false);
             // TODO: set the smoothed and clipped props somehow
             rt.anchoredPosition = new Vector2(minX, -minY);
             rt.sizeDelta = new Vector2(Mathf.Abs(maxX - minX), Mathf.Abs(maxY - minY));
         }
 
         private void createSpriteObject(DefineSprite sprite) {
-            var (rootObj, rootTransform) = createUIObj($"Sprite {sprite.CharacterId}");
-            rootTransform.SetParent(vfswfhT, false);
-            rootTransform.pivot = new Vector2(0, 1);
-
-            var frames = generateFramesAsObjects(sprite.Frames);
-
-            foreach (var framePair in frames) {
-                RectTransform rt = framePair.rt;
-                rt.SetParent(rootTransform, false);
-                rt.anchoredPosition = new Vector2();
+            // TODO: uncomment when names are added
+            // string nameSuffix = sprite.name;
+            string spriteName = $"Sprite {sprite.CharacterId}";
+            if (sprite.Frames.Count == 0) {
+                Debug.Log($"Trimming {spriteName} with no frames (assumed to be script only).");
+                return;
             }
 
-            dictonary.Add(sprite.CharacterId, (rootObj, rootTransform));
-        }
+            var (rt, de) = createDictonaryEntry(sprite, spriteName);
+            rt.SetParent(dictonaryT, false);
+            rt.pivot = new Vector2(0, 1);
 
-        private List<(GameObject go, RectTransform rt)> generateFramesAsObjects(List<Frame> frames) {
-            List<(GameObject go, RectTransform rt)> frameObjs = new();
 
-            foreach (Frame frame in frames) {
-                // TODO: iterate over frames and create each object individually. Also create an intermediate representation to track deltas so we dont have 
-                // to duplicate everything all the time. 
+            foreach (Frame frame in sprite.Frames) {
+                foreach (FlashTag tag in frame.Tags) {
+                    if (tag is PlaceObject2 po2 && po2.HasCharacter) {
+                        de.addDependency(po2.CharacterId);
+                    }
+                }
             }
 
-            return frameObjs;
+            dictonary.Add(sprite.CharacterId, de);
         }
 
         private (GameObject, RectTransform) createUIObj(string name) {
@@ -294,17 +215,51 @@ namespace CWAEmu.OFUCU {
             return (go, rt);
         }
 
-        private (GameObject, RectTransform) duplicateObject(GameObject go, RectTransform parent) {
-            // TODO: this doesnt work the way i would have hoped
+        public (RectTransform, DictonaryEntry) createDictonaryEntry(CharacterTag tag, string name) {
+            GameObject go = new(name, typeof(RectTransform), typeof(DictonaryEntry));
             RectTransform rt = go.transform as RectTransform;
-            GameObject newGo = UObject.Instantiate(go, parent, false);
-            RectTransform newRt = newGo.transform as RectTransform;
+            DictonaryEntry entry = go.GetComponent<DictonaryEntry>();
 
-            newRt.pivot = rt.pivot;
-            newRt.anchorMin = new Vector2(0, 1);
-            newRt.anchorMax = new Vector2(0, 1);
+            entry.rt = rt;
+            entry.Tag = tag;
+            DictonaryEntry.EnumDictonaryCharacterType type = DictonaryEntry.EnumDictonaryCharacterType.Shape;
+            if (tag is DefineSprite) {
+                type = DictonaryEntry.EnumDictonaryCharacterType.Sprite;
+            }
+            entry.CharacterType = type;
 
-            return (newGo, newRt);
+            return (rt, entry);
+        }
+
+        public (RectTransform, DictonaryEntry) createDictonaryEntry(FlashImage image, string name) {
+            GameObject go = new(name, typeof(RectTransform), typeof(DictonaryEntry));
+            RectTransform rt = go.transform as RectTransform;
+            DictonaryEntry entry = go.GetComponent<DictonaryEntry>();
+
+            entry.rt = rt;
+            entry.Image = image;
+            DictonaryEntry.EnumDictonaryCharacterType type = DictonaryEntry.EnumDictonaryCharacterType.Image;
+            entry.CharacterType = type;
+
+            return (rt, entry);
+        }
+
+        public (RectTransform, PlacedObject) createDictonaryReference(DictonaryEntry entry) {
+            Type type = entry.CharacterType switch {
+                DictonaryEntry.EnumDictonaryCharacterType.Image => typeof(PlacedImage),
+                DictonaryEntry.EnumDictonaryCharacterType.Shape => typeof(PlacedShape),
+                DictonaryEntry.EnumDictonaryCharacterType.Sprite => typeof(PlacedSprite),
+                _ => typeof(PlacedObject)
+            };
+
+            string name = $"Placed {entry.name}";
+            GameObject go = new(name, typeof(RectTransform), type);
+            RectTransform rt = go.transform as RectTransform;
+            PlacedObject placed = go.GetComponent<PlacedObject>();
+            placed.placedEntry = entry;
+
+
+            return (rt, placed);
         }
     }
 }
