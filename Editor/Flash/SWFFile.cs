@@ -86,7 +86,7 @@ namespace CWAEmu.OFUCU.Flash {
                         Debug.LogWarning($"Skipping {header.TagLength} bytes for tag {header.TagType}");
                         reader.skip(header.TagLength);
                         break;
-                        case 21: // DefineBitsJPEG2
+                    case 21: // DefineBitsJPEG2
                         DefineBitsJPEG2 jpg2 = new();
                         jpg2.Header = header;
                         jpg2.read(reader);
