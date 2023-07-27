@@ -1,4 +1,6 @@
 using System;
+using UnityEngine;
+using UColor32 = UnityEngine.Color32;
 
 namespace CWAEmu.OFUCU.Flash.Records {
     public abstract class FlashImage {
@@ -55,7 +57,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
         }
 
         public override Color readPixelAt(int x, int y) {
-            return ColorTableRGB[ImgData[x, y]];
+            return ColorTableRGB[ImgData[y, x]];
         }
     }
 
@@ -91,7 +93,94 @@ namespace CWAEmu.OFUCU.Flash.Records {
         }
 
         public override Color readPixelAt(int x, int y) {
-            return ImgData[x, y];
+            return ImgData[y, x];
+        }
+    }
+
+    public class Bits1Iamge : FlashImage {
+        public static Bits1Iamge readBits(Reader reader) {
+            return null;
+        }
+
+        public override Color readPixelAt(int x, int y) {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class JPEG2Image : FlashImage {
+        public Color[,] ImgData { get; private set; }
+
+        public static JPEG2Image readJpeg2(Reader reader, int jpegLen) {
+            JPEG2Image img = new();
+
+            if (reader.Version < 8) {
+                // TODO: handle stupid erroneous header of 0xFF, 0xD9, 0xFF, 0xD8 before the JPEG SOI marker
+            }
+
+            byte[] bytes = reader.readBytes(jpegLen);
+            Texture2D tex = new(2, 2);
+            ImageConversion.LoadImage(tex, bytes);
+
+            img.Width = tex.width;
+            img.Height = tex.height;
+
+            img.ImgData = new Color[img.Height, img.Width];
+
+            var unityColors = tex.GetPixels32();
+            for (int i = 0; i < unityColors.Length; i++) {
+                int y = i / img.Width;
+                int x = i % img.Width;
+                UColor32 color = unityColors[i];
+
+                img.ImgData[y, x] = Color.fromUnityColor(color);
+            }
+
+            Texture2D.DestroyImmediate(tex);
+
+            return img;
+        }
+
+        public override Color readPixelAt(int x, int y) {
+            return ImgData[y, x];
+        }
+    }
+
+    public class JPEG3Image : FlashImage {
+        public Color[,] ImgData { get; private set; }
+
+        public static JPEG3Image readJpeg3(Reader reader, uint jpegLen, uint compressedAlphaLen) {
+            JPEG3Image img = new();
+
+            if (reader.Version < 8) {
+                // TODO: handle stupid erroneous header of 0xFF, 0xD9, 0xFF, 0xD8 before the JPEG SOI marker
+            }
+
+            byte[] bytes = reader.readBytes(jpegLen);
+            Texture2D tex = new(2, 2);
+            ImageConversion.LoadImage(tex, bytes);
+
+            img.Width = tex.width;
+            img.Height = tex.height;
+
+            img.ImgData = new Color[img.Height, img.Width];
+
+            var unityColors = tex.GetPixels32();
+            byte[] alphaData = reader.readZLibBytes(compressedAlphaLen).readBytes(compressedAlphaLen);
+            for (int i = 0; i < unityColors.Length; i++) {
+                int y = i / img.Width;
+                int x = i % img.Width;
+                UColor32 color = unityColors[i];
+
+                img.ImgData[y, x] = Color.fromUnityColor(color, alphaData[i]);
+            }
+
+            Texture2D.DestroyImmediate(tex);
+
+            return img;
+        }
+
+        public override Color readPixelAt(int x, int y) {
+            return ImgData[y, x];
         }
     }
 }

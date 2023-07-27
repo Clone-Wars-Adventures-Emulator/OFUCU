@@ -1,3 +1,5 @@
+using UColor32 = UnityEngine.Color32;
+
 namespace CWAEmu.OFUCU.Flash.Records {
     public class Color {
         public byte R { get; private set; }
@@ -67,5 +69,22 @@ namespace CWAEmu.OFUCU.Flash.Records {
             return rgba;
         }
 
+        public static Color fromUnityColor(UColor32 color) {
+            return new() {
+                R = color.r,
+                G = color.g,
+                B = color.b,
+                A = color.a
+            };
+        }
+
+        public static Color fromUnityColor(UColor32 color, byte alphaOverride) {
+            return new() {
+                R = color.r,
+                G = color.g,
+                B = color.b,
+                A = alphaOverride
+            };
+        }
     }
 }

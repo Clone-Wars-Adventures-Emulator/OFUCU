@@ -81,6 +81,28 @@ namespace CWAEmu.OFUCU.Flash {
                         readShape(4, header, reader);
                         break;
 
+                    case 6:  // DefineBits
+                    case 8:  // JPEGTables
+                        Debug.LogWarning($"Skipping {header.TagLength} bytes for tag {header.TagType}");
+                        reader.skip(header.TagLength);
+                        break;
+                        case 21: // DefineBitsJPEG2
+                        DefineBitsJPEG2 jpg2 = new();
+                        jpg2.Header = header;
+                        jpg2.read(reader);
+
+                        CharacterTags.Add(jpg2.CharacterId, jpg2);
+                        Images.Add(jpg2.CharacterId, jpg2.Image);
+                        break;
+                    case 35: // DefineBitsJPEG3
+                        DefineBitsJPEG3 jpg3 = new();
+                        jpg3.Header = header;
+                        jpg3.read(reader);
+
+                        CharacterTags.Add(jpg3.CharacterId, jpg3);
+                        Images.Add(jpg3.CharacterId, jpg3.Image);
+                        break;
+
                     case 20: // DefineBitsLossless
                         readBitsLossless(1, header, reader);
                         break;
@@ -150,11 +172,6 @@ namespace CWAEmu.OFUCU.Flash {
                     case 88: // DefineFontName
 
                     //  = = = = = = = = = = No need to parse = = = = = = = = = =
-                    // SKIPPING THESE, JPEG ALGO is GARBAGE
-                    case 6:  // DefineBits
-                    case 8:  // JPEGTables
-                    case 21: // DefineBitsJPEG2
-                    case 35: // DefineBitsJPEG3
 
                     case 9:  // SetBackgroundColor
                     case 24: // Protect

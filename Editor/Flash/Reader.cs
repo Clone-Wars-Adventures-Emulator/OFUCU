@@ -69,6 +69,17 @@ namespace CWAEmu.OFUCU.Flash {
             return bytes;
         }
 
+        public byte[] readBytes(uint count) {
+            endBitRead();
+
+            byte[] bytes = new byte[count];
+            for (int i = 0; i < count; i++) {
+                bytes[i] = data[index++];
+            }
+
+            return bytes;
+        }
+
         public char[] readChars(int count) {
             endBitRead();
 
@@ -245,6 +256,19 @@ namespace CWAEmu.OFUCU.Flash {
         }
 
         public Reader readZLibBytes(int numBytes) {
+            byte[] bytes = readBytes(numBytes);
+
+            using var targetStream = new MemoryStream();
+
+            using var compressedStream = new MemoryStream(bytes);
+            using var decompressStream = new ZlibStream(compressedStream, Ionic.Zlib.CompressionMode.Decompress);
+
+            decompressStream.CopyTo(targetStream);
+
+            return new Reader(targetStream.ToArray(), flashVersion);
+        }
+
+        internal Reader readZLibBytes(uint numBytes) {
             byte[] bytes = readBytes(numBytes);
 
             using var targetStream = new MemoryStream();
