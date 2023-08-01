@@ -4,8 +4,12 @@ using UnityEngine;
 
 namespace CWAEmu.OFUCU.Flash {
     public class DefineBits : CharacterTag {
+        public FlashImage Image { get; private set; }
+
         public override void read(Reader reader) {
-            throw new System.NotImplementedException();
+            CharacterId = reader.readUInt16();
+
+            Image = Bits1Iamge.readBits(reader, Header.TagLength - 2);
         }
     }
 

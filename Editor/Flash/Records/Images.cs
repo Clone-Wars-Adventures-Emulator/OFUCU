@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.XR;
 using UColor32 = UnityEngine.Color32;
 
 namespace CWAEmu.OFUCU.Flash.Records {
@@ -98,12 +100,41 @@ namespace CWAEmu.OFUCU.Flash.Records {
     }
 
     public class Bits1Iamge : FlashImage {
-        public static Bits1Iamge readBits(Reader reader) {
-            return null;
+        public Color[,] ImgData { get; private set; }
+
+        public static Bits1Iamge readBits(Reader reader, int len) {
+            Bits1Iamge img = new();
+
+            byte[] imageData = reader.readBytes(len);
+
+            // TODO: verify a dum concat works
+            byte[] jpegData = reader.File.JPEGTable.TableData.Concat(imageData).ToArray();
+
+            Texture2D tex = new(2, 2);
+            ImageConversion.LoadImage(tex, jpegData);
+
+            img.Width = tex.width;
+            img.Height = tex.height;
+
+            img.ImgData = new Color[img.Height, img.Width];
+
+            var unityColors = tex.GetPixels32();
+            for (int i = 0; i < unityColors.Length; i++) {
+                int y = i / img.Width;
+                int x = i % img.Width;
+                UColor32 color = unityColors[i];
+
+                img.ImgData[y, x] = Color.fromUnityColor(color);
+            }
+
+            Texture2D.DestroyImmediate(tex);
+
+
+            return img;
         }
 
         public override Color readPixelAt(int x, int y) {
-            throw new NotImplementedException();
+            return ImgData[y, x];
         }
     }
 
@@ -165,7 +196,8 @@ namespace CWAEmu.OFUCU.Flash.Records {
             img.ImgData = new Color[img.Height, img.Width];
 
             var unityColors = tex.GetPixels32();
-            byte[] alphaData = reader.readZLibBytes(compressedAlphaLen).readBytes(compressedAlphaLen);
+            Reader zlibed = reader.readZLibBytes(compressedAlphaLen);
+            byte[] alphaData = zlibed.readBytes(zlibed.Remaining);
             for (int i = 0; i < unityColors.Length; i++) {
                 int y = i / img.Width;
                 int x = i % img.Width;

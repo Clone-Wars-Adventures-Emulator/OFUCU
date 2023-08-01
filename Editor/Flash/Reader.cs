@@ -12,13 +12,15 @@ namespace CWAEmu.OFUCU.Flash {
 
         private readonly byte[] data;
         private readonly byte flashVersion;
+        private readonly SWFFile file;
         private int index;
         private int bitOffset;
         private bool skipImageData;
 
-        public Reader(byte[] data, byte flashVersion, bool skipImageData = false) {
+        public Reader(byte[] data, SWFFile file, bool skipImageData = false) {
             this.data = data;
-            this.flashVersion = flashVersion;
+            flashVersion = file.Version;
+            this.file = file;
             this.skipImageData = skipImageData;
             index = 0;
             bitOffset = 0;
@@ -28,6 +30,7 @@ namespace CWAEmu.OFUCU.Flash {
         public bool SkipImageData => skipImageData;
         public bool ReachedEnd => index == data.Length;
         public int Remaining => data.Length - index;
+        public SWFFile File => file;
 
         public void skip(int bytes) => index += bytes;
 
@@ -265,7 +268,7 @@ namespace CWAEmu.OFUCU.Flash {
 
             decompressStream.CopyTo(targetStream);
 
-            return new Reader(targetStream.ToArray(), flashVersion);
+            return new Reader(targetStream.ToArray(), file);
         }
 
         internal Reader readZLibBytes(uint numBytes) {
@@ -278,7 +281,7 @@ namespace CWAEmu.OFUCU.Flash {
 
             decompressStream.CopyTo(targetStream);
 
-            return new Reader(targetStream.ToArray(), flashVersion);
+            return new Reader(targetStream.ToArray(), file);
         }
     }
 }

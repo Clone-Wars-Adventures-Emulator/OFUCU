@@ -32,6 +32,7 @@ namespace CWAEmu.OFUCU.Flash {
         public Dictionary<int, DefineSprite> Sprites { get; private set; } = new();
         public List<Frame> Frames { get; private set; } = new();
         public List<DefineScalingGrid> ScalingGrids { get; private set; } = new();
+        public JPEGTable JPEGTable { get; private set; }
 
         private bool parseImages;
 
@@ -82,9 +83,24 @@ namespace CWAEmu.OFUCU.Flash {
                         break;
 
                     case 6:  // DefineBits
+                        DefineBits defBits = new();
+                        defBits.Header = header;
+                        defBits.read(reader);
+
+                        CharacterTags.Add(defBits.CharacterId, defBits);
+                        Images.Add(defBits.CharacterId, defBits.Image);
+                        break;
                     case 8:  // JPEGTables
-                        Debug.LogWarning($"Skipping {header.TagLength} bytes for tag {header.TagType}");
-                        reader.skip(header.TagLength);
+                        if (JPEGTable != null) {
+                            Debug.LogError("There cannot be more than one JPEGTable tag in a flash file");
+                            break;
+                        }
+                        
+                        JPEGTable jTable = new();
+                        jTable.Header = header;
+                        jTable.read(reader);
+
+                        JPEGTable = jTable;
                         break;
                     case 21: // DefineBitsJPEG2
                         DefineBitsJPEG2 jpg2 = new();
@@ -277,7 +293,7 @@ namespace CWAEmu.OFUCU.Flash {
                 data = targetStream.ToArray();
             }
 
-            Reader reader = new(data, file.Version, parseImages);
+            Reader reader = new(data, file, parseImages);
             file.FrameSize = Rect.readRect(reader);
             file.FrameRate = reader.readUInt16() / 256.0f;
             file.FrameCount = reader.readUInt16();
