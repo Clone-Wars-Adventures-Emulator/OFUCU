@@ -1,26 +1,25 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.XR;
 using UColor32 = UnityEngine.Color32;
 
 namespace CWAEmu.OFUCU.Flash.Records {
-    public abstract class FlashImage {
-        public int Width { get; protected set; }
-        public int Height { get; protected set; }
-        public abstract Color readPixelAt(int x, int y);
-    }
-    
-    public class DummyImage : FlashImage {
-        public static DummyImage createDummyImage(int width, int height) {
-            DummyImage di = new();
-            di.Width = width;
-            di.Height = height;
-            
-            return di;
+    [System.Serializable]
+    public class FlashImage {
+        public int Width { get { return width; } protected set { width = value; } }
+        public int Height { get { return height; } protected set { height = value; } }
+        [SerializeField] private int width;
+        [SerializeField] private int height;
+
+        public static FlashImage createBlankImage(int width, int height) {
+            FlashImage fi = new();
+            fi.Width = width;
+            fi.Height = height;
+
+            return fi;
         }
-        
-        public override Color readPixelAt(int x, int y) {
+
+        public virtual Color readPixelAt(int x, int y) {
             return Color.Black;
         }
     }

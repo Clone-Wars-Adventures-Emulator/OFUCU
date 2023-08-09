@@ -228,7 +228,7 @@ namespace CWAEmu.OFUCU {
             DictonaryEntry entry = go.GetComponent<DictonaryEntry>();
 
             entry.rt = rt;
-            entry.Tag = tag;
+            entry.charTag = tag;
             DictonaryEntry.EnumDictonaryCharacterType type = DictonaryEntry.EnumDictonaryCharacterType.Shape;
             if (tag is DefineSprite) {
                 type = DictonaryEntry.EnumDictonaryCharacterType.Sprite;
@@ -244,7 +244,7 @@ namespace CWAEmu.OFUCU {
             DictonaryEntry entry = go.GetComponent<DictonaryEntry>();
 
             entry.rt = rt;
-            entry.Image = image;
+            entry.image = image;
             DictonaryEntry.EnumDictonaryCharacterType type = DictonaryEntry.EnumDictonaryCharacterType.Image;
             entry.CharacterType = type;
 

@@ -1,5 +1,11 @@
+using UnityEngine;
+
 namespace CWAEmu.OFUCU.Flash.Tags {
-    public abstract class CharacterTag : FlashTag {
-        public ushort CharacterId { get; protected set; }
+    [System.Serializable]
+    public class CharacterTag : FlashTag {
+        private protected CharacterTag() { }
+        
+        public ushort CharacterId { get { return charId; } protected set { charId = value; } }
+        [SerializeField] private ushort charId;
     }
 }

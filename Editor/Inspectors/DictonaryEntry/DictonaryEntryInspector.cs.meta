@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: ccc8031c283f31747ba703be6a8079e1
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - ImageInspector: {fileID: 9197481963319205126, guid: 16821c1d35118a24a9dfc58932d03b8a,
+      type: 3}
+  - ShapeInspector: {fileID: 9197481963319205126, guid: 6cf0994a7d921fd48886f3a32859c021,
+      type: 3}
+  - SpriteInspector: {fileID: 9197481963319205126, guid: 42b1588daebcc5d4c8e5c6c7c99a9728,
+      type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

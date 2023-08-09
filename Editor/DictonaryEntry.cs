@@ -11,8 +11,8 @@ namespace CWAEmu.OFUCU {
             Sprite
         }
 
-        public CharacterTag Tag;
-        public FlashImage Image;
+        public CharacterTag charTag;
+        public FlashImage image;
         public EnumDictonaryCharacterType CharacterType;
         public RectTransform rt;
         public List<int> neededCharacters = new();
