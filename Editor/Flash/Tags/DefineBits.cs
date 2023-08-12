@@ -1,11 +1,7 @@
 using CWAEmu.OFUCU.Flash.Records;
-using CWAEmu.OFUCU.Flash.Tags;
-using UnityEngine;
 
-namespace CWAEmu.OFUCU.Flash {
-    public class DefineBits : CharacterTag {
-        public FlashImage Image { get; private set; }
-
+namespace CWAEmu.OFUCU.Flash.Tags {
+    public class DefineBits : ImageCharacterTag {
         public override void read(Reader reader) {
             CharacterId = reader.readUInt16();
 
@@ -13,9 +9,7 @@ namespace CWAEmu.OFUCU.Flash {
         }
     }
 
-    public class DefineBitsJPEG2 : CharacterTag {
-        public FlashImage Image { get; private set; }
-
+    public class DefineBitsJPEG2 : ImageCharacterTag {
         public override void read(Reader reader) {
             CharacterId = reader.readUInt16();
 
@@ -23,9 +17,7 @@ namespace CWAEmu.OFUCU.Flash {
         }
     }
 
-    public class DefineBitsJPEG3 : CharacterTag {
-        public FlashImage Image { get; private set; }
-
+    public class DefineBitsJPEG3 : ImageCharacterTag {
         public override void read(Reader reader) {
             CharacterId = reader.readUInt16();
 

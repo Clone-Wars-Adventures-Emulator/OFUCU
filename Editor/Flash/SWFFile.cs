@@ -21,6 +21,7 @@ namespace CWAEmu.OFUCU.Flash {
         public char Signature3 { get; private set; }
         public byte Version { get; private set; }
         public string Name { get; private set; }
+        public string FullName { get; private set; }
         public Rect FrameSize { get; private set; }
         public float FrameRate { get; private set; }
         public ushort FrameCount { get; private set; }
@@ -28,7 +29,7 @@ namespace CWAEmu.OFUCU.Flash {
         public List<FlashTagHeader> TagHeaders { get; private set; } = new();
         public Dictionary<int, CharacterTag> CharacterTags { get; private set; } = new();
         public Dictionary<int, DefineShape> Shapes { get; private set; } = new();
-        public Dictionary<int, FlashImage> Images { get; private set; } = new();
+        public Dictionary<int, ImageCharacterTag> Images { get; private set; } = new();
         public Dictionary<int, DefineSprite> Sprites { get; private set; } = new();
         public List<Frame> Frames { get; private set; } = new();
         public List<DefineScalingGrid> ScalingGrids { get; private set; } = new();
@@ -37,7 +38,8 @@ namespace CWAEmu.OFUCU.Flash {
         private bool parseImages;
 
         private SWFFile(string name, bool parseImages = true) {
-            Name = name;
+            FullName = name;
+            Name = name[0..name.IndexOf('.')];
             this.parseImages = parseImages;
         }
 
@@ -88,7 +90,7 @@ namespace CWAEmu.OFUCU.Flash {
                         defBits.read(reader);
 
                         CharacterTags.Add(defBits.CharacterId, defBits);
-                        Images.Add(defBits.CharacterId, defBits.Image);
+                        Images.Add(defBits.CharacterId, defBits);
                         break;
                     case 8:  // JPEGTables
                         if (JPEGTable != null) {
@@ -108,7 +110,7 @@ namespace CWAEmu.OFUCU.Flash {
                         jpg2.read(reader);
 
                         CharacterTags.Add(jpg2.CharacterId, jpg2);
-                        Images.Add(jpg2.CharacterId, jpg2.Image);
+                        Images.Add(jpg2.CharacterId, jpg2);
                         break;
                     case 35: // DefineBitsJPEG3
                         DefineBitsJPEG3 jpg3 = new();
@@ -116,7 +118,7 @@ namespace CWAEmu.OFUCU.Flash {
                         jpg3.read(reader);
 
                         CharacterTags.Add(jpg3.CharacterId, jpg3);
-                        Images.Add(jpg3.CharacterId, jpg3.Image);
+                        Images.Add(jpg3.CharacterId, jpg3);
                         break;
 
                     case 20: // DefineBitsLossless
@@ -234,7 +236,7 @@ namespace CWAEmu.OFUCU.Flash {
             bits.read(reader);
 
             CharacterTags.Add(bits.CharacterId, bits);
-            Images.Add(bits.CharacterId, bits.ImageData);
+            Images.Add(bits.CharacterId, bits);
         }
 
         private void readSprite(FlashTagHeader header, Reader reader) {

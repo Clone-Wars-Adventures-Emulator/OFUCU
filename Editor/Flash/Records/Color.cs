@@ -86,5 +86,14 @@ namespace CWAEmu.OFUCU.Flash.Records {
                 A = alphaOverride
             };
         }
+
+        public UColor32 asUnityColor() {
+            return new() {
+                r = R,
+                g = G,
+                b = B,
+                a = A
+            };
+        }
     }
 }

@@ -1,13 +1,12 @@
 using CWAEmu.OFUCU.Flash.Records;
 
 namespace CWAEmu.OFUCU.Flash.Tags {
-    public class DefineBitsLossless : CharacterTag {
+    public class DefineBitsLossless : ImageCharacterTag {
         public int BitsLosslessType { get; set; }
         public byte BitmapFormat { get; private set; }
         public ushort BitmapWidth { get; private set; }
         public ushort BitmapHeight { get; private set; }
         public int BitmapColorTableSize { get; private set; }
-        public FlashImage ImageData { get; private set; }  
 
         public override void read(Reader reader) {
             CharacterId = reader.readUInt16();
@@ -20,7 +19,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
             if (reader.SkipImageData) {
                 // skip (taglength - 7) bytes, as 7 bytes were already read from the tag.
                 reader.readBytes(Header.TagLength - 7);
-                ImageData = FlashImage.createBlankImage(BitmapWidth, BitmapHeight);
+                Image = FlashImage.createBlankImage(BitmapWidth, BitmapHeight);
                 return;
             }
 
@@ -34,10 +33,10 @@ namespace CWAEmu.OFUCU.Flash.Tags {
 
                 Reader decompressed = reader.readZLibBytes(Header.TagLength - bytesOfTagread);
 
-                ImageData = ColorMapData.readColorMapData(decompressed, BitmapColorTableSize, BitsLosslessType, BitmapWidth, BitmapHeight, padding);
+                Image = ColorMapData.readColorMapData(decompressed, BitmapColorTableSize, BitsLosslessType, BitmapWidth, BitmapHeight, padding);
             } else if (BitmapFormat == 4 || BitmapFormat == 5) {
                 Reader decompressed = reader.readZLibBytes(Header.TagLength - bytesOfTagread);
-                ImageData = BitMapData.readBitMapData(decompressed, BitsLosslessType, BitmapFormat, BitmapWidth, BitmapHeight, padding);
+                Image = BitMapData.readBitMapData(decompressed, BitsLosslessType, BitmapFormat, BitmapWidth, BitmapHeight, padding);
             }
         }
 

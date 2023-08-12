@@ -2,5 +2,5 @@
     <ui:Label text="Image Dictonary Entry" display-tooltip-when-elided="true" />
     <uie:PropertyField binding-path="charTag" label="Tag" />
     <uie:PropertyField binding-path="image" label="Image" />
-    <uie:PropertyField binding-path="neededCharacters" />
+    <ui:Button text="Save Image As Asset" display-tooltip-when-elided="true" name="save" style="top: 2px;" />
 </ui:UXML>

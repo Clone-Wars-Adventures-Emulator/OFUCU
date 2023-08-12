@@ -15,6 +15,7 @@ namespace CWAEmu.OFUCU {
         private GameObject rootObj;
         private RectTransform vfswfhT;
         private RectTransform dictonaryT;
+        private PlacedSWFFile placedSWF;
 
         private Dictionary<int, DictonaryEntry> dictonary = new();
         private Dictionary<int, int> usageCount = new();
@@ -31,7 +32,8 @@ namespace CWAEmu.OFUCU {
 
         private void loadDictonaryToScene() {
             rootObj = new($"SWF Root: {file.Name}");
-            PlacedSWFFile placed = rootObj.AddComponent<PlacedSWFFile>();
+            placedSWF = rootObj.AddComponent<PlacedSWFFile>();
+            placedSWF.File = file;
             Canvas canvas = rootObj.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
@@ -73,13 +75,13 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        private void createImageObject(int charId, FlashImage image) {
+        private void createImageObject(int charId, ImageCharacterTag image) {
             var (rt, de) = createDictonaryEntry(image, $"Image {charId}");
 
             rt.SetParent(dictonaryT, false);
 
             rt.pivot = new Vector2(0, 1);
-            rt.sizeDelta = new Vector2(image.Width, image.Height);
+            rt.sizeDelta = new Vector2(image.Image.Width, image.Image.Height);
 
             dictonary.Add(charId, de);
         }
@@ -227,25 +229,18 @@ namespace CWAEmu.OFUCU {
             RectTransform rt = go.transform as RectTransform;
             DictonaryEntry entry = go.GetComponent<DictonaryEntry>();
 
+            entry.containingFile = placedSWF;
+
             entry.rt = rt;
             entry.charTag = tag;
             DictonaryEntry.EnumDictonaryCharacterType type = DictonaryEntry.EnumDictonaryCharacterType.Shape;
             if (tag is DefineSprite) {
                 type = DictonaryEntry.EnumDictonaryCharacterType.Sprite;
             }
-            entry.CharacterType = type;
-
-            return (rt, entry);
-        }
-
-        public (RectTransform, DictonaryEntry) createDictonaryEntry(FlashImage image, string name) {
-            GameObject go = new(name, typeof(RectTransform), typeof(DictonaryEntry));
-            RectTransform rt = go.transform as RectTransform;
-            DictonaryEntry entry = go.GetComponent<DictonaryEntry>();
-
-            entry.rt = rt;
-            entry.image = image;
-            DictonaryEntry.EnumDictonaryCharacterType type = DictonaryEntry.EnumDictonaryCharacterType.Image;
+            if (tag is ImageCharacterTag) {
+                type = DictonaryEntry.EnumDictonaryCharacterType.Image;
+                entry.image = (tag as ImageCharacterTag).Image;
+            }
             entry.CharacterType = type;
 
             return (rt, entry);
