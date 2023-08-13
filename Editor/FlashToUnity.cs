@@ -34,6 +34,7 @@ namespace CWAEmu.OFUCU {
             rootObj = new($"SWF Root: {file.Name}");
             placedSWF = rootObj.AddComponent<PlacedSWFFile>();
             placedSWF.File = file;
+            placedSWF.dictonary = dictonary;
             Canvas canvas = rootObj.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 

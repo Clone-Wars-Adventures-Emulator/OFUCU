@@ -12,14 +12,12 @@ namespace CWAEmu.OFUCU {
 
         private string curPath;
         private string swfName;
-        private string fileName;
         private Action<string> callback;
 
-        public static void ShowModal(string swfName, string fileName, Action<string> onClose) {
+        public static void ShowModal(string swfName, Action<string> onClose) {
             AssetPathModal window = CreateInstance<AssetPathModal>();
             window.position = new Rect(Screen.width / 2, Screen.height / 2, 250, 150);
             window.swfName = swfName;
-            window.fileName = fileName;
             window.curPath = $"{BaseAssetPath}/{Path.GetFileName(swfName)}";
             window.callback = onClose;
             window.Show();
