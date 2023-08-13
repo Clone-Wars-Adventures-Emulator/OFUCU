@@ -157,11 +157,12 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                     return;
                 }
 
-                URect extends = new();
-                extends.xMin = minX;
-                extends.yMin = minY;
-                extends.xMax = maxX;
-                extends.yMax = maxY;
+                URect extends = new() {
+                    xMin = minX,
+                    yMin = minY,
+                    xMax = maxX,
+                    yMax = maxY
+                };
 
                 // if solid, fill solid
                 if (singleStyle.Type == FillStyle.EnumFillStyleType.Solid) {

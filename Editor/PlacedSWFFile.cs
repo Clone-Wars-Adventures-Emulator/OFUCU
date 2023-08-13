@@ -101,6 +101,7 @@ namespace CWAEmu.OFUCU {
                 de.addDependency(bitmapId);
 
                 rt.SetParent(absZeroTrans, false);
+                rt.pivot = new Vector2(0, 1);
                 rt.anchoredPosition = new Vector2(extends.xMin, -extends.yMin);
                 rt.sizeDelta = new Vector2(Mathf.Abs(extends.xMax - extends.xMin), Mathf.Abs(extends.yMax - extends.yMin));
             }
