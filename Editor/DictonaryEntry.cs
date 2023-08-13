@@ -6,6 +6,8 @@ using UnityEditor;
 using UnityEngine;
 using URect = UnityEngine.Rect;
 using UColor = UnityEngine.Color;
+using UnityEngine.UI;
+using System.Linq;
 
 namespace CWAEmu.OFUCU {
     public class DictonaryEntry : MonoBehaviour {
@@ -15,12 +17,15 @@ namespace CWAEmu.OFUCU {
             Sprite
         }
 
+        // Common
         public PlacedSWFFile containingFile;
         public CharacterTag charTag;
-        public FlashImage image;
         public EnumDictonaryCharacterType CharacterType;
         public RectTransform rt;
         public List<int> neededCharacters = new();
+
+        // Image
+        public FlashImage image; // TODO: remove in favor of casting charTag???
 
         private string assetPath;
 
@@ -93,13 +98,46 @@ namespace CWAEmu.OFUCU {
         }
 
         public void fillShape() {
+            RectTransform absZero = transform.Find("ShapeAbsZero") as RectTransform;
+            List<PlacedImage> images = absZero.gameObject.GetComponentsInChildren<PlacedImage>().ToList();
+
             // TODO: extract these out or leave them in here??
             void onBitmapFill(URect extends, ushort bitmapId, bool smooth, bool clipped) {
+                PlacedImage workingImage = null;
+                foreach (PlacedImage image in images) {
+                    // It is possible that there is more than one of the same image placed, avoid anyone that has already been placed
+                    if (image.gameObject.GetComponent<Image>() != null) {
+                        continue;
+                    }
 
+                    if (image.placedEntry.charTag.CharacterId == bitmapId) {
+                        workingImage = image;
+                        break;
+                    }
+                }
+
+                if (workingImage == null) {
+                    // BAD USER! do not delete my objects!
+                    // TODO: fix this for the user
+                }
+
+                Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(workingImage.placedEntry.assetPath);
+                if (sprite == null) {
+                    Debug.LogError($"Failed to load sprite at {workingImage.placedEntry.assetPath}.");
+                }
+                Image img = workingImage.gameObject.AddComponent<Image>();
+                img.sprite = sprite;
             }
 
             void onSolidFill(URect extends, UColor color) {
-                // TODO: create child of absZero, set color of imate to color
+                var (go, rt) = containingFile.createUIObj("Solid Fill");
+                rt.SetParent(absZero, false);
+                rt.pivot = new Vector2(0, 1);
+                rt.anchoredPosition = new Vector2(extends.xMin, -extends.yMin);
+                rt.sizeDelta = new Vector2(Mathf.Abs(extends.xMax - extends.xMin), Mathf.Abs(extends.yMax - extends.yMin));
+
+                Image img = go.AddComponent<Image>();
+                img.color = color;
             }
 
             void onGradientFill(URect extends) {
@@ -111,6 +149,7 @@ namespace CWAEmu.OFUCU {
 
         public void flattenShape() {
             // TODO: will this ever have functionality??
+            // Also this would need to ensure a filled shape first before flattening
         }
     }
 }

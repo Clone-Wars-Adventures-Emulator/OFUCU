@@ -140,7 +140,7 @@ namespace CWAEmu.OFUCU {
             dictonary.Add(sprite.CharacterId, de);
         }
 
-        private (GameObject, RectTransform) createUIObj(string name) {
+        public (GameObject, RectTransform) createUIObj(string name) {
             GameObject go = new(name, typeof(RectTransform));
             RectTransform rt = go.transform as RectTransform;
 
