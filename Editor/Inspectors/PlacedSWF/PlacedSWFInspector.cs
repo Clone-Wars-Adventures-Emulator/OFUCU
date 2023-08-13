@@ -21,10 +21,24 @@ namespace CWAEmu.OFUCU {
 
             Inspector.CloneTree(root);
 
-            var btnEle = root.Q("save");
-            if (btnEle is Button btn) {
-                btn.clicked += () => {
+            var saveBtnEle = root.Q("save");
+            if (saveBtnEle is Button saveBtn) {
+                saveBtn.clicked += () => {
                     AssetPathModal.ShowModal(entry.File.Name, saveAllImaages);
+                };
+            }
+
+            var fillBtnEle = root.Q("fill");
+            if (fillBtnEle is Button fillBtn) {
+                fillBtn.clicked += () => {
+                    entry.runOnAllOfType(entry => entry.fillShape(), DictonaryEntry.EnumDictonaryCharacterType.Shape);
+                };
+            }
+
+            var flattenBtnEle = root.Q("flat");
+            if (flattenBtnEle is Button flattenBtn) {
+                flattenBtn.clicked += () => {
+                    entry.runOnAllOfType(entry => entry.flattenShape(), DictonaryEntry.EnumDictonaryCharacterType.Shape);
                 };
             }
 

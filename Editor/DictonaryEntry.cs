@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using URect = UnityEngine.Rect;
+using UColor = UnityEngine.Color;
 
 namespace CWAEmu.OFUCU {
     public class DictonaryEntry : MonoBehaviour {
@@ -20,6 +22,8 @@ namespace CWAEmu.OFUCU {
         public RectTransform rt;
         public List<int> neededCharacters = new();
 
+        private string assetPath;
+
         public void addDependency(int charId) {
             if (!neededCharacters.Contains(charId)) {
                 neededCharacters.Add(charId);
@@ -30,6 +34,11 @@ namespace CWAEmu.OFUCU {
             if (!path.StartsWith("Assets/")) {
                 Debug.LogError($"File path {path} is invalid. Path must start with Assets/");
                 return;
+            }
+
+            if (assetPath != null) {
+                // TODO: prevent this?
+                Debug.LogWarning($"Image {name} already has a saved asset at {assetPath}.");
             }
 
             // get the image into an array of unity colors and load it into a Texture2D
@@ -55,6 +64,8 @@ namespace CWAEmu.OFUCU {
             File.WriteAllBytes(path, png);
             AssetDatabase.Refresh();
 
+            assetPath = path;
+
             // Force opinionated settings (other users can overwrite these if they want of course)
             TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(path);
             if (importer == null) {
@@ -79,6 +90,27 @@ namespace CWAEmu.OFUCU {
 
             EditorUtility.SetDirty(importer);
             importer.SaveAndReimport();
+        }
+
+        public void fillShape() {
+            // TODO: extract these out or leave them in here??
+            void onBitmapFill(URect extends, ushort bitmapId, bool smooth, bool clipped) {
+
+            }
+
+            void onSolidFill(URect extends, UColor color) {
+                // TODO: create child of absZero, set color of imate to color
+            }
+
+            void onGradientFill(URect extends) {
+                Debug.LogError($"Gradient fill not supported. Cannot fill shape {charTag.CharacterId}");
+            }
+
+            (charTag as DefineShape).iterateOnShapeFill(onBitmapFill, onSolidFill, onGradientFill);
+        }
+
+        public void flattenShape() {
+            // TODO: will this ever have functionality??
         }
     }
 }

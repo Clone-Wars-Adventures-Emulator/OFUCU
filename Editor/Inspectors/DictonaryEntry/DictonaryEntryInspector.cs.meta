@@ -4,9 +4,9 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - ImageInspector: {fileID: 9197481963319205126, guid: 16821c1d35118a24a9dfc58932d03b8a,
+  - ImageInspector: {fileID: 9197481963319205126, guid: 5ca58d46f34eb604db004bd36de1b753,
       type: 3}
-  - ShapeInspector: {fileID: 9197481963319205126, guid: 6cf0994a7d921fd48886f3a32859c021,
+  - ShapeInspector: {fileID: 9197481963319205126, guid: 16821c1d35118a24a9dfc58932d03b8a,
       type: 3}
   - SpriteInspector: {fileID: 9197481963319205126, guid: 42b1588daebcc5d4c8e5c6c7c99a9728,
       type: 3}

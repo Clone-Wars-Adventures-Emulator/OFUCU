@@ -25,15 +25,29 @@ namespace CWAEmu.OFUCU.Inspectors {
                 case DictonaryEntry.EnumDictonaryCharacterType.Image:
                     ImageInspector.CloneTree(root);
 
-                    var btnEle = root.Q("save");
-                    if (btnEle is Button btn) {
-                        btn.clicked += () => {
+                    var saveBtnEle = root.Q("save");
+                    if (saveBtnEle is Button saveBtn) {
+                        saveBtn.clicked += () => {
                             AssetPathModal.ShowModal(entry.containingFile.File.Name, entry.saveImageToAsset);
                         };
                     }
                     break;
                 case DictonaryEntry.EnumDictonaryCharacterType.Shape:
                     ShapeInspector.CloneTree(root);
+
+                    var fillBtnEle = root.Q("fill");
+                    if (fillBtnEle is Button fillBtn) {
+                        fillBtn.clicked += () => {
+                            entry.fillShape();
+                        };
+                    }
+
+                    var flattenBtnEle = root.Q("flat");
+                    if (flattenBtnEle is Button flattenBtn) {
+                        flattenBtn.clicked += () => {
+                            entry.flattenShape();
+                        };
+                    }
                     break;
                 case DictonaryEntry.EnumDictonaryCharacterType.Sprite:
                     SpriteInspector.CloneTree(root);

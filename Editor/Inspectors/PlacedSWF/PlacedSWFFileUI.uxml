@@ -1,4 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <ui:Label text="Placed SWF File" display-tooltip-when-elided="true" />
     <ui:Button text="Save All Images" display-tooltip-when-elided="true" name="save" style="top: 2px;" />
+    <ui:Button text="Fill All Shapes" display-tooltip-when-elided="true" name="fill" style="top: 2px;" />
+    <ui:Button text="Flatten All Shapes" display-tooltip-when-elided="true" name="flatten" style="top: 2px;" />
 </ui:UXML>

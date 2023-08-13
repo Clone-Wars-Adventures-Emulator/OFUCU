@@ -1,11 +1,18 @@
 using CWAEmu.OFUCU.Flash.Records;
+using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Rect = CWAEmu.OFUCU.Flash.Records.Rect;
+using URect = UnityEngine.Rect;
+using UColor = UnityEngine.Color;
 
 namespace CWAEmu.OFUCU.Flash.Tags {
     public class DefineShape : CharacterTag {
         public delegate void OnShapeClosed(FillStyleArray fsa, LineStyleArray lsa, int fill0, int fill1, int line, List<Vector2> boxPoints, int shapeId);
+        public delegate void OnFillBitmap(URect extends, ushort bitmapId, bool smooth, bool cropped);
+        public delegate void OnFillSolid(URect extends, UColor color);
+        public delegate void OnFillGradient(URect extends);
 
         public int ShapeType { get; set; }
         public Rect ShapeBounds { get; private set; }
@@ -107,7 +114,77 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                     onClosed(fsa, lsa, fill0Idx, fill1Idx, lineIdx, boxPoints, CharacterId);
                 }
             }
+        }
 
+        public void iterateOnShapeFill(OnFillBitmap onBitmap, OnFillSolid onSolid, OnFillGradient onGradient) {
+            iterateOnShape((fsa, lsa, fill0, fill1, line, boxPoints, shapeId) => {
+                // TODO: proper pathing instead of just bounds checking
+                float minX = float.MaxValue;
+                float minY = float.MaxValue;
+                float maxX = float.MinValue;
+                float maxY = float.MinValue;
+
+                foreach (var point in boxPoints) {
+                    minX = Math.Min(point.x, minX);
+                    minY = Math.Min(point.y, minY);
+                    maxX = Math.Max(point.x, maxX);
+                    maxY = Math.Max(point.y, maxY);
+                }
+
+                // TODO: handle lines rendering lines
+                if (line != -1) {
+                    Debug.LogError($"Attempting to render a shape ({shapeId}) with a line style specified. Unknown how to handle.");
+                    return;
+                }
+
+                // TODO: handle multiple fill styles being set
+                if (fill0 != -1 && fill1 != -1) {
+                    Debug.LogError($"Attempting to render a shape ({shapeId}) with two fill styles specified. Unknown how to handle.");
+                    return;
+                }
+
+                FillStyle singleStyle = null;
+                if (fill0 != -1) {
+                    singleStyle = fsa[fill0];
+                }
+
+                if (fill1 != -1) {
+                    singleStyle = fsa[fill1];
+                }
+
+                if (singleStyle == null) {
+                    Debug.LogError($"Attempting to render a shape ({shapeId}) with no fill styles specified. Unknown how to handle.");
+                    return;
+                }
+
+                URect extends = new();
+                extends.xMin = minX;
+                extends.yMin = minY;
+                extends.xMax = maxX;
+                extends.yMax = maxY;
+
+                // if solid, fill solid
+                if (singleStyle.Type == FillStyle.EnumFillStyleType.Solid) {
+                    UColor fillColor = singleStyle.Color.asUnityColor();
+                    onSolid?.Invoke(extends, fillColor);
+                    return;
+                }
+
+                byte fillTypeAsByte = ((byte)singleStyle.Type);
+                if ((fillTypeAsByte & 0x10) == 0x10) {
+                    // TODO: what all properties will i need for this??
+                    Debug.LogWarning("Gradient fill. Unknown how to properly handle.");
+
+                    onGradient?.Invoke(extends);
+
+                    return;
+                }
+
+                bool smoothed = (fillTypeAsByte & 0x02) == 0x02;
+                bool clipped = (fillTypeAsByte & 0x01) == 0x01;
+
+                onBitmap?.Invoke(extends, singleStyle.BitmapId, smoothed, clipped);
+            });
         }
     }
 }
