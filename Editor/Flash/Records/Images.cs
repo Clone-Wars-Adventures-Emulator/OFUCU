@@ -123,12 +123,15 @@ namespace CWAEmu.OFUCU.Flash.Records {
             img.ImgData = new Color[img.Height, img.Width];
 
             var unityColors = tex.GetPixels32();
-            for (int i = 0; i < unityColors.Length; i++) {
-                int y = i / img.Width;
-                int x = i % img.Width;
-                UColor32 color = unityColors[i];
 
-                img.ImgData[y, x] = Color.fromUnityColor(color);
+            // Unity likes trolling people and treating the bottom left of an image as 0,0 instead of the top left, so we have to accout for that here
+            for (int y = 0; y < img.Height; y++) {
+                for (int x = 0; x < img.Width; x++) {
+                    int unityY = img.Height - y - 1;
+                    UColor32 color = unityColors[unityY * img.Width + x];
+
+                    img.ImgData[y, x] = Color.fromUnityColor(color);
+                }
             }
 
             Texture2D.DestroyImmediate(tex);
@@ -165,12 +168,15 @@ namespace CWAEmu.OFUCU.Flash.Records {
             img.ImgData = new Color[img.Height, img.Width];
 
             var unityColors = tex.GetPixels32();
-            for (int i = 0; i < unityColors.Length; i++) {
-                int y = i / img.Width;
-                int x = i % img.Width;
-                UColor32 color = unityColors[i];
 
-                img.ImgData[y, x] = Color.fromUnityColor(color);
+            // Unity likes trolling people and treating the bottom left of an image as 0,0 instead of the top left, so we have to accout for that here
+            for (int y = 0; y < img.Height; y++) {
+                for (int x = 0; x < img.Width; x++) {
+                    int unityY = img.Height - y - 1;
+                    UColor32 color = unityColors[unityY * img.Width + x];
+
+                    img.ImgData[y, x] = Color.fromUnityColor(color);
+                }
             }
 
             Texture2D.DestroyImmediate(tex);
@@ -209,12 +215,16 @@ namespace CWAEmu.OFUCU.Flash.Records {
             var unityColors = tex.GetPixels32();
             Reader zlibed = reader.readZLibBytes(compressedAlphaLen);
             byte[] alphaData = zlibed.readBytes(zlibed.Remaining);
-            for (int i = 0; i < unityColors.Length; i++) {
-                int y = i / img.Width;
-                int x = i % img.Width;
-                UColor32 color = unityColors[i];
 
-                img.ImgData[y, x] = Color.fromUnityColor(color, alphaData[i]);
+            // Unity likes trolling people and treating the bottom left of an image as 0,0 instead of the top left, so we have to accout for that here
+            for (int y = 0; y < img.Height; y++) {
+                for (int x = 0; x < img.Width; x++) {
+                    int unityY = img.Height - y - 1;
+                    UColor32 color = unityColors[unityY * img.Width + x];
+                    byte alpha = alphaData[y * img.Width + x];
+
+                    img.ImgData[y, x] = Color.fromUnityColor(color, alpha);
+                }
             }
 
             Texture2D.DestroyImmediate(tex);
