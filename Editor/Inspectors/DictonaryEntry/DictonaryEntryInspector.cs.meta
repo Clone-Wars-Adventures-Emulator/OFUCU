@@ -8,7 +8,7 @@ MonoImporter:
       type: 3}
   - ShapeInspector: {fileID: 9197481963319205126, guid: 16821c1d35118a24a9dfc58932d03b8a,
       type: 3}
-  - SpriteInspector: {fileID: 9197481963319205126, guid: 42b1588daebcc5d4c8e5c6c7c99a9728,
+  - SpriteInspector: {fileID: 9197481963319205126, guid: c1da44fd33273b949b6be8e3e00cd595,
       type: 3}
   executionOrder: 0
   icon: {instanceID: 0}

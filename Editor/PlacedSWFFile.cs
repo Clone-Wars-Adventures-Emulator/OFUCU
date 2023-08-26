@@ -2,6 +2,7 @@ using CWAEmu.OFUCU.Flash;
 using CWAEmu.OFUCU.Flash.Tags;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using URect = UnityEngine.Rect;
@@ -19,11 +20,12 @@ namespace CWAEmu.OFUCU {
 
         public static void placeNewSWFFile(SWFFile File) {
             GameObject go = new($"SWF Root: {File.Name}");
-            go.AddComponent<PlacedSWFFile>().File = File;
-            // control will transfer over to the start method
+            PlacedSWFFile swf = go.AddComponent<PlacedSWFFile>();
+            swf.File = File;
+            swf.initialPlace();
         }
 
-        private void Start() {
+        private void initialPlace() {
             Canvas canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
@@ -77,13 +79,13 @@ namespace CWAEmu.OFUCU {
         }
 
         private void createShapeObject(DefineShape shape) {
-            var (rt, de) = createDictonaryEntry(shape, $"Shape {shape.CharacterId}");
-            rt.SetParent(dictonaryT, false);
-            rt.pivot = new Vector2(0, 1);
-            rt.sizeDelta = new Vector2(shape.ShapeBounds.Width, shape.ShapeBounds.Height);
+            var (rootRt, de) = createDictonaryEntry(shape, $"Shape {shape.CharacterId}");
+            rootRt.SetParent(dictonaryT, false);
+            rootRt.pivot = new Vector2(0, 1);
+            rootRt.sizeDelta = new Vector2(shape.ShapeBounds.Width, shape.ShapeBounds.Height);
 
             var (_, absZeroTrans) = createUIObj("ShapeAbsZero");
-            absZeroTrans.SetParent(rt, false);
+            absZeroTrans.SetParent(rootRt, false);
             absZeroTrans.anchorMin = new Vector2(0, 1);
             absZeroTrans.anchorMax = new Vector2(0, 1);
             absZeroTrans.pivot = new Vector2(0, 1);
@@ -102,6 +104,8 @@ namespace CWAEmu.OFUCU {
 
                 rt.SetParent(absZeroTrans, false);
                 rt.pivot = new Vector2(0, 1);
+                rt.anchorMin = new Vector2(0, 1);
+                rt.anchorMax = new Vector2(0, 1);
                 rt.anchoredPosition = new Vector2(extends.xMin, -extends.yMin);
                 rt.sizeDelta = new Vector2(Mathf.Abs(extends.xMax - extends.xMin), Mathf.Abs(extends.yMax - extends.yMin));
             }
@@ -170,13 +174,17 @@ namespace CWAEmu.OFUCU {
             return (rt, entry);
         }
 
-        public (RectTransform, PlacedObject) createDictonaryReference(DictonaryEntry entry) {
+        public (RectTransform, PlacedObject) createDictonaryReference(DictonaryEntry entry, bool fillIn = false) {
             Type type = entry.CharacterType switch {
                 DictonaryEntry.EnumDictonaryCharacterType.Image => typeof(PlacedImage),
                 DictonaryEntry.EnumDictonaryCharacterType.Shape => typeof(PlacedShape),
                 DictonaryEntry.EnumDictonaryCharacterType.Sprite => typeof(PlacedSprite),
                 _ => typeof(PlacedObject)
             };
+
+            if (fillIn && entry.CharacterType != DictonaryEntry.EnumDictonaryCharacterType.Image) {
+                return copyDictEntryAsReference(entry, type);
+            }
 
             string name = $"Placed {entry.name}";
             GameObject go = new(name, typeof(RectTransform), type);
@@ -187,12 +195,140 @@ namespace CWAEmu.OFUCU {
             return (rt, placed);
         }
 
+        private (RectTransform, PlacedObject) copyDictEntryAsReference(DictonaryEntry entry, Type type) {
+            GameObject go = Instantiate(entry.gameObject);
+            go.name = $"Placed {go.name}";
+            if (go.TryGetComponent(out DictonaryEntry de)) {
+                DestroyImmediate(de);
+            }
+            PlacedObject po = go.AddComponent(type) as PlacedObject;
+            po.placedEntry = entry;
+
+            if (!go.TryGetComponent(out RectTransform rt)) {
+                rt = go.AddComponent<RectTransform>();
+            }
+
+            if (po is not PlacedShape) {
+                rt.anchorMin = new Vector2(0, 1);
+                rt.anchorMax = new Vector2(0, 1);
+                rt.pivot = new Vector2(0, 1);
+            } else {
+                /*
+                DefineShape shape = entry.charTag as DefineShape;
+                rt.anchorMin = new Vector2(0, 1);
+                rt.anchorMax = new Vector2(0, 1);
+                rt.pivot = new Vector2(0, 1);
+                rt.anchoredPosition = new Vector2(shape.ShapeBounds.X, -shape.ShapeBounds.Y);
+                */
+                // TODO: special math here to undo the stupid placement abz zero stuff
+                // I basically need to undo the abz zero transform here
+                // OR BETTER IDEA
+                // as part of sprites only use abz zero as a temporary thing?
+            }
+
+            return (rt, po);
+        }
+
         public void runOnAllOfType(Action<DictonaryEntry> action, DictonaryEntry.EnumDictonaryCharacterType type) {
             foreach (var pair in dictonary) {
                 if (pair.Value.CharacterType == type) {
                     action(pair.Value);
                 }
             }
+        }
+
+        public void placeFrames(RectTransform rt, List<Frame> frames, bool translateFrames = false) {
+            UFrameList frameList = UFrame.toDeltaList(frames);
+
+            Dictionary<int, GameObject> previousObject = new();
+            for (int i = 0; i < frameList.frameCount; i++) {
+                var (_, frameRt) = createUIObj($"Frame {i}");
+                frameRt.SetParent(rt, false);
+
+                if (translateFrames) {
+                    rt.anchorMin = new Vector2(0, 1);
+                    rt.anchorMax = new Vector2(0, 1);
+                    rt.anchoredPosition = new Vector2();
+                }
+
+                Dictionary<int, UFrameObject> displaylist = frameList.frames[i];
+                List<int> depths = displaylist.Keys.ToList();
+                depths.Sort();
+
+                foreach (int depth in depths) {
+                    UFrameObject obj = displaylist[depth];
+
+                    switch (obj.type) {
+                        case EnumUFrameObjectType.PlaceRemove:
+                            if (previousObject.ContainsKey(depth)) {
+                                previousObject.Remove(depth);
+                            }
+                            // META: i really hate how you have to explicitly say fall through like this
+                            goto case EnumUFrameObjectType.Place;
+                        case EnumUFrameObjectType.Place:
+                            GameObject pfo = placeFrameObject(frameRt, obj);
+                            previousObject.Add(depth, pfo);
+
+
+                            break;
+                        case EnumUFrameObjectType.Modify:
+
+                            break;
+                        case EnumUFrameObjectType.Remove:
+                            if (previousObject.ContainsKey(depth)) {
+                                previousObject.Remove(depth);
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        public void animateFrames(RectTransform rt, List<Frame> frames) {
+
+        }
+
+        public void placeSWFFrames() {
+            placeFrames(vfswfhT, File.Frames);
+        }
+
+        public void animateSWFFrames() {
+            animateFrames(vfswfhT, File.Frames);
+        }
+
+        public GameObject placeFrameObject(RectTransform parent, UFrameObject obj) {
+            if (!dictonary.ContainsKey(obj.charId)) {
+                Debug.LogError($"Character {obj.charId} is not in the dictonary, skipping reference.");
+                return null;
+            }
+
+            // TODO: create something that actually duplicates the existing dictonary entry
+            var (drRt, po) = createDictonaryReference(dictonary[obj.charId], true);
+
+            // TODO: this needs to have something about anchor position and pivot location, the math is eluding me rn
+            drRt.SetParent(parent, false);
+            if (obj.name != null) {
+                drRt.name = obj.name;
+            }
+
+            UMatrix mat = obj.matrix;
+            if (mat != null) {
+                drRt.anchoredPosition = new Vector2(mat.translateX, mat.translateY);
+                // TODO: scale and rotation
+            }
+
+
+            // TODO: handle the following properties
+            // color transform
+            // clip depth
+            // blend mode
+
+            return drRt.gameObject;
+        }
+
+        public GameObject modifyFrameObject(GameObject obj, UFrameObject delta) {
+            // TODO: 
+            return null;
         }
     }
 }

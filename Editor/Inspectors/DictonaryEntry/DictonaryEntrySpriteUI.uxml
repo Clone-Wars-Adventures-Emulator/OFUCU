@@ -1,9 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<engine:UXML
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:engine="UnityEngine.UIElements"
-    xmlns:editor="UnityEditor.UIElements"
-    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
->
-    
-</engine:UXML>
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:Label text="Sprite Dictonary Entry" display-tooltip-when-elided="true" />
+    <uie:PropertyField binding-path="charTag" label="Tag" />
+    <ui:Button text="Place Frames" display-tooltip-when-elided="true" name="palce" style="top: 2px;" />
+    <ui:Button text="Animate Frames" display-tooltip-when-elided="true" name="anim" style="top: 2px;" />
+</ui:UXML>

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace CWAEmu.OFUCU.Flash.Tags {
+    [System.Serializable]
     public class DefineSprite : CharacterTag {
         public ushort NumFrames { get; private set; }
         public List<Frame> Frames { get; private set; } = new();

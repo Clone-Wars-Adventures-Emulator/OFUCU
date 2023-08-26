@@ -51,6 +51,20 @@ namespace CWAEmu.OFUCU.Inspectors {
                     break;
                 case DictonaryEntry.EnumDictonaryCharacterType.Sprite:
                     SpriteInspector.CloneTree(root);
+
+                    var placeBtnEle = root.Q("place");
+                    if (placeBtnEle is Button placeBtn) {
+                        placeBtn.clicked += () => {
+                            entry.placeFrames();
+                        };
+                    }
+
+                    var animBtnEle = root.Q("anim");
+                    if (animBtnEle is Button animBtn) {
+                        animBtn.clicked += () => {
+                            entry.animateFrames();
+                        };
+                    }
                     break;
             }
 

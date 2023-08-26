@@ -42,6 +42,38 @@ namespace CWAEmu.OFUCU {
                 };
             }
 
+            var placeBtnEle = root.Q("place");
+            if (placeBtnEle is Button placeBtn) {
+                placeBtn.clicked += () => {
+                    Debug.Log("C1");
+                    entry.placeSWFFrames();
+                };
+            }
+
+            var animBtnEle = root.Q("anim");
+            if (animBtnEle is Button animBtn) {
+                animBtn.clicked += () => {
+                    Debug.Log("C2");
+                    entry.animateSWFFrames();
+                };
+            }
+
+            var placeAllBtnEle = root.Q("place-all");
+            if (placeAllBtnEle is Button placeAllBtn) {
+                placeAllBtn.clicked += () => {
+                    Debug.Log("C3");
+                    entry.runOnAllOfType(entry => entry.placeFrames(), DictonaryEntry.EnumDictonaryCharacterType.Sprite);
+                };
+            }
+
+            var animAllBtnEle = root.Q("anim-all");
+            if (animAllBtnEle is Button animAllBtn) {
+                animAllBtn.clicked += () => {
+                    Debug.Log("C4");
+                    entry.runOnAllOfType(entry => entry.animateFrames(), DictonaryEntry.EnumDictonaryCharacterType.Sprite);
+                };
+            }
+
             return root;
         }
 

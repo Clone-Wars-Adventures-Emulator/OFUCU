@@ -23,6 +23,7 @@ namespace CWAEmu.OFUCU {
         public EnumDictonaryCharacterType CharacterType;
         public RectTransform rt;
         public List<int> neededCharacters = new();
+        public List<PlaceObject> dependentObjects = new();
 
         // Image
         public FlashImage image; // TODO: remove in favor of casting charTag???
@@ -150,6 +151,14 @@ namespace CWAEmu.OFUCU {
         public void flattenShape() {
             // TODO: will this ever have functionality??
             // Also this would need to ensure a filled shape first before flattening
+        }
+
+        public void placeFrames() {
+            containingFile.placeFrames(rt, (charTag as DefineSprite).Frames);
+        }
+
+        public void animateFrames() {
+            containingFile.animateFrames(rt, (charTag as DefineSprite).Frames);
         }
     }
 }

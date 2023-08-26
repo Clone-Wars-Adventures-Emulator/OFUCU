@@ -7,6 +7,24 @@ namespace CWAEmu.OFUCU.Flash.Tags {
         }
     }
 
+    public enum EnumFlashBlendMode {
+        Default = 0,
+        Normal,
+        Layer,
+        Multiply,
+        Screen,
+        Lighten,
+        Darken,
+        Difference,
+        Add,
+        Subtract,
+        Invert,
+        Alpha,
+        Erase,
+        Overlay,
+        Hardlight
+    }
+
     public class PlaceObject2 : FlashTag {
         public bool HasClipActions { get; protected set; }
         public bool HasClipDepth { get; protected set; }
@@ -77,7 +95,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
         public bool HasFilterList { get; protected set; }
 
         public string ClassName { get; protected set; }
-        public byte BlendMode { get; protected set; }
+        public EnumFlashBlendMode BlendMode { get; protected set; }
         public FilterList SurfaceFilterList { get; protected set; }
         public byte BitmapCache { get; protected set; }
         public byte Visible { get; protected set; } // SWF 11
@@ -139,7 +157,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
             }
 
             if (HasBlendMode) {
-                BlendMode = reader.readByte();
+                BlendMode = (EnumFlashBlendMode)reader.readByte();
             }
 
             if (HasCacheAsBitmap) {

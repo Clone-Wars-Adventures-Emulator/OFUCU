@@ -12,6 +12,7 @@ namespace CWAEmu.OFUCU.Flash {
     // G:\Programming\CWAEmu\OldCWAData\StuntGungan.swf
     // G:\Programming\CWAEmu\OldCWAData\StarTyper.swf
     // G:\Programming\CWAEmu\OldCWAData\FleetCommander.swf
+    [System.Serializable]
     public class SWFFile {
         // TODO make this a config value of the plugin
         public static readonly bool IndepthLogging = false;
