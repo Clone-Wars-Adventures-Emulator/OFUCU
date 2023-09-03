@@ -1,7 +1,6 @@
 using CWAEmu.OFUCU.Flash.Tags;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace CWAEmu.OFUCU.Inspectors {

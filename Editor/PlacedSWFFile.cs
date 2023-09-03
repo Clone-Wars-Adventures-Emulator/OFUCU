@@ -44,6 +44,7 @@ namespace CWAEmu.OFUCU {
 
             GameObject vfswfh = new($"VirtualFlashSWFHolder", typeof(RectTransform));
             vfswfhT = vfswfh.transform as RectTransform;
+
             vfswfhT.SetParent(canvas.transform, false);
             vfswfhT.sizeDelta = new Vector2(File.FrameSize.Width, File.FrameSize.Height);
 
@@ -238,6 +239,11 @@ namespace CWAEmu.OFUCU {
         }
 
         public void placeFrames(RectTransform rt, List<Frame> frames, bool translateFrames = false) {
+            // nuke the child frames
+            foreach (Transform t in rt) {
+                DestroyImmediate(t.gameObject);
+            }
+
             UFrameList frameList = UFrame.toDeltaList(frames);
 
             Dictionary<int, GameObject> previousObject = new();
@@ -246,9 +252,9 @@ namespace CWAEmu.OFUCU {
                 frameRt.SetParent(rt, false);
 
                 if (translateFrames) {
-                    rt.anchorMin = new Vector2(0, 1);
-                    rt.anchorMax = new Vector2(0, 1);
-                    rt.anchoredPosition = new Vector2();
+                    frameRt.anchorMin = new Vector2(0, 1);
+                    frameRt.anchorMax = new Vector2(0, 1);
+                    frameRt.anchoredPosition = new Vector2();
                 }
 
                 Dictionary<int, UFrameObject> displaylist = frameList.frames[i];
@@ -289,7 +295,7 @@ namespace CWAEmu.OFUCU {
         }
 
         public void placeSWFFrames() {
-            placeFrames(vfswfhT, File.Frames);
+            placeFrames(vfswfhT, File.Frames, true);
         }
 
         public void animateSWFFrames() {

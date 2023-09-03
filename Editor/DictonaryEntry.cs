@@ -2,12 +2,12 @@ using CWAEmu.OFUCU.Flash.Records;
 using CWAEmu.OFUCU.Flash.Tags;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using URect = UnityEngine.Rect;
 using UColor = UnityEngine.Color;
-using UnityEngine.UI;
-using System.Linq;
 
 namespace CWAEmu.OFUCU {
     public class DictonaryEntry : MonoBehaviour {
@@ -134,6 +134,8 @@ namespace CWAEmu.OFUCU {
                 var (go, rt) = containingFile.createUIObj("Solid Fill");
                 rt.SetParent(absZero, false);
                 rt.pivot = new Vector2(0, 1);
+                rt.anchorMin = new Vector2(0, 1);
+                rt.anchorMax = new Vector2(0, 1);
                 rt.anchoredPosition = new Vector2(extends.xMin, -extends.yMin);
                 rt.sizeDelta = new Vector2(Mathf.Abs(extends.xMax - extends.xMin), Mathf.Abs(extends.yMax - extends.yMin));
 

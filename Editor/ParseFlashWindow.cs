@@ -1,7 +1,6 @@
+using CWAEmu.OFUCU.Flash;
 using UnityEditor;
 using UnityEngine;
-
-using CWAEmu.OFUCU.Flash;
 
 namespace CWAEmu.OFUCU {
     public class ParseFlashWindow : EditorWindow {

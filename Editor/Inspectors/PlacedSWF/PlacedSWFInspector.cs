@@ -1,8 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 namespace CWAEmu.OFUCU {
@@ -45,7 +41,6 @@ namespace CWAEmu.OFUCU {
             var placeBtnEle = root.Q("place");
             if (placeBtnEle is Button placeBtn) {
                 placeBtn.clicked += () => {
-                    Debug.Log("C1");
                     entry.placeSWFFrames();
                 };
             }
@@ -53,7 +48,6 @@ namespace CWAEmu.OFUCU {
             var animBtnEle = root.Q("anim");
             if (animBtnEle is Button animBtn) {
                 animBtn.clicked += () => {
-                    Debug.Log("C2");
                     entry.animateSWFFrames();
                 };
             }
@@ -61,7 +55,6 @@ namespace CWAEmu.OFUCU {
             var placeAllBtnEle = root.Q("place-all");
             if (placeAllBtnEle is Button placeAllBtn) {
                 placeAllBtn.clicked += () => {
-                    Debug.Log("C3");
                     entry.runOnAllOfType(entry => entry.placeFrames(), DictonaryEntry.EnumDictonaryCharacterType.Sprite);
                 };
             }
@@ -69,7 +62,6 @@ namespace CWAEmu.OFUCU {
             var animAllBtnEle = root.Q("anim-all");
             if (animAllBtnEle is Button animAllBtn) {
                 animAllBtn.clicked += () => {
-                    Debug.Log("C4");
                     entry.runOnAllOfType(entry => entry.animateFrames(), DictonaryEntry.EnumDictonaryCharacterType.Sprite);
                 };
             }
