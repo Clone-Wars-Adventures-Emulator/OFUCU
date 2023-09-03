@@ -99,8 +99,7 @@ namespace CWAEmu.OFUCU {
         }
 
         public void fillShape() {
-            RectTransform absZero = transform.Find("ShapeAbsZero") as RectTransform;
-            List<PlacedImage> images = absZero.gameObject.GetComponentsInChildren<PlacedImage>().ToList();
+            List<PlacedImage> images = gameObject.GetComponentsInChildren<PlacedImage>().ToList();
 
             // TODO: extract these out or leave them in here??
             void onBitmapFill(URect extends, ushort bitmapId, bool smooth, bool clipped) {
@@ -132,7 +131,7 @@ namespace CWAEmu.OFUCU {
 
             void onSolidFill(URect extends, UColor color) {
                 var (go, rt) = containingFile.createUIObj("Solid Fill");
-                rt.SetParent(absZero, false);
+                rt.SetParent(transform, false);
                 rt.pivot = new Vector2(0, 1);
                 rt.anchorMin = new Vector2(0, 1);
                 rt.anchorMax = new Vector2(0, 1);

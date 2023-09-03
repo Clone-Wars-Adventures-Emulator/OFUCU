@@ -3,6 +3,7 @@ using CWAEmu.OFUCU.Flash.Tags;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using URect = UnityEngine.Rect;
@@ -85,13 +86,6 @@ namespace CWAEmu.OFUCU {
             rootRt.pivot = new Vector2(0, 1);
             rootRt.sizeDelta = new Vector2(shape.ShapeBounds.Width, shape.ShapeBounds.Height);
 
-            var (_, absZeroTrans) = createUIObj("ShapeAbsZero");
-            absZeroTrans.SetParent(rootRt, false);
-            absZeroTrans.anchorMin = new Vector2(0, 1);
-            absZeroTrans.anchorMax = new Vector2(0, 1);
-            absZeroTrans.pivot = new Vector2(0, 1);
-            absZeroTrans.anchoredPosition = new Vector2(-shape.ShapeBounds.X, shape.ShapeBounds.Y);
-
             void onBitmapFill(URect extends, ushort bitmapId, bool smooth, bool clipped) {
                 if (!dictonary.ContainsKey(bitmapId)) {
                     Debug.LogError($"Attempting to render a shape ({shape.CharacterId}) with fill image ({bitmapId}) that is not a in the dictonary.");
@@ -103,7 +97,7 @@ namespace CWAEmu.OFUCU {
                 var (rt, placed) = createDictonaryReference(dictonary[bitmapId]);
                 de.addDependency(bitmapId);
 
-                rt.SetParent(absZeroTrans, false);
+                rt.SetParent(rootRt, false);
                 rt.pivot = new Vector2(0, 1);
                 rt.anchorMin = new Vector2(0, 1);
                 rt.anchorMax = new Vector2(0, 1);
