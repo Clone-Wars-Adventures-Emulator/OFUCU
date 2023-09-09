@@ -1,23 +1,27 @@
+using CWAEmu.OFUCU.Data;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 namespace CWAEmu.OFUCU {
     public class AssetPathModal : EditorWindow {
-        private const string BaseAssetPath = "Assets/SWFExport";
-        private static Dictionary<string, string> fileToPath = new();
-
         private string curPath;
         private string swfName;
+        private bool dontAsk;
         private Action<string> callback;
 
         public static void ShowModal(string swfName, Action<string> onClose) {
+            string shortSwfName = Path.GetFileName(swfName);
+            if (PersistentData.Instance.askExportForSwf(shortSwfName)) {
+                onClose(PersistentData.Instance.getSwfExportDir(shortSwfName));
+                return;
+            }
+
             AssetPathModal window = CreateInstance<AssetPathModal>();
             window.position = new Rect(Screen.width / 2, Screen.height / 2, 250, 150);
-            window.swfName = swfName;
-            window.curPath = $"{BaseAssetPath}/{Path.GetFileName(swfName)}";
+            window.swfName = shortSwfName;
+            window.curPath = PersistentData.Instance.getSwfExportDir(shortSwfName);
             window.callback = onClose;
             window.Show();
         }
@@ -28,21 +32,16 @@ namespace CWAEmu.OFUCU {
 
             curPath = EditorGUILayout.TextField(curPath);
 
-            // TODO: not working as intended, find out why and fix
-            /*
-            bool last = fileToPath.ContainsKey(curPath);
-            bool toggled = GUILayout.Toggle(last, $"Dont ask again for {swfName}.");
-            if (last != toggled) {
-                if (toggled && !last) {
-                    fileToPath.Add(swfName, curPath);
-                } else {
-                    fileToPath.Remove(swfName);
-                }
-            }
-            */
+            dontAsk = GUILayout.Toggle(dontAsk, $"Dont ask again for {swfName}.");
 
             if (GUILayout.Button("Confirm")) {
                 Close();
+
+                PersistentData.Instance.setSwfExportDir(swfName, curPath, true);
+                if (dontAsk) {
+                    PersistentData.Instance.setDontAskForSwf(swfName);
+                }
+
                 callback(curPath);
             }
         }

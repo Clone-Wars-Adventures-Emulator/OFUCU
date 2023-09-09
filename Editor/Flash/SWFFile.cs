@@ -11,6 +11,7 @@ namespace CWAEmu.OFUCU.Flash {
     // G:\Programming\CWAEmu\OldCWAData\____.swf
     // G:\Programming\CWAEmu\OldCWAData\StuntGungan.swf
     // G:\Programming\CWAEmu\OldCWAData\StarTyper.swf
+    // G:\Programming\CWAEmu\OldCWAData\DailyTrivia.swf
     // G:\Programming\CWAEmu\OldCWAData\FleetCommander.swf
     [System.Serializable]
     public class SWFFile {

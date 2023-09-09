@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using URect = UnityEngine.Rect;
 using UColor = UnityEngine.Color;
+using CWAEmu.OFUCU.Data;
 
 namespace CWAEmu.OFUCU {
     public class DictonaryEntry : MonoBehaviour {
@@ -28,6 +29,26 @@ namespace CWAEmu.OFUCU {
         // Image
         public FlashImage image; // TODO: remove in favor of casting charTag???
 
+        public string AssetPath {
+            get {
+                if (assetPath == null) {
+                    string path = PersistentData.Instance.getSwfExportDir(containingFile.File.Name);
+                    path = $"{path}/{name}.{getFileExtension(CharacterType)}";
+
+                    if (!File.Exists(path)) {
+                        return null;
+                    }
+
+                    if (AssetDatabase.LoadAssetAtPath<Sprite>(path) == null) {
+                        return null;
+                    }
+
+                    return path;
+                }
+
+                return assetPath;
+            }
+        }
         private string assetPath;
 
         public void addDependency(int charId) {
@@ -101,7 +122,6 @@ namespace CWAEmu.OFUCU {
         public void fillShape() {
             List<PlacedImage> images = gameObject.GetComponentsInChildren<PlacedImage>().ToList();
 
-            // TODO: extract these out or leave them in here??
             void onBitmapFill(URect extends, ushort bitmapId, bool smooth, bool clipped) {
                 PlacedImage workingImage = null;
                 foreach (PlacedImage image in images) {
@@ -121,9 +141,9 @@ namespace CWAEmu.OFUCU {
                     // TODO: fix this for the user
                 }
 
-                Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(workingImage.placedEntry.assetPath);
+                Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(workingImage.placedEntry.AssetPath);
                 if (sprite == null) {
-                    Debug.LogError($"Failed to load sprite at {workingImage.placedEntry.assetPath}.");
+                    Debug.LogError($"Failed to load sprite at {workingImage.placedEntry.AssetPath}.");
                 }
                 Image img = workingImage.gameObject.AddComponent<Image>();
                 img.sprite = sprite;
@@ -160,6 +180,13 @@ namespace CWAEmu.OFUCU {
 
         public void animateFrames() {
             containingFile.animateFrames(rt, (charTag as DefineSprite).Frames);
+        }
+
+        private string getFileExtension(EnumDictonaryCharacterType type) {
+            return type switch {
+                EnumDictonaryCharacterType.Image => "png",
+                _ => "",
+            };
         }
     }
 }
