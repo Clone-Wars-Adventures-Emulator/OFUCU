@@ -302,7 +302,9 @@ namespace CWAEmu.OFUCU.Flash {
             file.FrameRate = reader.readUInt16() / 256.0f;
             file.FrameCount = reader.readUInt16();
 
-            Debug.Log($"{file.FrameSize.X},{file.FrameSize.Y} X {file.FrameSize.Width},{file.FrameSize.Height} @ {file.FrameRate}fps with {file.FrameCount} frames");
+            if (IndepthLogging) {
+                Debug.Log($"{file.FrameSize.X},{file.FrameSize.Y} X {file.FrameSize.Width},{file.FrameSize.Height} @ {file.FrameRate}fps with {file.FrameCount} frames");
+            }
 
             file.parseFull(reader);
 

@@ -9,7 +9,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
             FilterList fl = new();
             fl.NumFilters = reader.readByte();
 
-            for (int i =0; i < fl.NumFilters; i++) {
+            for (int i = 0; i < fl.NumFilters; i++) {
                 Filter f = Filter.readFilter(reader);
                 fl.Filters.Add(f);
             }
@@ -192,6 +192,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
 
             ggf.NumColors = reader.readByte();
             ggf.GradientColors = new Color[ggf.NumColors];
+            ggf.GradientRatio = new byte[ggf.NumColors];
 
             for (int i = 0; i < ggf.NumColors; i++) {
                 ggf.GradientColors[i] = Color.readRGBA(reader);
@@ -285,6 +286,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
 
             gbf.NumColors = reader.readByte();
             gbf.GradientColors = new Color[gbf.NumColors];
+            gbf.GradientRatio = new byte[gbf.NumColors];
 
             for (int i = 0; i < gbf.NumColors; i++) {
                 gbf.GradientColors[i] = Color.readRGBA(reader);

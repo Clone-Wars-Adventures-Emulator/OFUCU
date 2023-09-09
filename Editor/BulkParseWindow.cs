@@ -62,6 +62,7 @@ namespace CWAEmu.OFUCU {
                     Debug.Log($"{swfFile.Name} has {swfFile.CharacterTags.Count} parsed characters");
 
                 } catch (Exception e) {
+                    Debug.LogError($"File at {file} failed to parse with exception: ");
                     Debug.LogException(e);
                 }
 
