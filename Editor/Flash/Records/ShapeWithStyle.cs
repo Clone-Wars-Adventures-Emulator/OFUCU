@@ -300,16 +300,16 @@ namespace CWAEmu.OFUCU.Flash.Records {
             LineStyle2 lineStyle = new();
 
             lineStyle.Width = reader.readUInt16();
-            lineStyle.StartCapStyle = (byte)reader.readBits(2);
-            lineStyle.JoinStyle = (byte)reader.readBits(2);
+            lineStyle.StartCapStyle = (byte)reader.readUBits(2);
+            lineStyle.JoinStyle = (byte)reader.readUBits(2);
             lineStyle.HasFillFlag = reader.readBitFlag();
             lineStyle.NoHScaleFlag = reader.readBitFlag();
             lineStyle.NoVScaleFlag = reader.readBitFlag();
             lineStyle.PixelHintingFlag = reader.readBitFlag();
             // reserved
-            reader.readBits(5);
+            reader.readUBits(5);
             lineStyle.NoClose = reader.readBitFlag();
-            lineStyle.EndCapStyle = (byte)reader.readBits(2);
+            lineStyle.EndCapStyle = (byte)reader.readUBits(2);
 
             if (lineStyle.JoinStyle == 2) {
                 lineStyle.MiterLimitFactor = reader.readUInt16();
