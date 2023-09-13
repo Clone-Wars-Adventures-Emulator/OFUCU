@@ -2,7 +2,8 @@
     "name": "cwaemu.ofucu",
     "rootNamespace": "CWAEmu.OFUCU",
     "references": [
-        "GUID:025850e66641d6e42b006c5f4364cfe0"
+        "GUID:025850e66641d6e42b006c5f4364cfe0",
+        "GUID:90af1a6b802b60644adac9f32dd5bca1"
     ],
     "includePlatforms": [],
     "excludePlatforms": [

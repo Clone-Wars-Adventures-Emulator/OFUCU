@@ -1,3 +1,4 @@
+using CWAEmu.OFUCU.Data;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,7 +25,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                         Debug.LogError("Sprite end tag reached with a frame having contents");
                         Frames.Add(curFrame);
                     }
-                    if (SWFFile.IndepthLogging) {
+                    if (Settings.Instance.inDepthLogging) {
                         Debug.Log($"Sprite End Tag found");
                     }
                     break;

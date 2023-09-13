@@ -38,6 +38,7 @@ namespace CWAEmu.OFUCU.Data {
 
         public string defaultExportDir;
         public string defaultPrefabDir;
+        public bool inDepthLogging;
 
         // = = = = = = = = = = END Settings Fields = = = = = = = = = = 
 
@@ -59,6 +60,7 @@ namespace CWAEmu.OFUCU.Data {
         private void loadDefaults() {
             defaultExportDir = "Assets/SWFExport";
             defaultPrefabDir = "Assets/SWFPrefab";
+            inDepthLogging = false;
         }
 
         private void save() {

@@ -1,10 +1,7 @@
 {
-    "name": "cwaemu.ofucu.flash",
-    "rootNamespace": "CWAEmu.OFUCU.Flash",
-    "references": [
-        "GUID:e39e5d39f3b15f24fad3d0fe5b9ee361",
-        "GUID:90af1a6b802b60644adac9f32dd5bca1"
-    ],
+    "name": "cwaemu.ofucu.data",
+    "rootNamespace": "CWAEmu.OFUCU.Data",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [
         "Android",

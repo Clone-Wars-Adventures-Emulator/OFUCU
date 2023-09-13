@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Rect = CWAEmu.OFUCU.Flash.Records.Rect;
+using CWAEmu.OFUCU.Data;
 
 namespace CWAEmu.OFUCU.Flash {
     // G:\Programming\CWAEmu\OldCWAData\____.swf
@@ -15,9 +16,6 @@ namespace CWAEmu.OFUCU.Flash {
     // G:\Programming\CWAEmu\OldCWAData\FleetCommander.swf
     [System.Serializable]
     public class SWFFile {
-        // TODO make this a config value of the plugin
-        public static readonly bool IndepthLogging = false;
-
         public char Signature1 { get; private set; }
         public char Signature2 { get; private set; }
         public char Signature3 { get; private set; }
@@ -63,9 +61,11 @@ namespace CWAEmu.OFUCU.Flash {
                 FlashTagHeader header = reader.readFlashTagHeader();
                 TagHeaders.Add(header);
 
+                Debug.LogWarning($"Tag: {header.TagType} {header.TagLength}");
+
                 // if end tag, stop parsing
                 if (header.TagType == 0) {
-                    if (IndepthLogging) {
+                    if (Settings.Instance.inDepthLogging) {
                         Debug.Log($"================ End Tag found ================");
                     }
                     break;
@@ -214,7 +214,7 @@ namespace CWAEmu.OFUCU.Flash {
                 }
             }
 
-            if (IndepthLogging) {
+            if (Settings.Instance.inDepthLogging) {
                 foreach (var tagType in count.Keys) {
                     Debug.Log($"There are {count[tagType]} tags of type {tagType}");
                 }
@@ -302,7 +302,7 @@ namespace CWAEmu.OFUCU.Flash {
             file.FrameRate = reader.readUInt16() / 256.0f;
             file.FrameCount = reader.readUInt16();
 
-            if (IndepthLogging) {
+            if (Settings.Instance.inDepthLogging) {
                 Debug.Log($"{file.FrameSize.X},{file.FrameSize.Y} X {file.FrameSize.Width},{file.FrameSize.Height} @ {file.FrameRate}fps with {file.FrameCount} frames");
             }
 
