@@ -1,22 +1,39 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 namespace CWAEmu.OFUCU.Data {
     [CustomEditor(typeof(Settings))]
-    public class SettingsEditor : Editor {
-
-        public override void OnInspectorGUI() {
-            // TODO: use inspector gui or use the UXML stuff
-        }
-
+    public class SettingsEditor {
+        private static Vector2 scrollPos = Vector2.zero;
+        [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider() {
             Settings.Instance.load();
 
-            // TODO: settings provider
+            var provider = new SettingsProvider("Project/OFUCU Settings", SettingsScope.Project) {
+                label = "OFUCU Settings",
+                guiHandler = context => {
+                    SerializedObject settings = new(Settings.Instance);
 
-            return null;
+                    // TODO: fix up styling (possibly switch to UXML instead of IMGUI?)
+                    scrollPos = GUILayout.BeginScrollView(scrollPos);
+                    GUILayout.BeginVertical();
+
+                    EditorGUILayout.PropertyField(settings.FindProperty("defaultExportDir"));
+                    EditorGUILayout.PropertyField(settings.FindProperty("defaultPrefabDir"));
+                    EditorGUILayout.PropertyField(settings.FindProperty("inDepthLogging"));
+
+                    GUILayout.EndVertical();
+                    GUILayout.EndScrollView();
+
+                    settings.ApplyModifiedPropertiesWithoutUndo();
+                },
+                keywords = new HashSet<string> { "OFUCU", "Flash" }
+            };
+
+            return provider;
         }
     }
 
