@@ -22,9 +22,9 @@ namespace CWAEmu.OFUCU.Data {
 
         #region DataFields
 
-        public HashSet<string> exportDontAskSwfs;
-        public Dictionary<string, string> swfToExportDir;
-        public Dictionary<string, string> swfToPrefabDir;
+        public HashSet<string> exportDontAskSwfs = new();
+        public Dictionary<string, string> swfToExportDir = new();
+        public Dictionary<string, string> swfToPrefabDir = new();
 
         // TODO: track each indivudal export and prefab or dynamically generate that list
 
@@ -68,6 +68,7 @@ namespace CWAEmu.OFUCU.Data {
 
         public void setDontAskForSwf(string fileName) {
             exportDontAskSwfs.Add(fileName);
+            save();
         }
 
         #endregion Accessors

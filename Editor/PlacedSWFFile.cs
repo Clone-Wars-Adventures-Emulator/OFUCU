@@ -140,6 +140,10 @@ namespace CWAEmu.OFUCU {
             dictonary.Add(sprite.CharacterId, de);
         }
 
+        private void createEditTextObject(DefineEditText det) {
+
+        }
+
         public (GameObject, RectTransform) createUIObj(string name) {
             GameObject go = new(name, typeof(RectTransform));
             RectTransform rt = go.transform as RectTransform;
@@ -207,18 +211,6 @@ namespace CWAEmu.OFUCU {
                 rt.anchorMin = new Vector2(0, 1);
                 rt.anchorMax = new Vector2(0, 1);
                 rt.pivot = new Vector2(0, 1);
-            } else {
-                /*
-                DefineShape shape = entry.charTag as DefineShape;
-                rt.anchorMin = new Vector2(0, 1);
-                rt.anchorMax = new Vector2(0, 1);
-                rt.pivot = new Vector2(0, 1);
-                rt.anchoredPosition = new Vector2(shape.ShapeBounds.X, -shape.ShapeBounds.Y);
-                */
-                // TODO: special math here to undo the stupid placement abz zero stuff
-                // I basically need to undo the abz zero transform here
-                // OR BETTER IDEA
-                // as part of sprites only use abz zero as a temporary thing?
             }
 
             return (rt, po);
@@ -302,10 +294,8 @@ namespace CWAEmu.OFUCU {
                 return null;
             }
 
-            // TODO: create something that actually duplicates the existing dictonary entry
             var (drRt, po) = createDictonaryReference(dictonary[obj.charId], true);
 
-            // TODO: this needs to have something about anchor position and pivot location, the math is eluding me rn
             drRt.SetParent(parent, false);
             if (obj.name != null) {
                 drRt.name = obj.name;
@@ -313,8 +303,11 @@ namespace CWAEmu.OFUCU {
 
             UMatrix mat = obj.matrix;
             if (mat != null) {
-                drRt.anchoredPosition = new Vector2(mat.translateX, mat.translateY);
-                // TODO: scale and rotation
+                var (pos, scale, rot) = mat.getTransformation();
+
+                drRt.anchoredPosition = pos;
+                drRt.localScale = new Vector3(scale.x, scale.y, 1);
+                drRt.rotation = Quaternion.Euler(0, 0, rot);
             }
 
 

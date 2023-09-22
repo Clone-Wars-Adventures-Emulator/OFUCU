@@ -35,12 +35,10 @@ namespace CWAEmu.OFUCU.Flash {
         public List<DefineScalingGrid> ScalingGrids { get; private set; } = new();
         public JPEGTable JPEGTable { get; private set; }
 
-        private bool parseImages;
 
         private SWFFile(string name, bool parseImages = true) {
             FullName = name;
             Name = name[0..name.IndexOf('.')];
-            this.parseImages = parseImages;
         }
 
         private void parseFull(Reader reader) {
@@ -61,7 +59,9 @@ namespace CWAEmu.OFUCU.Flash {
                 FlashTagHeader header = reader.readFlashTagHeader();
                 TagHeaders.Add(header);
 
-                Debug.LogWarning($"Tag: {header.TagType} {header.TagLength}");
+                if (Settings.Instance.inDepthLogging) {
+                    Debug.Log($"Tag: {header.TagType} {header.TagLength}");
+                }
 
                 // if end tag, stop parsing
                 if (header.TagType == 0) {

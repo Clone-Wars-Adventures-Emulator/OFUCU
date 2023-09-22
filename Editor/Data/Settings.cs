@@ -5,7 +5,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace CWAEmu.OFUCU.Data {
-    [CustomEditor(typeof(Settings))]
     public class SettingsEditor {
         private static Vector2 scrollPos = Vector2.zero;
         [SettingsProvider]

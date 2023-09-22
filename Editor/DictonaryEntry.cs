@@ -141,9 +141,15 @@ namespace CWAEmu.OFUCU {
                     // TODO: fix this for the user
                 }
 
-                Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(workingImage.placedEntry.AssetPath);
+                string filePath = workingImage.placedEntry.AssetPath;
+                if (filePath == null) {
+                    Debug.LogError($"Asset file for {workingImage.placedEntry.name} does not exist.");
+                    return;
+                }
+
+                Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(filePath);
                 if (sprite == null) {
-                    Debug.LogError($"Failed to load sprite at {workingImage.placedEntry.AssetPath}.");
+                    Debug.LogError($"Failed to load sprite at {filePath}.");
                 }
                 Image img = workingImage.gameObject.AddComponent<Image>();
                 img.sprite = sprite;

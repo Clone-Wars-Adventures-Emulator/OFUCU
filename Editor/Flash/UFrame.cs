@@ -1,7 +1,9 @@
 using CWAEmu.OFUCU.Flash.Records;
 using CWAEmu.OFUCU.Flash.Tags;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UColor32 = UnityEngine.Color32;
 
 namespace CWAEmu.OFUCU.Flash {
@@ -137,6 +139,9 @@ namespace CWAEmu.OFUCU.Flash {
         public float translateX;
         public float translateY;
 
+        private bool hadR;
+        private bool hadS;
+
         public static UMatrix fromFlashMatrix(Matrix matrix) {
             UMatrix mat = new();
 
@@ -147,7 +152,54 @@ namespace CWAEmu.OFUCU.Flash {
             mat.translateX = matrix.TranslateX;
             mat.translateY = -matrix.TranslateY;
 
+            mat.hadR = matrix.hasR();
+            mat.hadS = matrix.hasS();
+
             return mat;
+        }
+
+        public (Vector2, Vector2, float) getTransformation() {
+            Vector2 translate = new(translateX, translateY);
+            Vector2 scale;
+            float rotz;
+
+            if (hadR && hadS) {
+                (scale, rotz) = scaleAndRotate();
+            } else if (hadR && !hadS) {
+                scale = new(1, 1);
+                rotz = rotateOnly();
+            } else if (hadS && !hadR) {
+                scale = scaleOnly();
+                rotz = 0;
+            } else {
+                scale = new(1, 1);
+                rotz = 0;
+            }
+
+
+            return (translate, scale, rotz);
+        }
+
+        private Vector2 scaleOnly() {
+            return new(scaleX, scaleY);
+        }
+
+        private float rotateOnly() {
+            // TODO: HUH????
+            Debug.LogError($"Rotate only with rotateSkew values {rotateSkew0} {rotateSkew1}");
+            return 0;
+        }
+
+        private (Vector2, float) scaleAndRotate() {
+            // based on the algo described in https://math.stackexchange.com/questions/612006/decomposing-an-affine-transformation, but adapted to not use sheer (unsupported in Unity)
+            var rot = Mathf.Atan2(rotateSkew0, scaleX);
+            var rotDeg = rot * Mathf.Rad2Deg;
+
+            var sx = Mathf.Sqrt(scaleX * scaleX + rotateSkew0 * rotateSkew0);
+            //var sy = rotateSkew1 * Mathf.Cos(rot) + scaleY * Mathf.Sin(rot);
+            var sy = Mathf.Sqrt(scaleY * scaleY + rotateSkew1 * rotateSkew1);
+
+            return (new(sx, sy), rotDeg);
         }
     }
 
