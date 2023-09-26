@@ -126,7 +126,39 @@ namespace CWAEmu.OFUCU.Flash {
             }
 
             // TODO: implement and find a good way to track the delta
-            return null;
+
+            UFrameObject delta = new() {
+                type = EnumUFrameObjectType.Modify,
+                charId = charId,
+                depth = depth,
+                matrix = matrix,
+                colorTransform = colorTransform,
+                name = name,
+                clipDepth = clipDepth,
+                blendMode = blendMode,
+            };
+
+            if (after.matrix != null) {
+                delta.matrix = after.matrix;
+            }
+
+            if (after.colorTransform != null) {
+                delta.colorTransform = after.colorTransform;
+            }
+
+            if (after.name != null) {
+                delta.name = after.name;
+            }
+
+            if (after.clipDepth != clipDepth) {
+                delta.clipDepth = after.clipDepth;
+            }
+
+            if (after.blendMode != blendMode) {
+                delta.blendMode = after.blendMode;
+            }
+
+            return delta;
         }
     }
 
@@ -196,7 +228,6 @@ namespace CWAEmu.OFUCU.Flash {
             var rotDeg = rot * Mathf.Rad2Deg;
 
             var sx = Mathf.Sqrt(scaleX * scaleX + rotateSkew0 * rotateSkew0);
-            //var sy = rotateSkew1 * Mathf.Cos(rot) + scaleY * Mathf.Sin(rot);
             var sy = Mathf.Sqrt(scaleY * scaleY + rotateSkew1 * rotateSkew1);
 
             return (new(sx, sy), rotDeg);

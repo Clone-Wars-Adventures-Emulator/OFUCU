@@ -244,6 +244,7 @@ namespace CWAEmu.OFUCU {
                 }
 
                 Dictionary<int, UFrameObject> displaylist = frameList.frames[i];
+                Dictionary<int, UFrameObject> deltaList = frameList.deltaFrames[i];
                 List<int> depths = displaylist.Keys.ToList();
                 depths.Sort();
 
@@ -261,9 +262,9 @@ namespace CWAEmu.OFUCU {
                             GameObject pfo = placeFrameObject(frameRt, obj);
                             previousObject.Add(depth, pfo);
 
-
                             break;
                         case EnumUFrameObjectType.Modify:
+                            modifyFrameObject(previousObject[depth], deltaList[depth]);
 
                             break;
                         case EnumUFrameObjectType.Remove:
@@ -308,8 +309,33 @@ namespace CWAEmu.OFUCU {
                 drRt.anchoredPosition = pos;
                 drRt.localScale = new Vector3(scale.x, scale.y, 1);
                 drRt.rotation = Quaternion.Euler(0, 0, rot);
-            }
 
+                // hack to fix scale position issues with sprites
+                if (dictonary[obj.charId].CharacterType == DictonaryEntry.EnumDictonaryCharacterType.Sprite) {
+                    float xDelta = 0;
+                    float yDelta = 0;
+
+                    if (scale.x != 0 && scale.x != 1) {
+                        // TODO: adjust this number if your dumb ass ever changes the size of a sprite
+                        xDelta = -(50) / scale.x;
+                    }
+
+                    if (scale.y != 0 && scale.y != 1) {
+                        yDelta = (50) / scale.y;
+                    }
+
+                    var ancPos = drRt.anchoredPosition;
+                    ancPos.x += xDelta;
+                    ancPos.y += yDelta;
+                    drRt.anchoredPosition = ancPos;
+
+                    // TODO: this is not perfect and only works for some objects
+
+                    if (xDelta != 0 || yDelta != 0) {
+                        Debug.Log($"Adjusting {drRt.name} by {xDelta} x {yDelta}", drRt);
+                    }
+                }
+            }
 
             // TODO: handle the following properties
             // color transform
@@ -320,7 +346,54 @@ namespace CWAEmu.OFUCU {
         }
 
         public GameObject modifyFrameObject(GameObject obj, UFrameObject delta) {
-            // TODO: 
+            // TODO: this probably isnt right OR it will be entirely duplicated code
+            var (drRt, po) = createDictonaryReference(dictonary[delta.charId], true);
+
+            drRt.SetParent(obj.transform.parent, false);
+            if (obj.name != null) {
+                drRt.name = obj.name;
+            }
+
+            UMatrix mat = delta.matrix;
+            if (mat != null) {
+                var (pos, scale, rot) = mat.getTransformation();
+
+                drRt.anchoredPosition = pos;
+                drRt.localScale = new Vector3(scale.x, scale.y, 1);
+                drRt.rotation = Quaternion.Euler(0, 0, rot);
+
+                // hack to fix scale position issues with sprites
+                if (dictonary[delta.charId].CharacterType == DictonaryEntry.EnumDictonaryCharacterType.Sprite) {
+                    float xDelta = 0;
+                    float yDelta = 0;
+
+                    if (scale.x != 0 && scale.x != 1) {
+                        // TODO: adjust this number if your dumb ass ever changes the size of a sprite
+                        xDelta = -(50) / scale.x;
+                    }
+
+                    if (scale.y != 0 && scale.y != 1) {
+                        yDelta = (50) / scale.y;
+                    }
+
+                    var ancPos = drRt.anchoredPosition;
+                    ancPos.x += xDelta;
+                    ancPos.y += yDelta;
+                    drRt.anchoredPosition = ancPos;
+
+                    // TODO: this is not perfect and only works for some objects
+
+                    if (xDelta != 0 || yDelta != 0) {
+                        Debug.Log($"Adjusting {drRt.name} by {xDelta} x {yDelta}", drRt);
+                    }
+                }
+            }
+
+            // TODO: handle the following properties
+            // color transform
+            // clip depth
+            // blend mode
+
             return null;
         }
     }
