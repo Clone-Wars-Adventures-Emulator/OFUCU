@@ -1,5 +1,12 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
 namespace CWAEmu.OFUCU.Flash.Records {
     public class Matrix {
+        // TODO: remove debug
+        public static List<Matrix> All = new();
+
         private int nScaleBits = 0;
         private int nRotateBits = 0;
         private int nTranslateBits = 0;
@@ -36,7 +43,22 @@ namespace CWAEmu.OFUCU.Flash.Records {
 
             reader.endBitRead();
 
+            // TODO: remove debug
+            All.Add(matrix);
+
             return matrix;
+        }
+
+        public bool hasT() {
+            return nTranslateBits > 0;
+        }
+
+        public bool hasS() {
+            return nScaleBits > 0;
+        }
+
+        public bool hasR() {
+            return nRotateBits > 0;
         }
     }
 }

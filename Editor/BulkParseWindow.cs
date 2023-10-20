@@ -1,8 +1,10 @@
 using CWAEmu.OFUCU.Flash;
+using CWAEmu.OFUCU.Flash.Records;
 using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using Rect = UnityEngine.Rect;
 
 namespace CWAEmu.OFUCU {
     public class BulkParseWindow : EditorWindow {
@@ -48,6 +50,8 @@ namespace CWAEmu.OFUCU {
         }
 
         private void bulkParse() {
+            Matrix.All.Clear();
+
             var files = Directory.EnumerateFiles(path, "*.swf", SearchOption.TopDirectoryOnly);
             foreach (var file in files) {
                 Debug.Log($"Parsing SWF file at {file}");
@@ -67,6 +71,63 @@ namespace CWAEmu.OFUCU {
                 }
 
             }
+
+            // TODO: remove debug
+            int t = 0;
+            int r = 0;
+            int s = 0;
+            int tr = 0;
+            int ts = 0;
+            int sr = 0;
+            int tsr = 0;
+            int nonUnifScale = 0;
+            int anyWithScale = 0;
+            foreach (Matrix matrix in Matrix.All) {
+                bool bt = matrix.hasT();
+                bool br = matrix.hasR();
+                bool bs = matrix.hasS();
+
+                if (bs) {
+                    anyWithScale++;
+                    if (Mathf.Abs(matrix.ScaleX - matrix.ScaleY) > 0.0001) {
+                        nonUnifScale++;
+                    }
+                }
+
+                if (bt && !br && !bs) {
+                    t++;
+                }
+                if (!bt && br && !bs) {
+                    r++;
+                }
+                if (!bt && !br && bs) {
+                    s++;
+                }
+
+                if (bt && br && !bs) {
+                    tr++;
+                }
+                if (bt && !br && bs) {
+                    ts++;
+                }
+                if (!bt && br && bs) {
+                    sr++;
+                }
+
+                if (bt && br && bs) {
+                    tsr++;
+                }
+            }
+
+            Debug.Log($" total: {Matrix.All.Count}");
+            Debug.Log($"   all: {tsr}");
+            Debug.Log($" t & r: {tr}");
+            Debug.Log($" t & s: {ts}");
+            Debug.Log($" s & r: {sr}");
+            Debug.Log($"only t: {t}");
+            Debug.Log($"only s: {s}");
+            Debug.Log($"only r: {r}");
+            Debug.Log($"Scale things: {nonUnifScale}/{anyWithScale}");
         }
     }
 }
