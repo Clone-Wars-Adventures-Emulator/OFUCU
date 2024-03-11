@@ -3,7 +3,6 @@ using CWAEmu.OFUCU.Flash.Tags;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using URect = UnityEngine.Rect;
@@ -160,7 +159,7 @@ namespace CWAEmu.OFUCU {
 
             entry.rt = rt;
             entry.charTag = tag;
-            DictonaryEntry.EnumDictonaryCharacterType type = DictonaryEntry.EnumDictonaryCharacterType.Shape;
+            var type = DictonaryEntry.EnumDictonaryCharacterType.Shape;
             if (tag is DefineSprite) {
                 type = DictonaryEntry.EnumDictonaryCharacterType.Sprite;
             }
@@ -196,7 +195,7 @@ namespace CWAEmu.OFUCU {
 
         private (RectTransform, PlacedObject) copyDictEntryAsReference(DictonaryEntry entry, Type type) {
             GameObject go = Instantiate(entry.gameObject);
-            go.name = $"Placed {go.name}";
+            go.name = $"Placed {entry.gameObject.name}";
             if (go.TryGetComponent(out DictonaryEntry de)) {
                 DestroyImmediate(de);
             }
@@ -264,6 +263,15 @@ namespace CWAEmu.OFUCU {
 
                             break;
                         case EnumUFrameObjectType.Modify:
+                            if (!previousObject.ContainsKey(depth)) {
+                                Debug.LogError("previous object does not exist for depth");
+                                continue;
+                            }
+                            if (!deltaList.ContainsKey(depth)) {
+                                Debug.LogError("delta list does not exist for depth");
+                                continue;
+                            }
+
                             modifyFrameObject(previousObject[depth], deltaList[depth]);
 
                             break;
