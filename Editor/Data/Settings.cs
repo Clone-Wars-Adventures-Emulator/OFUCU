@@ -20,14 +20,18 @@ namespace CWAEmu.OFUCU.Data {
                     scrollPos = GUILayout.BeginScrollView(scrollPos);
                     GUILayout.BeginVertical();
 
-                    EditorGUILayout.PropertyField(settings.FindProperty("defaultExportDir"));
-                    EditorGUILayout.PropertyField(settings.FindProperty("defaultPrefabDir"));
-                    EditorGUILayout.PropertyField(settings.FindProperty("inDepthLogging"));
+                    EditorGUILayout.PropertyField(settings.FindProperty("defaultExportDir"), new GUIContent("Default image Export dir [DEPRECATED]"));
+                    EditorGUILayout.PropertyField(settings.FindProperty("defaultPrefabDir"), new GUIContent("Default prefab Export dir [DEPRECATED]"));
+                    EditorGUILayout.PropertyField(settings.FindProperty("inDepthLogging"), new GUIContent("Enhanced Plugin Logging"));
 
                     GUILayout.EndVertical();
                     GUILayout.EndScrollView();
 
-                    settings.ApplyModifiedPropertiesWithoutUndo();
+                    if (settings.hasModifiedProperties) {
+                        settings.ApplyModifiedPropertiesWithoutUndo();
+                        Debug.Log("Doing things");
+                        Settings.Instance.save();
+                    }
                 },
                 keywords = new HashSet<string> { "OFUCU", "Flash" }
             };
@@ -52,15 +56,32 @@ namespace CWAEmu.OFUCU.Data {
 
         // = = = = = = = = = = Settings Fields = = = = = = = = = = 
 
-        public string defaultExportDir;
-        public string defaultPrefabDir;
-        public bool inDepthLogging;
+        public string DefaultExportDir => defaultExportDir;
+        [SerializeField]
+        private string defaultExportDir;
+
+        public string DefaultPrefabDir => defaultPrefabDir;
+        [SerializeField]
+        private string defaultPrefabDir;
+
+        public bool EnhancedLogging => inDepthLogging;
+        [SerializeField]
+        private bool inDepthLogging;
 
         // = = = = = = = = = = END Settings Fields = = = = = = = = = = 
+        private void initDefaults() {
+            defaultExportDir = "Assets/SWFExport";
+            defaultPrefabDir = "Assets/SWFPrefab";
+            inDepthLogging = false;
+        }
+
+        private void initNullable() {
+
+        }
 
         public void load() {
             if (!File.Exists(FilePath)) {
-                loadDefaults();
+                initDefaults();
                 return;
             }
 
@@ -69,17 +90,13 @@ namespace CWAEmu.OFUCU.Data {
                 EditorJsonUtility.FromJsonOverwrite(jsonText, this);
             } catch (Exception e) {
                 Debug.LogException(e);
-                loadDefaults();
+                initDefaults();
             }
+
+            initNullable();
         }
 
-        private void loadDefaults() {
-            defaultExportDir = "Assets/SWFExport";
-            defaultPrefabDir = "Assets/SWFPrefab";
-            inDepthLogging = false;
-        }
-
-        private void save() {
+        internal void save() {
             string dirName = Path.GetDirectoryName(FilePath);
             if (!Directory.Exists(dirName)) {
                 Directory.CreateDirectory(dirName);

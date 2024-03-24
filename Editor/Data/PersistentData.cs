@@ -37,7 +37,7 @@ namespace CWAEmu.OFUCU.Data {
                 return dir;
             }
 
-            return Settings.Instance.defaultExportDir + "/" + fileName;
+            return Settings.Instance.DefaultExportDir + "/" + fileName;
         }
 
         public void setSwfExportDir(string fileName, string path, bool save = false) {
@@ -52,7 +52,7 @@ namespace CWAEmu.OFUCU.Data {
                 return dir;
             }
 
-            return Settings.Instance.defaultPrefabDir + "/" + fileName;
+            return Settings.Instance.DefaultPrefabDir + "/" + fileName;
         }
 
         public void setSwfPrefabDir(string fileName, string path, bool save = false) {

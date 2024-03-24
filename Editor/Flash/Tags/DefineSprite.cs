@@ -25,7 +25,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                         Debug.LogError("Sprite end tag reached with a frame having contents");
                         Frames.Add(curFrame);
                     }
-                    if (Settings.Instance.inDepthLogging) {
+                    if (Settings.Instance.EnhancedLogging) {
                         Debug.Log($"Sprite End Tag found");
                     }
                     break;

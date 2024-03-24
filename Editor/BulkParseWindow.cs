@@ -7,6 +7,11 @@ using UnityEngine;
 using Rect = UnityEngine.Rect;
 
 namespace CWAEmu.OFUCU {
+    /// <summary>
+    /// Editor Window that will parse all SWF files in a supplied directory, parse them, and run some code on them.
+    /// 
+    /// Currently configured to generate statistics about matrix usage.
+    /// </summary>
     public class BulkParseWindow : EditorWindow {
         private string path;
 

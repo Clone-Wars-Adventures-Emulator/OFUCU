@@ -15,7 +15,7 @@ namespace CWAEmu.OFUCU.Flash {
         private readonly SWFFile file;
         private int index;
         private int bitOffset;
-        private bool skipImageData;
+        private readonly bool skipImageData;
 
         public Reader(byte[] data, SWFFile file, bool skipImageData = false) {
             this.data = data;

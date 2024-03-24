@@ -3,9 +3,13 @@ using UnityEditor;
 using UnityEngine;
 
 namespace CWAEmu.OFUCU {
+    /// <summary>
+    /// Main plugin Editor Window. Used to parse a supplied SWF file and load it into the scene.
+    /// </summary>
     public class ParseFlashWindow : EditorWindow {
         private string swfPath;
         private bool parseImages;
+        private string svgRoot;
 
         [MenuItem("Flash Tools/Parse Flash")]
         public static void showWindow() {
@@ -36,6 +40,22 @@ namespace CWAEmu.OFUCU {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
+            GUILayout.Label("SVGs for SWF: ");
+
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
+            svgRoot = EditorGUILayout.TextField(svgRoot);
+
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
             parseImages = GUILayout.Toggle(parseImages, "Parse Images");
 
             GUILayout.FlexibleSpace();
@@ -55,14 +75,17 @@ namespace CWAEmu.OFUCU {
         }
 
         private void attemptSWFRead() {
-            SWFFile file = SWFFile.readFull(swfPath, parseImages);
+            // parse the file, this does the actual interaction with the SWF specification
+            SWFFile file = SWFFile.readFull(swfPath, false);
 
             if (file == null) {
-                Debug.LogError("That file does not exist bozo head. Skill issue, git gud, be better.");
+                Debug.LogError("The supplied SWF file does not exist or an error occured.");
                 return;
             }
 
-            PlacedSWFFile.placeNewSWFFile(file);
+            // "Place" the file, this is the start of the conversion steps from SWF to Unity
+            //PlacedSWFFile.placeNewSWFFile(file);
+            OFUCUSWF.placeNewSWFFile(file, svgRoot);
         }
     }
 }

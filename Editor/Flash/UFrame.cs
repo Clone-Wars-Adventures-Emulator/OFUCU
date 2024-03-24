@@ -11,6 +11,7 @@ namespace CWAEmu.OFUCU.Flash {
     public class UFrameList {
         public int frameCount;
         public List<Dictionary<int, UFrameObject>> frames = new();
+        // TODO: i highly doubt that this is correct
         public List<Dictionary<int, UFrameObject>> deltaFrames = new();
         public Dictionary<int, string> frameLabels = new();
 
@@ -75,12 +76,13 @@ namespace CWAEmu.OFUCU.Flash {
         public static List<UFrame> toDiscreteList(List<Frame> frames) {
             List<UFrame> discrete = new();
             foreach (Frame frame in frames) {
-                discrete.Add(frame.asUFrame());
+                //discrete.Add(frame.asUFrame());
             }
 
             return discrete;
         }
 
+        [Obsolete("This needs to be re-written")]
         public static UFrameList toDeltaList(List<Frame> frames) {
             List<UFrame> discrete = toDiscreteList(frames);
 

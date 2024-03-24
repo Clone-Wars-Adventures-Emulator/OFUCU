@@ -16,29 +16,46 @@ namespace CWAEmu.OFUCU.Flash {
     // G:\Programming\CWAEmu\OldCWAData\FleetCommander.swf
     [System.Serializable]
     public class SWFFile {
-        public char Signature1 { get; private set; }
-        public char Signature2 { get; private set; }
-        public char Signature3 { get; private set; }
-        public byte Version { get; private set; }
-        public string Name { get; private set; }
-        public string FullName { get; private set; }
-        public Rect FrameSize { get; private set; }
-        public float FrameRate { get; private set; }
-        public ushort FrameCount { get; private set; }
-        public FileAttributesTag AttributesTag { get; private set; }
-        public List<FlashTagHeader> TagHeaders { get; private set; } = new();
-        public Dictionary<int, CharacterTag> CharacterTags { get; private set; } = new();
-        public Dictionary<int, DefineShape> Shapes { get; private set; } = new();
-        public Dictionary<int, ImageCharacterTag> Images { get; private set; } = new();
-        public Dictionary<int, DefineSprite> Sprites { get; private set; } = new();
-        public List<Frame> Frames { get; private set; } = new();
-        public List<DefineScalingGrid> ScalingGrids { get; private set; } = new();
-        public JPEGTable JPEGTable { get; private set; }
+        public char Signature1 => sig1;
+        private char sig1;
+        public char Signature2 => sig2;
+        private char sig2;
+        public char Signature3 => sig3;
+        private char sig3;
+        public byte Version => version;
+        private byte version;
+        public string Name => name;
+        private string name;
+        public string FullName => fullName;
+        private string fullName;
+        public Rect FrameSize => frameSize;
+        private Rect frameSize;
+        public float FrameRate => frameRate;
+        private float frameRate;
+        public ushort FrameCount => frameCount;
+        private ushort frameCount;
+        public FileAttributesTag AttributesTag => attributesTag;
+        private FileAttributesTag attributesTag;
+        public List<FlashTagHeader> TagHeaders => tagHeaders;
+        private readonly List<FlashTagHeader> tagHeaders = new();
+        public Dictionary<int, CharacterTag> CharacterTags => charTags;
+        private readonly Dictionary<int, CharacterTag> charTags = new();
+        public Dictionary<int, DefineShape> Shapes => shapes;
+        private readonly Dictionary<int, DefineShape> shapes = new();
+        public Dictionary<int, ImageCharacterTag> Images => images;
+        private readonly Dictionary<int, ImageCharacterTag> images = new();
+        public Dictionary<int, DefineSprite> Sprites => sprites;
+        private readonly Dictionary<int, DefineSprite> sprites = new();
+        public List<Frame> Frames => frames;
+        private readonly List<Frame> frames = new();
+        public List<DefineScalingGrid> ScalingGrids => scalingGrids;
+        private readonly List<DefineScalingGrid> scalingGrids = new();
+        public JPEGTable JPEGTable => jpegTable;
+        private JPEGTable jpegTable;
 
-
-        private SWFFile(string name, bool parseImages = true) {
-            FullName = name;
-            Name = name[0..name.IndexOf('.')];
+        private SWFFile(string name) {
+            fullName = name;
+            this.name = name[0..name.LastIndexOf('.')];
         }
 
         private void parseFull(Reader reader) {
@@ -49,7 +66,7 @@ namespace CWAEmu.OFUCU.Flash {
                     return;
                 }
 
-                AttributesTag = FileAttributesTag.readTag(header, reader);
+                attributesTag = FileAttributesTag.readTag(header, reader);
             }
 
             Frame curFrame = new();
@@ -59,13 +76,13 @@ namespace CWAEmu.OFUCU.Flash {
                 FlashTagHeader header = reader.readFlashTagHeader();
                 TagHeaders.Add(header);
 
-                if (Settings.Instance.inDepthLogging) {
+                if (Settings.Instance.EnhancedLogging) {
                     Debug.Log($"Tag: {header.TagType} {header.TagLength}");
                 }
 
                 // if end tag, stop parsing
                 if (header.TagType == 0) {
-                    if (Settings.Instance.inDepthLogging) {
+                    if (Settings.Instance.EnhancedLogging) {
                         Debug.Log($"================ End Tag found ================");
                     }
                     break;
@@ -104,7 +121,7 @@ namespace CWAEmu.OFUCU.Flash {
                         jTable.Header = header;
                         jTable.read(reader);
 
-                        JPEGTable = jTable;
+                        jpegTable = jTable;
                         break;
                     case 21: // DefineBitsJPEG2
                         DefineBitsJPEG2 jpg2 = new();
@@ -214,7 +231,7 @@ namespace CWAEmu.OFUCU.Flash {
                 }
             }
 
-            if (Settings.Instance.inDepthLogging) {
+            if (Settings.Instance.EnhancedLogging) {
                 foreach (var tagType in count.Keys) {
                     Debug.Log($"There are {count[tagType]} tags of type {tagType}");
                 }
@@ -257,16 +274,16 @@ namespace CWAEmu.OFUCU.Flash {
             }
 
             string name = Path.GetFileName(path);
-            SWFFile file = new(name, parseImages);
+            SWFFile file = new(name);
 
             var stream = File.OpenRead(path);
             var binReader = new BinaryReader(stream);
 
             // Read SWF magic and version
-            file.Signature1 = binReader.ReadChar();
-            file.Signature2 = binReader.ReadChar();
-            file.Signature3 = binReader.ReadChar();
-            file.Version = binReader.ReadByte();
+            file.sig1 = binReader.ReadChar();
+            file.sig2 = binReader.ReadChar();
+            file.sig3 = binReader.ReadChar();
+            file.version = binReader.ReadByte();
 
             if ((file.Signature1 != 'C' && file.Signature1 != 'F') || file.Signature2 != 'W' || file.Signature3 != 'S') {
                 Debug.LogError("Invalid file signature.");
@@ -298,11 +315,11 @@ namespace CWAEmu.OFUCU.Flash {
             }
 
             Reader reader = new(data, file, parseImages);
-            file.FrameSize = Rect.readRect(reader);
-            file.FrameRate = reader.readUInt16() / 256.0f;
-            file.FrameCount = reader.readUInt16();
+            file.frameSize = Rect.readRect(reader);
+            file.frameRate = reader.readUInt16() / 256.0f;
+            file.frameCount = reader.readUInt16();
 
-            if (Settings.Instance.inDepthLogging) {
+            if (Settings.Instance.EnhancedLogging) {
                 Debug.Log($"{file.FrameSize.X},{file.FrameSize.Y} X {file.FrameSize.Width},{file.FrameSize.Height} @ {file.FrameRate}fps with {file.FrameCount} frames");
             }
 

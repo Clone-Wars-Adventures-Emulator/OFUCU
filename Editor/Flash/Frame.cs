@@ -11,76 +11,99 @@ namespace CWAEmu.OFUCU.Flash {
         public void addTag(FlashTag tag) {
             Tags.Add(tag);
 
-            if (tag is FrameLabel) {
-                Label = ((FrameLabel)tag).Label;
+            if (tag is FrameLabel label) {
+                Label = label.Label;
             }
         }
 
-        public UFrame asUFrame() {
-            UFrame frame = new() {
+        public DisplayFrame asDisplayFrame(DisplayFrame previous = null) {
+            DisplayFrame df = new() {
                 label = Label,
-                frameIndex = FrameIndex - 1
+                frameIndex = FrameIndex,
             };
 
             foreach (var tag in Tags) {
-                UFrameObject frameObj = new();
                 if (tag is PlaceObject2 po2) {
+                    if (previous == null || !previous.states.TryGetValue(po2.Depth, out var prev)) {
+                        prev = new();
+                    }
+                    DisplayObject delt = new();
+
+                    bool isDelta = false;
                     if (po2.HasCharacter && !po2.Move) {
-                        frameObj.type = EnumUFrameObjectType.Place;
+                        df.objectsAdded.Add(po2.Depth);
                     }
                     if (!po2.HasCharacter && po2.Move) {
-                        frameObj.type = EnumUFrameObjectType.Modify;
+                        isDelta = true;
                     }
                     if (po2.HasCharacter && po2.Move) {
-                        frameObj.type = EnumUFrameObjectType.PlaceRemove;
+                        df.objectsAdded.Add(po2.Depth);
+                        df.objectsRemoved.Add(po2.Depth);
+                        // force prev to be new obj
+                        prev = new();
                     }
 
-                    frameObj.depth = po2.Depth;
-                    
+                    prev.depth = delt.depth = po2.Depth;
+
                     if (po2.HasCharacter) {
-                        frameObj.charId = po2.CharacterId;
+                        prev.charId = delt.charId = po2.CharacterId;
+                        prev.hasCharId = delt.hasCharId = true;
                     }
 
                     if (po2.HasMatrix) {
-                        frameObj.matrix = UMatrix.fromFlashMatrix(po2.Matrix);
+                        prev.matrix = delt.matrix = Matrix2x3.fromFlash(po2.Matrix);
+                    } else {
+                        prev.matrix = new();
                     }
 
                     if (po2.HasColorTransform) {
-                        frameObj.colorTransform = UColorTransform.fromFlashMatrix(po2.ColorTransform);
+                        prev.color = delt.color = ColorTransform.frameFlash(po2.ColorTransform);
+                        prev.hasColor = delt.hasColor = true;
                     }
 
                     if (po2.HasName) {
-                        frameObj.name = po2.Name;
+                        prev.name = delt.name = po2.Name;
+                        prev.hasName = delt.hasName = true;
                     }
 
                     if (po2.HasClipDepth) {
-                        frameObj.clipDepth = po2.ClipDepth;
+                        prev.clipDepth = delt.clipDepth = po2.ClipDepth;
+                        prev.hasClipDepth = delt.hasClipDepth = true;
                     }
 
                     if (po2 is PlaceObject3 po3) {
                         if (po3.HasBlendMode) {
-                            frameObj.blendMode = po3.BlendMode;
+                            prev.blendMode = delt.blendMode = po3.BlendMode;
+                            prev.hasBlendMode = delt.hasBlendMode = true;
                         }
                     }
 
-                    frame.displayList.Add(po2.Depth, frameObj);
+                    df.states.Add(po2.Depth, prev);
+                    if (isDelta) {
+                        df.changes.Add(po2.Depth, delt);
+                    }
                 }
 
                 if (tag is RemoveObject ro) {
-                    frameObj.type = EnumUFrameObjectType.Remove;
-                    frameObj.depth = ro.Depth;
-                    frameObj.charId = ro.CharacterId;
-                    frame.removeDisplayList.Add(ro.Depth, frameObj);
+                    df.objectsRemoved.Add(ro.Depth);
                 }
 
                 if (tag is RemoveObject2 ro2) {
-                    frameObj.type = EnumUFrameObjectType.Remove;
-                    frameObj.depth = ro2.Depth;
-                    frame.removeDisplayList.Add(ro2.Depth, frameObj);
+                    df.objectsRemoved.Add(ro2.Depth);
                 }
             }
 
-            return frame;
+            if (previous != null) {
+                foreach (var pair in previous.states) {
+                    if (df.states.ContainsKey(pair.Key)) {
+                        continue;
+                    }
+
+                    df.states.Add(pair.Key, pair.Value);
+                }
+            }
+
+            return df;
         }
     }
 }
