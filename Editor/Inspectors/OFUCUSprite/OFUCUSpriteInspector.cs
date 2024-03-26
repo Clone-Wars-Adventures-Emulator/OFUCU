@@ -24,10 +24,24 @@ namespace CWAEmu.OFUCU {
                 };
             }
 
+            var placeDepsBtnEle = root.Q("placedeps");
+            if (placeDepsBtnEle is Button placeDepsBtn) {
+                placeDepsBtn.clicked += () => {
+                    sprite.place(true);
+                };
+            }
+
             var animBtnEle = root.Q("anim");
             if (animBtnEle is Button animBtn) {
                 animBtn.clicked += () => {
                     sprite.animate();
+                };
+            }
+
+            var saveBtnEle = root.Q("save");
+            if (saveBtnEle is Button saveBtn) {
+                saveBtn.clicked += () => {
+                    sprite.saveAsPrefab();
                 };
             }
 

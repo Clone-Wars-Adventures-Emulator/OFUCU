@@ -34,7 +34,13 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        public void place() {
+        public void place(bool forceDeps = false) {
+            if (forceDeps) {
+                swf.placeFrames(transform as RectTransform, sprite.Frames, dependencies);
+
+                return;
+            }
+
             // check if dependencies are filled, if not, dont do this
             var dep = swf.allSpritesFilled(dependencies);
             if (dep != 0) {

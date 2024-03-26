@@ -1,6 +1,7 @@
 using CWAEmu.OFUCU.Flash;
 using CWAEmu.OFUCU.Flash.Tags;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -17,17 +18,19 @@ namespace CWAEmu.OFUCU {
         private readonly HashSet<int> dependencies = new();
 
         public readonly Dictionary<int, OFUCUSprite> neoSprites = new();
+        public readonly HashSet<int> svgIds = new();
 
         public static void placeNewSWFFile(SWFFile file, string svgRoot) {
-            // TODO: validate svg root
+            if (!Directory.Exists(svgRoot)) {
+                Debug.LogError($"SvgRoot {svgRoot} does not exist.");
+                return;
+            }
 
             GameObject go = new($"SWF Root: {file.Name}");
             OFUCUSWF swf = go.AddComponent<OFUCUSWF>();
             swf.svgRoot = svgRoot;
             swf.file = file;
             swf.init();
-
-
 
             // Debug stuff, removable
             Debug.Log($"Generated {swf.dictonaryT.childCount} objects as a child of {swf.dictonaryT.name}");
@@ -42,6 +45,14 @@ namespace CWAEmu.OFUCU {
         }
 
         private void init() {
+            var files = Directory.EnumerateFiles(svgRoot, "*.svg", SearchOption.TopDirectoryOnly);
+            foreach (var filePath in files) {
+                var fileName = Path.GetFileNameWithoutExtension(filePath);
+                if (int.TryParse(fileName, out var id)) {
+                    svgIds.Add(id);
+                }
+            }
+
             Canvas canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.additionalShaderChannels = AdditionalCanvasShaderChannels.TexCoord1 | AdditionalCanvasShaderChannels.TexCoord2 | AdditionalCanvasShaderChannels.TexCoord3;
@@ -92,7 +103,15 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        public void placeFrames(RectTransform root, List<Frame> frames) {
+        public void placeFrames(RectTransform root, List<Frame> frames, HashSet<int> dependencies = null) {
+            if (dependencies != null) {
+                foreach (int i in dependencies) {
+                    if (neoSprites.TryGetValue(i, out var sprite) && !sprite.Filled) {
+                        sprite.place(true);
+                    }
+                }
+            }
+
             DisplayList dl = new(frames);
 
             for (int i = 0; i < dl.frames.Length; i++) {
@@ -172,6 +191,10 @@ namespace CWAEmu.OFUCU {
 
         public int allSpritesFilled(HashSet<int> spriteIds) {
             foreach (int id in spriteIds) {
+                if (svgIds.Contains(id)) {
+                    continue;
+                }
+
                 if (!neoSprites.TryGetValue(id, out var sprite) || !sprite.Filled) {
                     return id;
                 }
