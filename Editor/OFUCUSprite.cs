@@ -35,13 +35,13 @@ namespace CWAEmu.OFUCU {
         }
 
         public void place() {
+            // check if dependencies are filled, if not, dont do this
             var dep = swf.allSpritesFilled(dependencies);
             if (dep != 0) {
                 Debug.LogError($"Not placing {sprite.CharacterId}, sprite {dep} is not filled.");
                 return;
             }
 
-            // check if dependencies are filled, if not, dont do this
             swf.placeFrames(transform as RectTransform, sprite.Frames);
             sprite = null;
             filled = true;
@@ -49,13 +49,13 @@ namespace CWAEmu.OFUCU {
 
         // TODO: popup window that takes in what ever params i want (this is future)
         public void animate() {
+            // check if dependencies are filled, if not, dont do this
             var dep = swf.allSpritesFilled(dependencies);
             if (dep != 0) {
                 Debug.LogError($"Not animating {sprite.CharacterId}, sprite {dep} is not filled.");
                 return;
             }
 
-            // check if dependencies are filled, if not, dont do this
             swf.animateFrames(transform as RectTransform, sprite.Frames);
             filled = true;
         }

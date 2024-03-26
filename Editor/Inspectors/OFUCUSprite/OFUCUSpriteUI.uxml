@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:Label text="OFUCU Sprite" display-tooltip-when-elided="true" />
+    <ui:Button text="Place SWF" display-tooltip-when-elided="true" name="place" style="top: 2px;" />
+    <ui:Button text="Animate SWF" display-tooltip-when-elided="true" name="anim" style="top: 2px;" />
+</ui:UXML>

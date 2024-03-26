@@ -1,4 +1,5 @@
 using CWAEmu.OFUCU.Flash;
+using CWAEmu.OFUCU.Flash.Tags;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -12,6 +13,8 @@ namespace CWAEmu.OFUCU {
 
         private SWFFile file;
         private string svgRoot;
+        
+        private readonly HashSet<int> dependencies = new();
 
         public readonly Dictionary<int, OFUCUSprite> neoSprites = new();
 
@@ -77,6 +80,15 @@ namespace CWAEmu.OFUCU {
                 var dict = go.GetComponent<OFUCUSprite>();
                 dict.init(this, pair.Value);
                 neoSprites.Add(pair.Key, dict);
+            }
+
+            // calculate dependencies
+            foreach (var f in file.Frames) {
+                foreach (var t in f.Tags) {
+                    if (t is PlaceObject2 po2 && po2.HasCharacter) {
+                        dependencies.Add(po2.CharacterId);
+                    }
+                }
             }
         }
 
@@ -195,6 +207,28 @@ namespace CWAEmu.OFUCU {
             }
 
             return (go, aoo);
+        }
+
+        public void placeSwf() {
+            // check if dependencies are filled, if not, dont do this
+            var dep = allSpritesFilled(dependencies);
+            if (dep != 0) {
+                Debug.LogError($"Not placing swf, sprite {dep} is not filled.");
+                return;
+            }
+
+            placeFrames(vfswfhT, file.Frames);
+        }
+
+        public void animSwf() {
+            // check if dependencies are filled, if not, dont do this
+            var dep = allSpritesFilled(dependencies);
+            if (dep != 0) {
+                Debug.LogError($"Not animating swf, sprite {dep} is not filled.");
+                return;
+            }
+
+            animateFrames(vfswfhT, file.Frames);
         }
     }
 }
