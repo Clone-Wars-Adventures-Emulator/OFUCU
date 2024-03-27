@@ -180,6 +180,24 @@ namespace CWAEmu.OFUCU {
         }
 
         public void animateFrames(RectTransform root, List<Frame> frames) {
+            AnimateFramesWindow.root = root;
+            AnimateFramesWindow.frames = frames;
+            AnimateFramesWindow.onPress = onAnimateButton;
+            EditorWindow.GetWindow<AnimateFramesWindow>($"Animate {root.name}");
+        }
+
+        private void onAnimateButton(RectTransform root, List<Frame> frames, string outputDir, bool labelsAsClips, List<int> clipIndexes) {
+            // TODO: depending on the label as clips or clip indexes, change how many times animateImpl is called
+
+            // TODO: rhs of this
+            AnimationClip c = null;
+
+            // TODO: this is how you save that, but this is not the best way (check the way the images were handled)
+            AssetDatabase.CreateAsset(c, outputDir);
+            AssetDatabase.SaveAssets();
+        }
+
+        private AnimationClip animateImpl(RectTransform root, List<Frame> frames, string clipname = "default") {
             // TODO: load all objects into one list, load as tuples, tuples are (int depth, TYPE initialObjectInfo, int firstFrame, int lastFrame)
             // TODO: setup the structures for the objects (eg parent the masks correctly), place all objects with their initial info, and disable them
 
@@ -187,6 +205,8 @@ namespace CWAEmu.OFUCU {
 
             // TODO: animate is going to be the tricky one as it needs to keep all objects around but enable/disable them when they get added/removed.
             // this will require persisting a seperate display list? and checking the frame objectAdd / objectRemove lists to know what depths changed
+
+            return null;
         }
 
         public int allSpritesFilled(HashSet<int> spriteIds) {
@@ -224,7 +244,7 @@ namespace CWAEmu.OFUCU {
                 aoo = go.AddComponent<OFUCUShape>();
             }
 
-            // TODO: handle text objects
+            // TODO: handle text and other? objects
             if (aoo == null) {
                 Debug.Log($"Not placing {obj.charId}, not shape or sprite");
             }

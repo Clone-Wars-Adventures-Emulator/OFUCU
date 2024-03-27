@@ -53,7 +53,6 @@ namespace CWAEmu.OFUCU {
             filled = true;
         }
 
-        // TODO: popup window that takes in what ever params i want (this is future)
         public void animate() {
             // check if dependencies are filled, if not, dont do this
             var dep = swf.allSpritesFilled(dependencies);
@@ -67,6 +66,11 @@ namespace CWAEmu.OFUCU {
         }
 
         public void saveAsPrefab() {
+            if (cloned) {
+                Debug.LogError("Cannot save a clone as a prefab");
+                return;
+            }
+
             if (prefabAssetPath == null) {
                 if (!Directory.Exists(Settings.Instance.DefaultPrefabDir)) {
                     Directory.CreateDirectory(Settings.Instance.DefaultPrefabDir);
@@ -76,6 +80,8 @@ namespace CWAEmu.OFUCU {
             } else {
                 PrefabUtility.SavePrefabAsset(gameObject);
             }
+
+            // TODO: reload all copies
         }
 
         public GameObject getCopy() {
