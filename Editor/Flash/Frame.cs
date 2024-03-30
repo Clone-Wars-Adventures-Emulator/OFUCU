@@ -52,7 +52,9 @@ namespace CWAEmu.OFUCU.Flash {
 
                     if (po2.HasMatrix) {
                         prev.matrix = delt.matrix = Matrix2x3.fromFlash(po2.Matrix);
+                        prev.hasMatrixChange = delt.hasMatrixChange = true;
                     } else {
+                        // TODO: does this work the way you expected?
                         prev.matrix = new();
                     }
 
@@ -93,9 +95,11 @@ namespace CWAEmu.OFUCU.Flash {
                 }
             }
 
+            // for each object in the previous frame's states, check if it should be carried over to this frame
+            // this should happen if the current state does not contain the object and the object at that depth was not removed
             if (previous != null) {
                 foreach (var pair in previous.states) {
-                    if (df.states.ContainsKey(pair.Key)) {
+                    if (df.states.ContainsKey(pair.Key) || df.objectsRemoved.Contains(pair.Key)) {
                         continue;
                     }
 

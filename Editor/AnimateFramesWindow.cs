@@ -54,7 +54,7 @@ namespace CWAEmu.OFUCU {
             if (!labelsAsSeps) {
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(5);
-                EditorGUILayout.PropertyField(so.FindProperty("indicies"), new GUIContent("Clip Seperation Indicies"));
+                EditorGUILayout.PropertyField(so.FindProperty("indicies"), new GUIContent("Clip Seperation Indicies (1 based)"));
                 if (so.hasModifiedProperties) {
                     so.ApplyModifiedPropertiesWithoutUndo();
                 }

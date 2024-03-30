@@ -42,7 +42,7 @@ namespace CWAEmu.OFUCU.Flash {
         public int charId;
         public int depth;
 
-        // TODO: present flags for all of these??
+        public bool hasMatrixChange;
         public bool hasCharId;
         public bool hasColor;
         public bool hasName;

@@ -1,9 +1,12 @@
 using CWAEmu.OFUCU.Flash;
 using CWAEmu.OFUCU.Flash.Tags;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -114,8 +117,7 @@ namespace CWAEmu.OFUCU {
 
             DisplayList dl = new(frames);
 
-            for (int i = 0; i < dl.frames.Length; i++) {
-                DisplayFrame df = dl.frames[i];
+            foreach (var df in dl.frames) {
                 string name = df.label ?? $"Frame {df.frameIndex}";
 
                 // create frame object
@@ -187,26 +189,168 @@ namespace CWAEmu.OFUCU {
         }
 
         private void onAnimateButton(RectTransform root, List<Frame> frames, string outputDir, bool labelsAsClips, List<int> clipIndexes) {
-            // TODO: depending on the label as clips or clip indexes, change how many times animateImpl is called
+            Animator anim = root.gameObject.AddComponent<Animator>();
+            var controller = AnimatorController.CreateAnimatorControllerAtPath($"{outputDir}/{root.name}.controller");
+            anim.runtimeAnimatorController = controller;
 
-            // TODO: rhs of this
-            AnimationClip c = null;
+            if (labelsAsClips) {
+                clipIndexes = new();
+                foreach (Frame f in frames) {
+                    foreach (var t in f.Tags) {
+                        if (t is FrameLabel && f.FrameIndex != 1) {
+                            clipIndexes.Add(f.FrameIndex);
+                            break;
+                        }
+                    }
+                }
+            }
 
-            // TODO: this is how you save that, but this is not the best way (check the way the images were handled)
-            AssetDatabase.CreateAsset(c, outputDir);
-            AssetDatabase.SaveAssets();
+            clipIndexes ??= new();
+            clipIndexes.Add(frames.Count);
+
+            DisplayList dl = new(frames);
+            AnimatedThingList<AnimatedFrameObject> objs = new();
+            Dictionary<int, (int start, int end, RectTransform rt)> masks = new();
+            // for each frame
+            foreach (var f in dl.frames) {
+                // check objects removed and set them
+                foreach (var depth in f.objectsRemoved) {
+                    // find the object we are specifically referring to at that depth
+                    if (objs.tryGetObject(depth, f.frameIndex, out var afo)) {
+                        afo.end = f.frameIndex;
+                    }
+
+                    if (masks.ContainsKey(depth)) {
+                        masks.Remove(depth);
+                    }
+                }
+
+                // check objects added and spawn them
+                foreach (var depth in f.objectsAdded) {
+                    var (go, _) = createObjectReference(root, f.states[depth]);
+                    go.AddComponent<AnimatedOFUCUObject>();
+
+                    go.SetActive(false);
+                    string objPath = go.name;
+
+                    // TODO: does this work the way i epxect?
+                    if (f.states.TryGetValue(depth, out var o) && o.hasClipDepth) {
+                        masks.Add(depth, (depth, o.clipDepth, go.transform as RectTransform));
+                        var mask = go.AddComponent<Mask>();
+                        mask.showMaskGraphic = false;
+                    }
+
+                    foreach (var trip in masks.Values) {
+                        if (trip.start < depth && trip.end >= depth) {
+                            go.transform.SetParent(trip.rt, false);
+                            go.AddComponent<OFUCUAnchor>();
+                        }
+                    }
+
+                    // TODO: initial state?
+
+                    var afo = new AnimatedFrameObject() {
+                        start = f.frameIndex,
+                        go = go,
+                        path = objPath,
+                    };
+
+                    objs.addAtDepth(depth, afo);
+                }
+            }
+
+            List<AnimationClip> clips = new();
+            int start = 1;
+            // loop each index and create the appropriate clips
+            foreach (int i in clipIndexes) {
+                string clipName = $"Clip {start}-{i}";
+
+                // check if the start frame has a label for the name
+                if (start - 1 < frames.Count) {
+                    Frame f = frames[start - 1];
+                    foreach (var t in f.Tags) {
+                        if (t is FrameLabel fl) {
+                            clipName = fl.Label;
+                        }
+                    }
+                }
+
+                var clip = animateImpl(dl, objs, start, i, clipName);
+                clips.Add(clip);
+                // start next clip at the next frame
+                start = i + 1;
+            }
+
+            var rootSM = controller.layers[0].stateMachine;
+            foreach (var clip in clips) {
+                var state = rootSM.AddState(clip.name);
+                state.motion = clip;
+            }
+
+            try {
+                AssetDatabase.StartAssetEditing();
+
+                foreach (var clip in clips) {
+                    AssetDatabase.CreateAsset(clip, $"{outputDir}/{clip.name}.clip");
+                }
+            } catch (Exception e) {
+                Debug.LogException(e);
+            } finally {
+                AssetDatabase.StopAssetEditing();
+            }
         }
 
-        private AnimationClip animateImpl(RectTransform root, List<Frame> frames, string clipname = "default") {
-            // TODO: load all objects into one list, load as tuples, tuples are (int depth, TYPE initialObjectInfo, int firstFrame, int lastFrame)
-            // TODO: setup the structures for the objects (eg parent the masks correctly), place all objects with their initial info, and disable them
+        private AnimationClip animateImpl(DisplayList dl, AnimatedThingList<AnimatedFrameObject> objs, int start, int end, string clipname = "default") {
+            AnimationClip ac = new();
+            ac.name = clipname;
+            ac.frameRate = file.FrameRate;
 
-            // TODO: create an animation clip on this object, iterate though the frames and apply delats to the clip, enable objects as they are added, disable them as they are removed
+            AnimatedThingList<AnimationData> animData = new();
+            animData.initFromOther(objs);
 
-            // TODO: animate is going to be the tricky one as it needs to keep all objects around but enable/disable them when they get added/removed.
-            // this will require persisting a seperate display list? and checking the frame objectAdd / objectRemove lists to know what depths changed
+            for (int i = start + 1; i <= end; i++) {
+                DisplayFrame f = dl.frames[i - 1];
 
-            return null;
+                foreach (var remove in f.objectsRemoved) {
+                    if (animData.tryGetObject(remove, i - 1, out var anim)) {
+                        anim.animateEnable(i, file.FrameRate, false);
+                    }
+                }
+
+                foreach (var add in f.objectsAdded) {
+                    if (animData.tryGetObject(add, i, out var anim)) {
+                        anim.animateEnable(i, file.FrameRate, true);
+                    }
+                }
+
+                foreach (var change in f.changes.Values) {
+                    AnimatedFrameObject afo = objs.getObject(change.depth, i);
+                    if (afo == null) {
+                        Debug.LogWarning($"There is a change at frame {i}@{change.depth} that does not have an AFO.");
+                        continue;
+                    }
+
+                    AnimationData ad = animData.getObject(change.depth, i);
+                    if (ad == null) {
+                        Debug.LogWarning($"There is a change at frame {i}@{change.depth} that does not have AnimData.");
+                        continue;
+                    }
+
+                    if (change.hasMatrixChange) {
+                        ad.animateMatrix(i, file.FrameRate, change.matrix);
+                    }
+
+                    if (change.hasColor) {
+                        ad.animateColor(i, file.FrameRate, change.color);
+                    }
+                }
+            }
+
+            foreach (AnimationData anim in animData) {
+                anim.applyToAnim(ac);
+            }
+
+            return ac;
         }
 
         public int allSpritesFilled(HashSet<int> spriteIds) {
@@ -272,6 +416,154 @@ namespace CWAEmu.OFUCU {
             }
 
             animateFrames(vfswfhT, file.Frames);
+        }
+
+        private class AnimatedThingList<T> : IEnumerable<T> where T : AnimatedThing {
+            private readonly Dictionary<int, List<T>> objs = new();
+
+            public void initFromOther<V>(AnimatedThingList<V> other) where V : AnimatedThing {
+                foreach (var pair in other.objs) {
+                    var list = new List<T>();
+                    objs.Add(pair.Key, list);
+
+                    foreach (var v in pair.Value) {
+                        var t = default(T);
+                        t.Start = v.Start;
+                        t.End = v.End;
+                        t.Path = v.Path;
+                        list.Add(t);
+                    }
+                }
+            }
+
+            public void addAtDepth(int depth, T obj) {
+                if (!objs.TryGetValue(depth, out var dObjs)) {
+                    dObjs = new();
+                    objs.Add(depth, dObjs);
+                }
+                dObjs.Add(obj);
+            }
+
+            public T getObject(int depth, int frame) {
+                if (!objs.TryGetValue(depth, out var afoList)) {
+                    return null;
+                }
+
+                foreach (var check in afoList) {
+                    if (check.isDesiredObj(frame)) {
+                        return check;
+                    }
+                }
+
+                return null;
+            }
+
+            public bool tryGetObject(int depth, int frame, out T obj) {
+                obj = getObject(depth, frame);
+                return obj != null;
+            }
+
+            public IEnumerator<T> GetEnumerator() {
+                return objs.SelectMany(pair => pair.Value).GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() {
+                return GetEnumerator();
+            }
+        }
+
+        private class AnimatedFrameObject : AnimatedThing {
+            public override int Start {
+                get => start;
+                set => start = value;
+            }
+            public int start;
+            public override int End {
+                get => end;
+                set => end = value;
+            }
+            public int end = int.MaxValue;
+            public override string Path {
+                get => path;
+                set => path = value;
+            }
+            public string path;
+            public GameObject go;
+        }
+
+        private class AnimationData : AnimatedThing {
+            public override int Start {
+                get => start;
+                set => start = value;
+            }
+            public int start;
+            public override int End {
+                get => end;
+                set => end = value;
+            }
+            public int end;
+            public override string Path {
+                get => path;
+                set => path = value;
+            }
+            public string path;
+
+            private List<Keyframe> enabled = new();
+            private List<Keyframe> xpos = new();
+            private List<Keyframe> ypos = new();
+            private List<Keyframe> xscale = new();
+            private List<Keyframe> yscale = new();
+            private List<Keyframe> zrot = new();
+            private List<Keyframe> hasm = new();
+            private List<Keyframe> hasa = new();
+            private List<Keyframe> mr = new();
+            private List<Keyframe> mg = new();
+            private List<Keyframe> mb = new();
+            private List<Keyframe> ma = new();
+            private List<Keyframe> ar = new();
+            private List<Keyframe> ag = new();
+            private List<Keyframe> ab = new();
+            private List<Keyframe> aa = new();
+
+            public void animateMatrix(int frame, float frameRate, Matrix2x3 matrix) {
+                // TODO: has it been more than one frame since last KF? if yes, copy that KF first so we dont fuck up state then add our self in
+            }
+
+            public void animateColor(int frame, float frameRate, ColorTransform ct) {
+                // TODO: 
+            }
+
+            public void animateEnable(int frame, float frameRate, bool enable) {
+                // TODO: 
+            }
+
+            private void addKeyframe(List<Keyframe> kfs, int frame, float frameRate, float value) {
+
+            }
+
+            // some resulable function code that will do the prev frame check and apply things
+
+            public void applyToAnim(AnimationClip ac) {
+                // TODO: apply interpolation curve rules to all KFs
+            }
+        }
+
+        private abstract class AnimatedThing {
+            public abstract int Start { get; set; }
+            public abstract int End { get; set; }
+            public abstract string Path { get; set; }
+
+            public bool isDesiredObj(int frameIndex) {
+                if (frameIndex > End) {
+                    return false;
+                }
+
+                if (frameIndex < Start) {
+                    return true;
+                }
+
+                return false;
+            }
         }
     }
 }
