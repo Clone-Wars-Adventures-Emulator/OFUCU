@@ -3,6 +3,7 @@ using CWAEmu.OFUCU.Flash.Tags;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 namespace CWAEmu.OFUCU.Flash {
     [Serializable]
@@ -136,8 +137,8 @@ namespace CWAEmu.OFUCU.Flash {
     }
 
     public class ColorTransform {
-        public Color32 mult;
-        public Color32 add;
+        public Color mult;
+        public Color add;
 
         public bool hasMult;
         public bool hasAdd;
@@ -149,11 +150,11 @@ namespace CWAEmu.OFUCU.Flash {
             };
 
             if (cx.HasMult) {
-                ting.mult = new Color32(cx.RMult, cx.GMult, cx.BMult, cx.AMult);
+                ting.mult = new Color(cx.RMult / 256.0f, cx.GMult / 256.0f, cx.BMult / 256.0f, cx.AMult / 256.0f);
             }
 
             if (cx.HasAdd) {
-                ting.add = new Color32(cx.RAdd, cx.GAdd, cx.BAdd, cx.AAdd);
+                ting.add = new Color(cx.RAdd / 256.0f, cx.GAdd / 256.0f, cx.BAdd / 256.0f, cx.AAdd / 256.0f);
             }
 
             return ting;

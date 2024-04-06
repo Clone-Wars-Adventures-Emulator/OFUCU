@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UColor32 = UnityEngine.Color32;
+using UColor = UnityEngine.Color;
 
 namespace CWAEmu.OFUCU.Flash {
     [System.Serializable]
@@ -238,18 +238,18 @@ namespace CWAEmu.OFUCU.Flash {
 
     [System.Serializable]
     public class UColorTransform {
-        public UColor32 mult;
-        public UColor32 add;
+        public UColor mult;
+        public UColor add;
 
         public static UColorTransform fromFlashMatrix(CXFormWithAlpha color) {
             UColorTransform col = new();
 
             if (color.HasMult) {
-                col.mult = new UColor32(color.RMult, color.GMult, color.BMult, color.AMult);
+                col.mult = new UColor(color.RMult, color.GMult, color.BMult, color.AMult);
             }
 
             if (color.HasAdd) {
-                col.add = new UColor32(color.RAdd, color.GAdd, color.BAdd, color.AAdd);
+                col.add = new UColor(color.RAdd, color.GAdd, color.BAdd, color.AAdd);
             }
 
             return col;

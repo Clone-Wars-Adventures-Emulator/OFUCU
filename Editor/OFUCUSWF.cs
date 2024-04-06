@@ -201,20 +201,39 @@ namespace CWAEmu.OFUCU {
             var controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
             anim.runtimeAnimatorController = controller;
 
+            var clipDefs = new List<(int start, int end, string name)>();
             if (labelsAsClips) {
-                clipIndexes = new();
+                int start = 1;
+                string name = null;
+
                 foreach (Frame f in frames) {
                     foreach (var t in f.Tags) {
-                        if (t is FrameLabel && f.FrameIndex != 1) {
-                            clipIndexes.Add(f.FrameIndex);
+                        if (t is FrameLabel fl) {
+                            if (f.FrameIndex != 1) {
+                                clipDefs.Add((start, f.FrameIndex - 1, name));
+                                start = f.FrameIndex;
+                            }
+                            name = fl.Label;
                             break;
                         }
                     }
                 }
+
+                // if name is null, give it a name (means that there likely were not any frame labels)
+                name ??= $"Clip {start}-{frames.Count}";
+                clipDefs.Add((start, frames.Count, name));
+            } else {
+                clipIndexes ??= new();
+                clipIndexes.Add(frames.Count);
+
+                int start = 1;
+                foreach (int i in clipIndexes) {
+                    string name = $"Clip {start}-{i}";
+                    clipDefs.Add((start, i, name));
+                    start = i + 1;
+                }
             }
 
-            clipIndexes ??= new();
-            clipIndexes.Add(frames.Count);
 
             DisplayList dl = new(frames);
             AnimatedThingList<AnimatedFrameObject> objs = new();
@@ -268,25 +287,9 @@ namespace CWAEmu.OFUCU {
             }
 
             List<AnimationClip> clips = new();
-            int start = 1;
-            // loop each index and create the appropriate clips
-            foreach (int i in clipIndexes) {
-                string clipName = $"Clip {start}-{i}";
-
-                // check if the start frame has a label for the name
-                if (start - 1 < frames.Count) {
-                    Frame f = frames[start - 1];
-                    foreach (var t in f.Tags) {
-                        if (t is FrameLabel fl) {
-                            clipName = fl.Label;
-                        }
-                    }
-                }
-
-                var clip = animateImpl(dl, objs, start, i, $"{root.name}.{clipName}");
+            foreach (var clipDef in clipDefs) {
+                var clip = animateImpl(dl, objs, clipDef.start, clipDef.end, clipDef.name);
                 clips.Add(clip);
-                // start next clip at the next frame
-                start = i + 1;
             }
 
             var rootSM = controller.layers[0].stateMachine;
@@ -331,13 +334,13 @@ namespace CWAEmu.OFUCU {
 
                 foreach (var remove in f.objectsRemoved) {
                     if (animData.tryGetObject(remove, i - 1, out var anim)) {
-                        anim.animateEnable(i, file.FrameRate, false);
+                        anim.animateEnable(i - start + 1, file.FrameRate, false);
                     }
                 }
 
                 foreach (var add in f.objectsAdded) {
                     if (animData.tryGetObject(add, i, out var anim)) {
-                        anim.animateEnable(i, file.FrameRate, true);
+                        anim.animateEnable(i - start + 1, file.FrameRate, true);
                     }
                 }
 
@@ -355,11 +358,11 @@ namespace CWAEmu.OFUCU {
                     }
 
                     if (change.hasMatrixChange) {
-                        ad.animateMatrix(i, file.FrameRate, change.matrix);
+                        ad.animateMatrix(i - start + 1, file.FrameRate, change.matrix);
                     }
 
                     if (change.hasColor) {
-                        ad.animateColor(i, file.FrameRate, change.color);
+                        ad.animateColor(i - start + 1, file.FrameRate, change.color);
                     }
                 }
             }
@@ -528,6 +531,8 @@ namespace CWAEmu.OFUCU {
             public string path;
 
             private bool hasAnimatedColor = false;
+            private bool hasAnimatedColorMult = false;
+            private bool hasAnimatedColorAdd = false;
 
             private List<Keyframe> enabled = new();
             private List<Keyframe> xpos = new();
@@ -556,18 +561,40 @@ namespace CWAEmu.OFUCU {
             }
 
             public void animateColor(int frame, float frameRate, ColorTransform ct) {
+                // make sure the initial values are what we want (if we are animating frame one right now, the addKeyFrame call will handle that)
+                if (!hasAnimatedColor) {
+                    addKeyframe(hasm, 1, frameRate, 0, false);
+                    addKeyframe(hasa, 1, frameRate, 0, false);
+                }
+
                 hasAnimatedColor = true;
 
-                addKeyframe(hasm, frame, frameRate, ct.hasMult ? 1 : 0);
+                addKeyframe(hasm, frame, frameRate, ct.hasMult ? 1 : 0, false);
                 if (ct.hasMult) {
+                    if (!hasAnimatedColorMult) {
+                        addKeyframe(mr, 1, frameRate, 1);
+                        addKeyframe(mg, 1, frameRate, 1);
+                        addKeyframe(mb, 1, frameRate, 1);
+                        addKeyframe(ma, 1, frameRate, 1);
+                    }
+
+                    hasAnimatedColorMult = true;
                     Color col = ct.mult;
                     addKeyframe(mr, frame, frameRate, col.r);
                     addKeyframe(mg, frame, frameRate, col.g);
                     addKeyframe(mb, frame, frameRate, col.b);
                     addKeyframe(ma, frame, frameRate, col.a);
                 }
-                addKeyframe(hasa, frame, frameRate, ct.hasAdd ? 1 : 0);
+                addKeyframe(hasa, frame, frameRate, ct.hasAdd ? 1 : 0, false);
                 if (ct.hasAdd) {
+                    if (!hasAnimatedColorAdd) {
+                        addKeyframe(ar, 1, frameRate, 0);
+                        addKeyframe(ag, 1, frameRate, 0);
+                        addKeyframe(ab, 1, frameRate, 0);
+                        addKeyframe(aa, 1, frameRate, 1);
+                    }
+
+                    hasAnimatedColorAdd = true;
                     Color col = ct.add;
                     addKeyframe(ar, frame, frameRate, col.r);
                     addKeyframe(ag, frame, frameRate, col.g);
