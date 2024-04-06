@@ -577,10 +577,10 @@ namespace CWAEmu.OFUCU {
             }
 
             public void animateEnable(int frame, float frameRate, bool enable) {
-                addKeyframe(enabled, frame, frameRate, enable ? 1 : 0);
+                addKeyframe(enabled, frame, frameRate, enable ? 1 : 0, false);
             }
 
-            private void addKeyframe(List<Keyframe> kfs, int frame, float frameRate, float value) {
+            private void addKeyframe(List<Keyframe> kfs, int frame, float frameRate, float value, bool interp = true) {
                 // find previous frame index
                 //   if none, add
                 //   if found, check how many frames ago
@@ -607,6 +607,8 @@ namespace CWAEmu.OFUCU {
                     return;
                 }
 
+                // TODO: check if there is already a KF for this frame? (would this be needed now that i fixed the timing?)
+
                 var last = kfs[^1];
                 int lastFrameIdx = (int)Math.Round(last.time * frameRate) + 1;
 
@@ -617,12 +619,16 @@ namespace CWAEmu.OFUCU {
                     kfs.Add(last);
                 }
 
-                var lastVal = last.value;
-                var interpolate = (value -  lastVal) / (time - last.time);
-                last = new Keyframe(last.time, last.value, last.inTangent, interpolate);
-                var thisF = new Keyframe(time, value, interpolate, 0f);
-                kfs[^1] = last;
-                kfs.Add(thisF);
+                if (interp) {
+                    var lastVal = last.value;
+                    var interpolate = (value -  lastVal) / (time - last.time);
+                    last = new Keyframe(last.time, last.value, last.inTangent, interpolate);
+                    var thisF = new Keyframe(time, value, interpolate, 0f);
+                    kfs[^1] = last;
+                    kfs.Add(thisF);
+                } else {
+                    kfs.Add(new Keyframe(time, value));
+                }
             }
 
             public void applyToAnim(AnimationClip ac) {
@@ -690,15 +696,11 @@ namespace CWAEmu.OFUCU {
             public abstract string Path { get; set; }
 
             public bool isDesiredObj(int frameIndex) {
-                if (frameIndex > End) {
+                if (frameIndex >= End) {
                     return false;
                 }
 
-                if (frameIndex < Start) {
-                    return true;
-                }
-
-                return false;
+                return frameIndex >= Start;
             }
         }
     }
