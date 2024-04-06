@@ -189,8 +189,16 @@ namespace CWAEmu.OFUCU {
         }
 
         private void onAnimateButton(RectTransform root, List<Frame> frames, string outputDir, bool labelsAsClips, List<int> clipIndexes) {
-            Animator anim = root.gameObject.AddComponent<Animator>();
-            var controller = AnimatorController.CreateAnimatorControllerAtPath($"{outputDir}/{root.name}.controller");
+            if (!root.gameObject.TryGetComponent<Animator>(out var anim)) {
+                anim = root.gameObject.AddComponent<Animator>();
+            }
+
+            var controllerPath = $"{outputDir}/{root.name}.controller";
+            if (AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(controllerPath) != null) {
+                AssetDatabase.DeleteAsset(controllerPath);
+            }
+
+            var controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
             anim.runtimeAnimatorController = controller;
 
             if (labelsAsClips) {
@@ -275,7 +283,7 @@ namespace CWAEmu.OFUCU {
                     }
                 }
 
-                var clip = animateImpl(dl, objs, start, i, clipName);
+                var clip = animateImpl(dl, objs, start, i, $"{root.name}.{clipName}");
                 clips.Add(clip);
                 // start next clip at the next frame
                 start = i + 1;
@@ -291,7 +299,12 @@ namespace CWAEmu.OFUCU {
                 AssetDatabase.StartAssetEditing();
 
                 foreach (var clip in clips) {
-                    AssetDatabase.CreateAsset(clip, $"{outputDir}/{clip.name}.clip");
+                    var name = $"{outputDir}/{clip.name}.anim";
+                    var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(name);
+                    if (existing != null) {
+                        AssetDatabase.DeleteAsset(name);
+                    }
+                    AssetDatabase.CreateAsset(clip, name);
                 }
             } catch (Exception e) {
                 Debug.LogException(e);
@@ -301,14 +314,19 @@ namespace CWAEmu.OFUCU {
         }
 
         private AnimationClip animateImpl(DisplayList dl, AnimatedThingList<AnimatedFrameObject> objs, int start, int end, string clipname = "default") {
-            AnimationClip ac = new();
-            ac.name = clipname;
-            ac.frameRate = file.FrameRate;
+            AnimationClip ac = new() {
+                name = clipname,
+                frameRate = file.FrameRate
+            };
 
             AnimatedThingList<AnimationData> animData = new();
             animData.initFromOther(objs);
 
-            for (int i = start + 1; i <= end; i++) {
+            foreach (var ad in animData) {
+                ad.animateEnable(1, file.FrameRate, false);
+            }
+
+            for (int i = start; i <= end; i++) {
                 DisplayFrame f = dl.frames[i - 1];
 
                 foreach (var remove in f.objectsRemoved) {
@@ -372,6 +390,7 @@ namespace CWAEmu.OFUCU {
             AbstractOFUCUObject aoo = null;
             if (neoSprites.TryGetValue(obj.charId, out var sprite)) {
                 go = sprite.getCopy();
+                go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
                 Debug.Log($"Found {obj.charId} as sprite");
             }
@@ -427,7 +446,7 @@ namespace CWAEmu.OFUCU {
                     objs.Add(pair.Key, list);
 
                     foreach (var v in pair.Value) {
-                        var t = default(T);
+                        var t = (T)Activator.CreateInstance(typeof(T));
                         t.Start = v.Start;
                         t.End = v.End;
                         t.Path = v.Path;
@@ -508,6 +527,8 @@ namespace CWAEmu.OFUCU {
             }
             public string path;
 
+            private bool hasAnimatedColor = false;
+
             private List<Keyframe> enabled = new();
             private List<Keyframe> xpos = new();
             private List<Keyframe> ypos = new();
@@ -526,25 +547,140 @@ namespace CWAEmu.OFUCU {
             private List<Keyframe> aa = new();
 
             public void animateMatrix(int frame, float frameRate, Matrix2x3 matrix) {
-                // TODO: has it been more than one frame since last KF? if yes, copy that KF first so we dont fuck up state then add our self in
+                var (t, s, r) = matrix.getTransformation();
+                addKeyframe(xpos, frame, frameRate, t.x);
+                addKeyframe(ypos, frame, frameRate, t.y);
+                addKeyframe(xscale, frame, frameRate, s.x);
+                addKeyframe(yscale, frame, frameRate, s.y);
+                addKeyframe(zrot, frame, frameRate, r);
             }
 
             public void animateColor(int frame, float frameRate, ColorTransform ct) {
-                // TODO: 
+                hasAnimatedColor = true;
+
+                addKeyframe(hasm, frame, frameRate, ct.hasMult ? 1 : 0);
+                if (ct.hasMult) {
+                    Color col = ct.mult;
+                    addKeyframe(mr, frame, frameRate, col.r);
+                    addKeyframe(mg, frame, frameRate, col.g);
+                    addKeyframe(mb, frame, frameRate, col.b);
+                    addKeyframe(ma, frame, frameRate, col.a);
+                }
+                addKeyframe(hasa, frame, frameRate, ct.hasAdd ? 1 : 0);
+                if (ct.hasAdd) {
+                    Color col = ct.add;
+                    addKeyframe(ar, frame, frameRate, col.r);
+                    addKeyframe(ag, frame, frameRate, col.g);
+                    addKeyframe(ab, frame, frameRate, col.b);
+                    addKeyframe(aa, frame, frameRate, col.a);
+                }
             }
 
             public void animateEnable(int frame, float frameRate, bool enable) {
-                // TODO: 
+                addKeyframe(enabled, frame, frameRate, enable ? 1 : 0);
             }
 
             private void addKeyframe(List<Keyframe> kfs, int frame, float frameRate, float value) {
+                // find previous frame index
+                //   if none, add
+                //   if found, check how many frames ago
+                //     if last frame, add interpolate
+                //     if not last frame, duplicate that to be last frame, add this frame interpolate
 
+                var time = (frame - 1) / frameRate;
+                if (kfs.Count == 0) {
+                    Keyframe kf = new(time, value);
+                    kfs.Add(kf);
+                    return;
+                }
+
+                // if setting something on frame one
+                if (frame == 1) {
+                    if (kfs.Count > 1) {
+                        Debug.LogError("There should not be more than one frame on the first frame");
+                        return;
+                    }
+
+                    var kf = kfs[0];
+                    kf.value = value;
+                    kfs[0] = kf;
+                    return;
+                }
+
+                var last = kfs[^1];
+                int lastFrameIdx = (int)Math.Round(last.time * frameRate) + 1;
+
+                // check for the gap that we need to fil
+                if (lastFrameIdx != frame - 1) {
+                    var lastTime = (frame - 2) / frameRate;
+                    last = new(lastTime, last.value);
+                    kfs.Add(last);
+                }
+
+                var lastVal = last.value;
+                var interpolate = (value -  lastVal) / (time - last.time);
+                last = new Keyframe(last.time, last.value, last.inTangent, interpolate);
+                var thisF = new Keyframe(time, value, interpolate, 0f);
+                kfs[^1] = last;
+                kfs.Add(thisF);
             }
 
-            // some resulable function code that will do the prev frame check and apply things
-
             public void applyToAnim(AnimationClip ac) {
-                // TODO: apply interpolation curve rules to all KFs
+                if (enabled.Count != 0) {
+                    ac.SetCurve(path, typeof(GameObject), "m_IsActive", new AnimationCurve(enabled.ToArray()));
+                }
+
+                // Matrix Props
+                if (xpos.Count != 0) {
+                    ac.SetCurve(path, typeof(RectTransform), "m_anchoredPosition.x", new AnimationCurve(xpos.ToArray()));
+                }
+                if (ypos.Count != 0) {
+                    ac.SetCurve(path, typeof(RectTransform), "m_anchoredPosition.y", new AnimationCurve(ypos.ToArray()));
+                }
+                if (xscale.Count != 0) {
+                    ac.SetCurve(path, typeof(RectTransform), "localScale.x", new AnimationCurve(xscale.ToArray()));
+                }
+                if (yscale.Count != 0) {
+                    ac.SetCurve(path, typeof(RectTransform), "localScale.y", new AnimationCurve(yscale.ToArray()));
+                }
+                if (zrot.Count != 0) {
+                    ac.SetCurve(path, typeof(AnimatedOFUCUObject), "zRot", new AnimationCurve(zrot.ToArray()));
+                }
+
+                // color props
+                if (hasAnimatedColor) {
+                    if (hasm.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "hasMult", new AnimationCurve(hasm.ToArray()));
+                    }
+                    if (mr.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "multColor.r", new AnimationCurve(mr.ToArray()));
+                    }
+                    if (mg.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "multColor.g", new AnimationCurve(mg.ToArray()));
+                    }
+                    if (mb.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "multColor.b", new AnimationCurve(mb.ToArray()));
+                    }
+                    if (ma.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "multColor.a", new AnimationCurve(ma.ToArray()));
+                    }
+                    
+                    if (hasa.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "hasAdd", new AnimationCurve(hasa.ToArray()));
+                    }
+                    if (ar.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "addColor.r", new AnimationCurve(ar.ToArray()));
+                    }
+                    if (ag.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "addColor.g", new AnimationCurve(ag.ToArray()));
+                    }
+                    if (ab.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "addColor.b", new AnimationCurve(ab.ToArray()));
+                    }
+                    if (aa.Count != 0) {
+                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "addColor.a", new AnimationCurve(aa.ToArray()));
+                    }
+                }
             }
         }
 
