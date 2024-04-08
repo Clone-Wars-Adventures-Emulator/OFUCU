@@ -21,5 +21,13 @@ namespace CWAEmu.OFUCU {
             Debug.LogWarning("Multiply is not setup for shapes");
             // TODO: 
         }
+
+        public override void setParentMultColor(Color color) {
+
+        }
+
+        public override void setParentAddColor(Color color) {
+
+        }
     }
 }
