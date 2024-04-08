@@ -11,7 +11,7 @@ namespace CWAEmu.OFUCU {
         public static Action<RectTransform, List<Frame>, string, bool, List<int>> onPress;
 
         // this is the one property that is static
-        private static string output;
+        private static string output = "Assets/_TEMP";
         [SerializeField]
         private List<int> indicies;
         private bool labelsAsSeps;

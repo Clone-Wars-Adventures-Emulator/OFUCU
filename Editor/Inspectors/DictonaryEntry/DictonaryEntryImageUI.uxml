@@ -1,6 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
-    <ui:Label text="Image Dictonary Entry" display-tooltip-when-elided="true" />
-    <uie:PropertyField binding-path="charTag" label="Tag" />
-    <uie:PropertyField binding-path="image" label="Image" />
-    <ui:Button text="Save Image As Asset" display-tooltip-when-elided="true" name="save" style="top: 2px;" />
-</ui:UXML>
