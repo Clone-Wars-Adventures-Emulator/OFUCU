@@ -2,10 +2,10 @@ namespace CWAEmu.OFUCU.Flash.Records {
     public class CXFormWithAlpha {
         private uint nBits;
 
-        public ushort RMult { get; private set; } = 1;
-        public ushort GMult { get; private set; } = 1;
-        public ushort BMult { get; private set; } = 1;
-        public ushort AMult { get; private set; } = 1;
+        public ushort RMult { get; private set; } = 256;
+        public ushort GMult { get; private set; } = 256;
+        public ushort BMult { get; private set; } = 256;
+        public ushort AMult { get; private set; } = 256;
         public ushort RAdd { get; private set; }
         public ushort GAdd { get; private set; }
         public ushort BAdd { get; private set; }
