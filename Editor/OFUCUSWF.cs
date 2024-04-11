@@ -79,7 +79,7 @@ namespace CWAEmu.OFUCU {
             // sprites need custom inspector that allows them to be made into prefabs (with further changes to the sprite by code modifying the prefab), and placed manually or animated
             
             foreach (var pair in file.Sprites) {
-                GameObject go = new($"{file.Name}.Sprite.{pair.Value.CharacterId}", typeof(OFUCUSprite), typeof(RectTransform));
+                GameObject go = new($"{file.Name}.Sprite.{pair.Value.CharacterId}", typeof(OFUCUSprite));
                 RectTransform rt = go.transform as RectTransform;
                 rt.SetParent(dictonaryT, false);
                 var dict = go.GetComponent<OFUCUSprite>();
@@ -390,7 +390,7 @@ namespace CWAEmu.OFUCU {
                 Debug.Log($"Found {obj.charId} as sprite");
             }
 
-            if (ro == null) {
+            if (aoo == null) {
                 string svg = $"{svgRoot}/{obj.charId}.svg";
                 Debug.Log($"Looking for {obj.charId} as shape at {svg}");
                 GameObject prefabGo = AssetDatabase.LoadAssetAtPath<GameObject>(svg);
