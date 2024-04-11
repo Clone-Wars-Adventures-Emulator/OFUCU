@@ -1,5 +1,6 @@
 using CWAEmu.OFUCU.Data;
 using CWAEmu.OFUCU.Flash.Tags;
+using CWAEmu.OFUCU.Runtime;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 
 namespace CWAEmu.OFUCU {
-    [RequireComponent(typeof(RectTransform))]
+    [RequireComponent(typeof(RectTransform), typeof(RuntimeSprite))]
     public class OFUCUSprite : AbstractOFUCUObject {
         // inited
         private OFUCUSWF swf;
@@ -21,12 +22,6 @@ namespace CWAEmu.OFUCU {
         private bool filled;
 
         private readonly HashSet<int> dependencies = new();
-
-        // TODO: Alpha handling
-        private Color parentMult = new(1, 1, 1, 1);
-        private Color parentAdd = new(0, 0, 0, 0);
-        private Color selfMult = new(1, 1, 1, 1);
-        private Color selfAdd = new(0, 0, 0, 0);
 
         private AbstractOFUCUObject[] children = new AbstractOFUCUObject[0];
 
@@ -126,53 +121,10 @@ namespace CWAEmu.OFUCU {
             children = objs.ToArray();
         }
 
+        // This stays here because this isnt runtime
         public override void setBlendMode(EnumFlashBlendMode mode) {
             foreach (var obj in children) {
                 obj.setBlendMode(mode);
-            }
-        }
-
-        public override void setMultColor(Color color) {
-            selfMult = color;
-            applyMultToChildren();
-        }
-
-        public override void setAddColor(Color color) {
-            selfAdd = color;
-            applyAddToChildren();
-        }
-
-        public override void setParentMultColor(Color color) {
-            parentMult = color;
-            applyMultToChildren();
-        }
-
-        public override void setParentAddColor(Color color) {
-            parentAdd = color;
-            applyAddToChildren();
-        }
-
-        private void applyMultToChildren() {
-            var r = Mathf.Clamp(parentMult.r * selfMult.r, 0, 1);
-            var g = Mathf.Clamp(parentMult.g * selfMult.g, 0, 1);
-            var b = Mathf.Clamp(parentMult.b * selfMult.b, 0, 1);
-            var a = Mathf.Clamp(parentMult.a * selfMult.a, 0, 1);
-            var res = new Color(r, g, b, a);
-
-            foreach (var obj in children) {
-                obj.setParentMultColor(res);
-            }
-        }
-
-        private void applyAddToChildren() {
-            var r = Mathf.Clamp(parentAdd.r + selfAdd.r, 0, 1);
-            var g = Mathf.Clamp(parentAdd.g + selfAdd.g, 0, 1);
-            var b = Mathf.Clamp(parentAdd.b + selfAdd.b, 0, 1);
-            var a = Mathf.Clamp(parentAdd.a + selfAdd.a, 0, 1);
-            var res = new Color(r, g, b, a);
-
-            foreach (var obj in children) {
-                obj.setParentAddColor(res);
             }
         }
     }

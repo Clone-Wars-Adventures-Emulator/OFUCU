@@ -1,33 +1,26 @@
 using CWAEmu.OFUCU.Flash.Tags;
+using CWAEmu.OFUCU.Runtime;
+using Unity.VectorGraphics;
 using UnityEngine;
 
 namespace CWAEmu.OFUCU {
+    [RequireComponent(typeof(RuntimeShape))]
     public class OFUCUShape : AbstractOFUCUObject {
-        private void Awake() {
-            // get svg component
-        }
-
-        public override void setAddColor(Color color) {
-            Debug.LogWarning("AdditiveColor is not setup for shapes");
-            // TODO: 
-        }
-
         public override void setBlendMode(EnumFlashBlendMode blendMode) {
-            Debug.LogWarning("BlendMode is not setup for shapes");
-            // TODO: 
-        }
+            var svgi = gameObject.GetComponent<SVGImage>();
+            var mat = svgi.material;
 
-        public override void setMultColor(Color color) {
-            Debug.LogWarning("Multiply is not setup for shapes");
-            // TODO: 
-        }
-
-        public override void setParentMultColor(Color color) {
-
-        }
-
-        public override void setParentAddColor(Color color) {
-
+            switch (blendMode) {
+                case EnumFlashBlendMode.Normal:
+                    mat.shader = Shader.Find("Unlit/VectorGradientUI");
+                    break;
+                case EnumFlashBlendMode.Add:
+                    mat.shader = Shader.Find("Unlit/VectorGradientUIAdditive");
+                    break;
+                default:
+                    Debug.LogError($"BlendMode {blendMode} is not valid for SVG shapes.");
+                    break;
+            }
         }
     }
 }

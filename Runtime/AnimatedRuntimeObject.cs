@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace CWAEmu.OFUCU {
-    [RequireComponent(typeof(AbstractOFUCUObject))]
-    public class AnimatedOFUCUObject : MonoBehaviour {
-        private AbstractOFUCUObject obj;
+namespace CWAEmu.OFUCU.Runtime {
+    [RequireComponent(typeof(RuntimeObject))]
+    public class AnimatedRuntimeObject : MonoBehaviour {
+        private RuntimeObject obj;
 
         public bool hasAdd;
         public bool hasMult;
@@ -13,7 +13,7 @@ namespace CWAEmu.OFUCU {
         public float zRot;
 
         private void Start() {
-            obj = GetComponent<AbstractOFUCUObject>();
+            obj = GetComponent<RuntimeObject>();
         }
 
         private void LateUpdate() {
@@ -24,6 +24,8 @@ namespace CWAEmu.OFUCU {
             if (hasMult) {
                 obj.setMultColor(multColor);
             }
+
+            // TODO: position update or something for here? gotta figure out how to animate masked objects
 
             // TODO: code checking if the jump in Z was crazy (if it was we need to manually handle in here,
             // though maybe i make it happen in that other code, TBD, see the old tool for how to do this)

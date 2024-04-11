@@ -1,10 +1,12 @@
 using CWAEmu.OFUCU.Flash;
 using CWAEmu.OFUCU.Flash.Tags;
+using CWAEmu.OFUCU.Runtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.VectorGraphics;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -34,17 +36,6 @@ namespace CWAEmu.OFUCU {
             swf.svgRoot = svgRoot;
             swf.file = file;
             swf.init();
-
-            // Debug stuff, removable
-            Debug.Log($"Generated {swf.dictonaryT.childCount} objects as a child of {swf.dictonaryT.name}");
-            int dt = swf.dictonaryT.childCount;
-            int total = 0;
-            for (int i = 0; i < dt; i++) {
-                var t = swf.dictonaryT.GetChild(i);
-                Debug.Log($"{t.name} generated {t.childCount} direct child objects and {t.FullChildCount()} total child objects");
-                total += t.FullChildCount();
-            }
-            Debug.Log($"Total children of dictionary objects: {total}");
         }
 
         private void init() {
@@ -136,7 +127,7 @@ namespace CWAEmu.OFUCU {
                     }
 
                     // create object (can be extracted)
-                    var (go, aoo) = createObjectReference(frameRt, obj);
+                    var (go, aoo, ro) = createObjectReference(frameRt, obj);
 
                     // handle all the funnies
                     RectTransform goRt = (RectTransform)go.transform;
@@ -158,10 +149,10 @@ namespace CWAEmu.OFUCU {
                     if (obj.hasColor) {
                         var col = obj.color;
                         if (col.hasMult) {
-                            aoo.setMultColor(col.mult);
+                            ro.setMultColor(col.mult);
                         }
                         if (col.hasAdd) {
-                            aoo.setAddColor(col.add);
+                            ro.setAddColor(col.add);
                         }
                     }
 
@@ -175,7 +166,7 @@ namespace CWAEmu.OFUCU {
                     }
 
                     if (obj.depth < maskDepth) {
-                        go.AddComponent<OFUCUAnchor>();
+                        go.AddComponent<RuntimeAnchor>();
                     }
                 }
             }
@@ -254,8 +245,8 @@ namespace CWAEmu.OFUCU {
 
                 // check objects added and spawn them
                 foreach (var depth in f.objectsAdded) {
-                    var (go, _) = createObjectReference(root, f.states[depth]);
-                    go.AddComponent<AnimatedOFUCUObject>();
+                    var (go, _, _) = createObjectReference(root, f.states[depth]);
+                    go.AddComponent<AnimatedRuntimeObject>();
 
                     go.SetActive(false);
                     string objPath = go.name;
@@ -270,7 +261,7 @@ namespace CWAEmu.OFUCU {
                     foreach (var trip in masks.Values) {
                         if (trip.start < depth && trip.end >= depth) {
                             go.transform.SetParent(trip.rt, false);
-                            go.AddComponent<OFUCUAnchor>();
+                            go.AddComponent<RuntimeAnchor>();
                         }
                     }
 
@@ -388,9 +379,10 @@ namespace CWAEmu.OFUCU {
             return 0;
         }
 
-        private (GameObject go, AbstractOFUCUObject aoo) createObjectReference(RectTransform parent, DisplayObject obj) {
+        private (GameObject go, AbstractOFUCUObject aoo, RuntimeObject ro) createObjectReference(RectTransform parent, DisplayObject obj) {
             GameObject go = null;
             AbstractOFUCUObject aoo = null;
+            RuntimeObject ro = null;
             if (neoSprites.TryGetValue(obj.charId, out var sprite)) {
                 go = sprite.getCopy();
                 go.transform.SetParent(parent, false);
@@ -398,7 +390,7 @@ namespace CWAEmu.OFUCU {
                 Debug.Log($"Found {obj.charId} as sprite");
             }
 
-            if (aoo == null) {
+            if (ro == null) {
                 string svg = $"{svgRoot}/{obj.charId}.svg";
                 Debug.Log($"Looking for {obj.charId} as shape at {svg}");
                 GameObject prefabGo = AssetDatabase.LoadAssetAtPath<GameObject>(svg);
@@ -408,14 +400,18 @@ namespace CWAEmu.OFUCU {
 
                 go = (GameObject)PrefabUtility.InstantiatePrefab(prefabGo, parent);
                 aoo = go.AddComponent<OFUCUShape>();
+                var sg = go.GetComponent<SVGImage>();
+                sg.material = new Material(sg.material);
             }
 
             // TODO: handle text and other? objects
             if (aoo == null) {
                 Debug.Log($"Not placing {obj.charId}, not shape or sprite");
+            } else {
+                ro = go.GetComponent<RuntimeObject>();
             }
 
-            return (go, aoo);
+            return (go, aoo, ro);
         }
 
         public void placeSwf() {
@@ -677,41 +673,41 @@ namespace CWAEmu.OFUCU {
                     ac.SetCurve(path, typeof(RectTransform), "localScale.y", new AnimationCurve(yscale.ToArray()));
                 }
                 if (zrot.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedOFUCUObject), "zRot", new AnimationCurve(zrot.ToArray()));
+                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "zRot", new AnimationCurve(zrot.ToArray()));
                 }
 
                 // color props
                 if (hasAnimatedColor) {
                     if (hasm.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "hasMult", new AnimationCurve(hasm.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "hasMult", new AnimationCurve(hasm.ToArray()));
                     }
                     if (mr.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "multColor.r", new AnimationCurve(mr.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "multColor.r", new AnimationCurve(mr.ToArray()));
                     }
                     if (mg.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "multColor.g", new AnimationCurve(mg.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "multColor.g", new AnimationCurve(mg.ToArray()));
                     }
                     if (mb.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "multColor.b", new AnimationCurve(mb.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "multColor.b", new AnimationCurve(mb.ToArray()));
                     }
                     if (ma.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "multColor.a", new AnimationCurve(ma.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "multColor.a", new AnimationCurve(ma.ToArray()));
                     }
                     
                     if (hasa.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "hasAdd", new AnimationCurve(hasa.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "hasAdd", new AnimationCurve(hasa.ToArray()));
                     }
                     if (ar.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "addColor.r", new AnimationCurve(ar.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "addColor.r", new AnimationCurve(ar.ToArray()));
                     }
                     if (ag.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "addColor.g", new AnimationCurve(ag.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "addColor.g", new AnimationCurve(ag.ToArray()));
                     }
                     if (ab.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "addColor.b", new AnimationCurve(ab.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "addColor.b", new AnimationCurve(ab.ToArray()));
                     }
                     if (aa.Count != 0) {
-                        ac.SetCurve(path, typeof(AnimatedOFUCUObject), "addColor.a", new AnimationCurve(aa.ToArray()));
+                        ac.SetCurve(path, typeof(AnimatedRuntimeObject), "addColor.a", new AnimationCurve(aa.ToArray()));
                     }
                 }
             }
