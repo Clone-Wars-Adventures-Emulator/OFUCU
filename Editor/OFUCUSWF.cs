@@ -19,13 +19,14 @@ namespace CWAEmu.OFUCU {
 
         private SWFFile file;
         private string svgRoot;
+        private string prefabPath;
         
         private readonly HashSet<int> dependencies = new();
 
         public readonly Dictionary<int, OFUCUSprite> neoSprites = new();
         public readonly HashSet<int> svgIds = new();
 
-        public static void placeNewSWFFile(SWFFile file, string svgRoot) {
+        public static void placeNewSWFFile(SWFFile file, string svgRoot, string prefabPath) {
             if (!Directory.Exists(svgRoot)) {
                 Debug.LogError($"SvgRoot {svgRoot} does not exist.");
                 return;
@@ -34,6 +35,7 @@ namespace CWAEmu.OFUCU {
             GameObject go = new($"SWF Root: {file.Name}");
             OFUCUSWF swf = go.AddComponent<OFUCUSWF>();
             swf.svgRoot = svgRoot;
+            swf.prefabPath = prefabPath;
             swf.file = file;
             swf.init();
         }
@@ -83,7 +85,7 @@ namespace CWAEmu.OFUCU {
                 RectTransform rt = go.transform as RectTransform;
                 rt.SetParent(dictonaryT, false);
                 var dict = go.GetComponent<OFUCUSprite>();
-                dict.init(this, pair.Value);
+                dict.init(this, pair.Value, prefabPath);
                 neoSprites.Add(pair.Key, dict);
             }
 

@@ -15,6 +15,7 @@ namespace CWAEmu.OFUCU {
         private DefineSprite sprite;
 
         // generated
+        private string prefabSaveDir;
         private string prefabAssetPath;
         public bool Cloned => cloned;
         private bool cloned;
@@ -29,9 +30,10 @@ namespace CWAEmu.OFUCU {
             loadChildren();
         }
 
-        public void init(OFUCUSWF swf, DefineSprite sprite) {
+        public void init(OFUCUSWF swf, DefineSprite sprite, string prefabSaveDir) {
             this.swf = swf;
             this.sprite = sprite;
+            this.prefabSaveDir = prefabSaveDir;
 
             foreach (var f in sprite.Frames) {
                 foreach (var t in f.Tags) {
@@ -83,10 +85,10 @@ namespace CWAEmu.OFUCU {
             }
 
             if (prefabAssetPath == null) {
-                if (!Directory.Exists(Settings.Instance.DefaultPrefabDir)) {
-                    Directory.CreateDirectory(Settings.Instance.DefaultPrefabDir);
+                if (!Directory.Exists(prefabSaveDir)) {
+                    Directory.CreateDirectory(prefabSaveDir);
                 }
-                prefabAssetPath = $"{Settings.Instance.DefaultPrefabDir}/{name}.prefab";
+                prefabAssetPath = $"{prefabSaveDir}/{name}.prefab";
                 PrefabUtility.SaveAsPrefabAsset(gameObject, prefabAssetPath);
             } else {
                 PrefabUtility.SavePrefabAsset(gameObject);
