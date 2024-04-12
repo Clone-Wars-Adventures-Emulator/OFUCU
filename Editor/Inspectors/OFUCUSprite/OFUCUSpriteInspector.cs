@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace CWAEmu.OFUCU {
@@ -13,6 +14,10 @@ namespace CWAEmu.OFUCU {
         }
 
         public override VisualElement CreateInspectorGUI() {
+            if (Application.isPlaying) {
+                return new();
+            }
+
             VisualElement root = new();
 
             Inspector.CloneTree(root);
