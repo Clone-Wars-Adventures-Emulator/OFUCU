@@ -6,7 +6,8 @@ namespace CWAEmu.OFUCU.Runtime {
         private Vector3 anchorPosition;
         private Quaternion anchorRotation;
 
-        private void Start() {
+        // TODO: this may not work correctly?
+        private void Awake() {
             anchorPosition = transform.position;
             anchorRotation = transform.rotation;
         }

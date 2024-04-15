@@ -14,34 +14,37 @@ using UnityEngine.UI;
 
 namespace CWAEmu.OFUCU {
     public class OFUCUSWF : MonoBehaviour {
+        [SerializeField]
         private RectTransform vfswfhT;
+        [SerializeField]
         private RectTransform dictonaryT;
 
+        [SerializeField]
         private SWFFile file;
-        private string svgRoot;
-        private string prefabPath;
+        [SerializeField]
+        private string unityRoot;
         
-        private readonly HashSet<int> dependencies = new();
+        [SerializeField]
+        private HashSet<int> dependencies = new();
 
-        public readonly Dictionary<int, OFUCUSprite> neoSprites = new();
-        public readonly HashSet<int> svgIds = new();
+        public Dictionary<int, OFUCUSprite> neoSprites = new();
+        public HashSet<int> svgIds = new();
 
-        public static void placeNewSWFFile(SWFFile file, string svgRoot, string prefabPath) {
-            if (!Directory.Exists(svgRoot)) {
-                Debug.LogError($"SvgRoot {svgRoot} does not exist.");
+        public static void placeNewSWFFile(SWFFile file, string unityRoot) {
+            if (!Directory.Exists(unityRoot)) {
+                Debug.LogError($"Input/Output {unityRoot} does not exist.");
                 return;
             }
 
             GameObject go = new($"SWF Root: {file.Name}");
             OFUCUSWF swf = go.AddComponent<OFUCUSWF>();
-            swf.svgRoot = svgRoot;
-            swf.prefabPath = prefabPath;
+            swf.unityRoot = unityRoot;
             swf.file = file;
             swf.init();
         }
 
         private void init() {
-            var files = Directory.EnumerateFiles(svgRoot, "*.svg", SearchOption.TopDirectoryOnly);
+            var files = Directory.EnumerateFiles($"{unityRoot}/shapes", "*.svg", SearchOption.TopDirectoryOnly);
             foreach (var filePath in files) {
                 var fileName = Path.GetFileNameWithoutExtension(filePath);
                 if (int.TryParse(fileName, out var id)) {
@@ -85,7 +88,7 @@ namespace CWAEmu.OFUCU {
                 RectTransform rt = go.transform as RectTransform;
                 rt.SetParent(dictonaryT, false);
                 var dict = go.GetComponent<OFUCUSprite>();
-                dict.init(this, pair.Value, prefabPath);
+                dict.init(this, pair.Value, $"{unityRoot}/prefabs");
                 neoSprites.Add(pair.Key, dict);
             }
 
@@ -136,10 +139,10 @@ namespace CWAEmu.OFUCU {
                     goRt.SetParent(maskTrans ?? frameRt, false);
 
                     // handle matrix (can be extracted?? (prob not, considering anim needs to do its own thing))
-                    var transform = obj.matrix.getTransformation();
-                    goRt.anchoredPosition = transform.translate;
-                    goRt.localScale = transform.scale.ToVector3(1);
-                    goRt.rotation = Quaternion.Euler(0, 0, transform.rotz);
+                    var (translate, scale, rotz) = obj.matrix.getTransformation();
+                    goRt.anchoredPosition = translate;
+                    goRt.localScale = scale.ToVector3(1);
+                    goRt.rotation = Quaternion.Euler(0, 0, rotz);
 
                     if (obj.hasClipDepth) {
                         maskDepth = obj.clipDepth;
@@ -181,12 +184,17 @@ namespace CWAEmu.OFUCU {
             EditorWindow.GetWindow<AnimateFramesWindow>($"Animate {root.name}");
         }
 
-        private void onAnimateButton(RectTransform root, List<Frame> frames, string outputDir, bool labelsAsClips, List<int> clipIndexes) {
+        private void onAnimateButton(RectTransform root, List<Frame> frames, bool labelsAsClips, List<int> clipIndexes) {
             if (!root.gameObject.TryGetComponent<Animator>(out var anim)) {
                 anim = root.gameObject.AddComponent<Animator>();
             }
 
-            var controllerPath = $"{outputDir}/{root.name}.controller";
+            var animDir = $"{unityRoot}/animations";
+            if (!Directory.Exists(animDir)) {
+                Directory.CreateDirectory(animDir);
+            }
+
+            var controllerPath = $"{animDir}/{root.name}.controller";
             if (AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(controllerPath) != null) {
                 AssetDatabase.DeleteAsset(controllerPath);
             }
@@ -264,6 +272,7 @@ namespace CWAEmu.OFUCU {
                         if (trip.start < depth && trip.end >= depth) {
                             go.transform.SetParent(trip.rt, false);
                             go.AddComponent<RuntimeAnchor>();
+                            objPath = $"{trip.rt.name}/{objPath}";
                         }
                     }
 
@@ -295,7 +304,7 @@ namespace CWAEmu.OFUCU {
                 AssetDatabase.StartAssetEditing();
 
                 foreach (var clip in clips) {
-                    var name = $"{outputDir}/{clip.name}.anim";
+                    var name = $"{animDir}/{clip.name}.anim";
                     var existing = AssetDatabase.LoadAssetAtPath<AnimationClip>(name);
                     if (existing != null) {
                         AssetDatabase.DeleteAsset(name);
@@ -393,7 +402,7 @@ namespace CWAEmu.OFUCU {
             }
 
             if (aoo == null) {
-                string svg = $"{svgRoot}/{obj.charId}.svg";
+                string svg = $"{unityRoot}/shapes/{obj.charId}.svg";
                 Debug.Log($"Looking for {obj.charId} as shape at {svg}");
                 GameObject prefabGo = AssetDatabase.LoadAssetAtPath<GameObject>(svg);
                 if (prefabGo == null) {
@@ -663,10 +672,10 @@ namespace CWAEmu.OFUCU {
 
                 // Matrix Props
                 if (xpos.Count != 0) {
-                    ac.SetCurve(path, typeof(RectTransform), "m_anchoredPosition.x", new AnimationCurve(xpos.ToArray()));
+                    ac.SetCurve(path, typeof(RectTransform), "m_AnchoredPosition.x", new AnimationCurve(xpos.ToArray()));
                 }
                 if (ypos.Count != 0) {
-                    ac.SetCurve(path, typeof(RectTransform), "m_anchoredPosition.y", new AnimationCurve(ypos.ToArray()));
+                    ac.SetCurve(path, typeof(RectTransform), "m_AnchoredPosition.y", new AnimationCurve(ypos.ToArray()));
                 }
                 if (xscale.Count != 0) {
                     ac.SetCurve(path, typeof(RectTransform), "localScale.x", new AnimationCurve(xscale.ToArray()));

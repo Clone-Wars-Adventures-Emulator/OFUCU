@@ -2,9 +2,13 @@ using UnityEngine;
 
 namespace CWAEmu.OFUCU.Runtime {
     public class RuntimeObject : MonoBehaviour {
+        [SerializeField]
         private Color parentMult = new(1, 1, 1, 1);
+        [SerializeField]
         private Color parentAdd = new(0, 0, 0, 0);
+        [SerializeField]
         private Color selfMult = new(1, 1, 1, 1);
+        [SerializeField]
         private Color selfAdd = new(0, 0, 0, 0);
 
         public void setMultColor(Color color) {
@@ -18,6 +22,7 @@ namespace CWAEmu.OFUCU.Runtime {
         }
 
         public void setAddColor(Color color) {
+            selfAdd = color;
             var r = Mathf.Clamp(parentAdd.r + selfAdd.r, 0, 1);
             var g = Mathf.Clamp(parentAdd.g + selfAdd.g, 0, 1);
             var b = Mathf.Clamp(parentAdd.b + selfAdd.b, 0, 1);
@@ -37,6 +42,7 @@ namespace CWAEmu.OFUCU.Runtime {
         }
 
         public void setParentAddColor(Color color) {
+            parentAdd = color;
             var r = Mathf.Clamp(parentAdd.r + selfAdd.r, 0, 1);
             var g = Mathf.Clamp(parentAdd.g + selfAdd.g, 0, 1);
             var b = Mathf.Clamp(parentAdd.b + selfAdd.b, 0, 1);

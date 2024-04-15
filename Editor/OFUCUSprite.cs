@@ -11,18 +11,25 @@ namespace CWAEmu.OFUCU {
     [RequireComponent(typeof(RectTransform), typeof(RuntimeSprite))]
     public class OFUCUSprite : AbstractOFUCUObject {
         // inited
+        [SerializeField]
         private OFUCUSWF swf;
+        [SerializeField]
         private DefineSprite sprite;
 
         // generated
+        [SerializeField]
         private string prefabSaveDir;
+        [SerializeField]
         private string prefabAssetPath;
         public bool Cloned => cloned;
+        [SerializeField]
         private bool cloned;
         public bool Filled => filled;
+        [SerializeField]
         private bool filled;
 
-        private readonly HashSet<int> dependencies = new();
+        [SerializeField]
+        private HashSet<int> dependencies = new();
 
         private AbstractOFUCUObject[] children = new AbstractOFUCUObject[0];
 

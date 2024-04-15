@@ -8,8 +8,7 @@ namespace CWAEmu.OFUCU {
     /// </summary>
     public class ParseFlashWindow : EditorWindow {
         private string swfPath;
-        private string svgRoot;
-        private string prefabPath = "Assets/SWFPrefabs";
+        private string unityRoot;
 
         [MenuItem("Flash Tools/Parse Flash")]
         public static void showWindow() {
@@ -40,7 +39,7 @@ namespace CWAEmu.OFUCU {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            GUILayout.Label("SVGs for SWF: ");
+            GUILayout.Label("Unity Input/Output root: ");
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -48,23 +47,7 @@ namespace CWAEmu.OFUCU {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
-            svgRoot = EditorGUILayout.TextField(svgRoot);
-
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
-            GUILayout.Label("Prefab Save Location: ");
-
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
-            prefabPath = EditorGUILayout.TextField(prefabPath);
+            unityRoot = EditorGUILayout.TextField(unityRoot);
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -92,7 +75,7 @@ namespace CWAEmu.OFUCU {
             }
 
             // "Place" the file, this is the start of the conversion steps from SWF to Unity
-            OFUCUSWF.placeNewSWFFile(file, svgRoot, prefabPath);
+            OFUCUSWF.placeNewSWFFile(file, unityRoot);
         }
     }
 }
