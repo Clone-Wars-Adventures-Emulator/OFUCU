@@ -84,11 +84,21 @@ namespace CWAEmu.OFUCU {
             // sprites need custom inspector that allows them to be made into prefabs (with further changes to the sprite by code modifying the prefab), and placed manually or animated
             
             foreach (var pair in file.Sprites) {
-                GameObject go = new($"{file.Name}.Sprite.{pair.Value.CharacterId}", typeof(OFUCUSprite));
+                var name = $"Sprite.{pair.Value.CharacterId}";
+                var prefabDir = $"{unityRoot}/prefabs";
+
+                GameObject go;
+                if (File.Exists($"{prefabDir}/{name}.prefab")) {
+                    GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/{name}.prefab");
+                    go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
+                } else {
+                    go = new(name, typeof(OFUCUSprite));
+                }
+
                 RectTransform rt = go.transform as RectTransform;
                 rt.SetParent(dictonaryT, false);
                 var dict = go.GetComponent<OFUCUSprite>();
-                dict.init(this, pair.Value, $"{unityRoot}/prefabs");
+                dict.init(this, pair.Value, prefabDir);
                 neoSprites.Add(pair.Key, dict);
             }
 
@@ -221,7 +231,7 @@ namespace CWAEmu.OFUCU {
                 }
 
                 // if name is null, give it a name (means that there likely were not any frame labels)
-                name ??= $"Clip {start}-{frames.Count}";
+                name ??= $"Clip.{start}-{frames.Count}";
                 clipDefs.Add((start, frames.Count, name));
             } else {
                 clipIndexes ??= new();
@@ -229,7 +239,7 @@ namespace CWAEmu.OFUCU {
 
                 int start = 1;
                 foreach (int i in clipIndexes) {
-                    string name = $"Clip {start}-{i}";
+                    string name = $"Clip.{start}-{i}";
                     clipDefs.Add((start, i, name));
                     start = i + 1;
                 }
@@ -257,6 +267,8 @@ namespace CWAEmu.OFUCU {
                 foreach (var depth in f.objectsAdded) {
                     var (go, _, _) = createObjectReference(root, f.states[depth]);
                     go.AddComponent<AnimatedRuntimeObject>();
+
+                    go.name = $"{go.name}.{depth}";
 
                     go.SetActive(false);
                     string objPath = go.name;
@@ -290,13 +302,13 @@ namespace CWAEmu.OFUCU {
 
             List<AnimationClip> clips = new();
             foreach (var clipDef in clipDefs) {
-                var clip = animateImpl(dl, objs, clipDef.start, clipDef.end, clipDef.name);
+                var clip = animateImpl(dl, objs, clipDef.start, clipDef.end, $"{root.name}.{clipDef.name}");
                 clips.Add(clip);
             }
 
             var rootSM = controller.layers[0].stateMachine;
             foreach (var clip in clips) {
-                var state = rootSM.AddState(clip.name);
+                var state = rootSM.AddState(clip.name.Replace('.', ' '));
                 state.motion = clip;
             }
 
@@ -382,7 +394,7 @@ namespace CWAEmu.OFUCU {
                     continue;
                 }
 
-                if (!neoSprites.TryGetValue(id, out var sprite) || !sprite.Filled) {
+                if (!neoSprites.TryGetValue(id, out var sprite) || !sprite.Filled || !sprite.HasPrefab) {
                     return id;
                 }
             }
@@ -411,8 +423,16 @@ namespace CWAEmu.OFUCU {
 
                 go = (GameObject)PrefabUtility.InstantiatePrefab(prefabGo, parent);
                 aoo = go.AddComponent<OFUCUShape>();
-                var sg = go.GetComponent<SVGImage>();
-                sg.material = new Material(sg.material);
+                // Dont duplicate materials for now, if extra materials are needed, do it manually
+                // TODO: no duplication breaks (as expected) when multiple instances of the same shape are being used at the same time and one is being animated
+                // manual feels like a lot of extra work to get this to work right, and not something i want to do
+                // Do i do this type of stuff as a check box on the animations only?
+                // that would make sense for animation cases but what if in the place case there are 2 of the same shape being used that have 2 different adds or mults? what then?
+                // or even better, one of them is additive blend and the other is regular blend? how does that get de-conflicted?
+                // If i do do some auto de-duplication tactics, i will essentially need to save the path of the material and the depth as its name so it can be uniqely identified
+
+                // var sg = go.GetComponent<SVGImage>();
+                // sg.material = new Material(sg.material);
             }
 
             // TODO: handle text and other? objects

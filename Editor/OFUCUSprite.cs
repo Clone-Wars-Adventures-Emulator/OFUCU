@@ -1,4 +1,3 @@
-using CWAEmu.OFUCU.Data;
 using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.OFUCU.Runtime;
 using System.Collections.Generic;
@@ -21,6 +20,8 @@ namespace CWAEmu.OFUCU {
         private string prefabSaveDir;
         [SerializeField]
         private string prefabAssetPath;
+        public bool HasPrefab => prefabAssetPath != null;
+
         public bool Cloned => cloned;
         [SerializeField]
         private bool cloned;
@@ -91,6 +92,9 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
+            var clone = cloned;
+            cloned = false;
+
             if (prefabAssetPath == null) {
                 if (!Directory.Exists(prefabSaveDir)) {
                     Directory.CreateDirectory(prefabSaveDir);
@@ -100,6 +104,8 @@ namespace CWAEmu.OFUCU {
             } else {
                 PrefabUtility.SavePrefabAsset(gameObject);
             }
+
+            cloned = clone;
 
             // TODO: reload all copies
         }
