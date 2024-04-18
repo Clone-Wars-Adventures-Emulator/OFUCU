@@ -353,12 +353,26 @@ namespace CWAEmu.OFUCU {
                 }
 
                 foreach (var add in f.objectsAdded) {
-                    if (animData.tryGetObject(add, i, out var anim)) {
-                        anim.animateEnable(i - start + 1, file.FrameRate, true);
+                    if (!animData.tryGetObject(add, i, out var anim)) {
+                        Debug.LogError($"There is an object being added at frame {i}@{add} that does not have AnimData.");
+                        continue;
+                    }
+
+                    anim.animateEnable(i - start + 1, file.FrameRate, true);
+
+                    var state = f.states[add];
+
+                    if (state.hasMatrixChange) {
+                        anim.animateMatrix(i - start + 1, file.FrameRate, state.matrix);
+                    }
+
+                    if (state.hasColor) {
+                        anim.animateColor(i - start + 1, file.FrameRate, state.color);
                     }
                 }
 
                 foreach (var change in f.changes.Values) {
+                    // Why do i read this? there is a reason but WHAT IS IT ???!?
                     AnimatedFrameObject afo = objs.getObject(change.depth, i);
                     if (afo == null) {
                         Debug.LogWarning($"There is a change at frame {i}@{change.depth} that does not have an AFO.");
@@ -557,9 +571,13 @@ namespace CWAEmu.OFUCU {
             }
             public string path;
 
+            private bool hasAnimatedMatrix = false;
             private bool hasAnimatedColor = false;
             private bool hasAnimatedColorMult = false;
             private bool hasAnimatedColorAdd = false;
+
+            private bool animatedMultLast = false;
+            private bool animatedAddLast = false;
 
             private List<Keyframe> enabled = new();
             private List<Keyframe> xpos = new();
@@ -580,6 +598,15 @@ namespace CWAEmu.OFUCU {
 
             public void animateMatrix(int frame, float frameRate, Matrix2x3 matrix) {
                 var (t, s, r) = matrix.getTransformation();
+                if (!hasAnimatedMatrix && frame != 1) {
+                    addKeyframe(xpos, 1, frameRate, t.x);
+                    addKeyframe(ypos, 1, frameRate, t.y);
+                    addKeyframe(xscale, 1, frameRate, s.x);
+                    addKeyframe(yscale, 1, frameRate, s.y);
+                    addKeyframe(zrot, 1, frameRate, r);
+                }
+
+                hasAnimatedMatrix = true;
                 addKeyframe(xpos, frame, frameRate, t.x);
                 addKeyframe(ypos, frame, frameRate, t.y);
                 addKeyframe(xscale, frame, frameRate, s.x);
@@ -596,37 +623,58 @@ namespace CWAEmu.OFUCU {
 
                 hasAnimatedColor = true;
 
-                addKeyframe(hasm, frame, frameRate, ct.hasMult ? 1 : 0, false);
+                bool animateMult = ct.hasMult || animatedMultLast;
+                addKeyframe(hasm, frame, frameRate, animateMult ? 1 : 0, false);
                 if (ct.hasMult) {
-                    if (!hasAnimatedColorMult) {
-                        addKeyframe(mr, 1, frameRate, 1);
-                        addKeyframe(mg, 1, frameRate, 1);
-                        addKeyframe(mb, 1, frameRate, 1);
-                        addKeyframe(ma, 1, frameRate, 1);
+                    Color col = ct.mult;
+                    if (!hasAnimatedColorMult && frame != 1) {
+                        addKeyframe(mr, 1, frameRate, col.r);
+                        addKeyframe(mg, 1, frameRate, col.g);
+                        addKeyframe(mb, 1, frameRate, col.b);
+                        addKeyframe(ma, 1, frameRate, col.a);
                     }
 
                     hasAnimatedColorMult = true;
-                    Color col = ct.mult;
+                    animatedMultLast = true;
                     addKeyframe(mr, frame, frameRate, col.r);
                     addKeyframe(mg, frame, frameRate, col.g);
                     addKeyframe(mb, frame, frameRate, col.b);
                     addKeyframe(ma, frame, frameRate, col.a);
+                } else {
+                    if (animatedMultLast) {
+                        addKeyframe(mr, frame, frameRate, 1);
+                        addKeyframe(mg, frame, frameRate, 1);
+                        addKeyframe(mb, frame, frameRate, 1);
+                        addKeyframe(ma, frame, frameRate, 1);
+                    }
+                    animatedMultLast = false;
                 }
-                addKeyframe(hasa, frame, frameRate, ct.hasAdd ? 1 : 0, false);
+
+                bool animateAdd = ct.hasAdd || animatedAddLast;
+                addKeyframe(hasa, frame, frameRate, animateAdd ? 1 : 0, false);
                 if (ct.hasAdd) {
-                    if (!hasAnimatedColorAdd) {
-                        addKeyframe(ar, 1, frameRate, 0);
-                        addKeyframe(ag, 1, frameRate, 0);
-                        addKeyframe(ab, 1, frameRate, 0);
-                        addKeyframe(aa, 1, frameRate, 1);
+                    Color col = ct.add;
+                    if (!hasAnimatedColorAdd && frame != 1) {
+                        addKeyframe(ar, 1, frameRate, col.r);
+                        addKeyframe(ag, 1, frameRate, col.g);
+                        addKeyframe(ab, 1, frameRate, col.b);
+                        addKeyframe(aa, 1, frameRate, col.a);
                     }
 
                     hasAnimatedColorAdd = true;
-                    Color col = ct.add;
+                    animatedAddLast = true;
                     addKeyframe(ar, frame, frameRate, col.r);
                     addKeyframe(ag, frame, frameRate, col.g);
                     addKeyframe(ab, frame, frameRate, col.b);
                     addKeyframe(aa, frame, frameRate, col.a);
+                } else {
+                    if (animatedAddLast) {
+                        addKeyframe(ar, frame, frameRate, 0);
+                        addKeyframe(ag, frame, frameRate, 0);
+                        addKeyframe(ab, frame, frameRate, 0);
+                        addKeyframe(aa, frame, frameRate, 0);
+                    }
+                    animatedAddLast = false;
                 }
             }
 
