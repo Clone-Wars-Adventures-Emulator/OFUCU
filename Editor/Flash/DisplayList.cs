@@ -62,6 +62,24 @@ namespace CWAEmu.OFUCU.Flash {
         // className unsupported
         public EnumFlashBlendMode blendMode;
         // TODO: filter list
+
+        public static DisplayObject Clone(DisplayObject other) {
+            return new() {
+                charId = other.charId,
+                depth = other.depth,
+                hasMatrixChange = other.hasMatrixChange,
+                hasCharId = other.hasCharId,
+                hasColor = other.hasColor,
+                hasName = other.hasName,
+                hasClipDepth = other.hasClipDepth,
+                hasBlendMode = other.hasBlendMode,
+                matrix = Matrix2x3.Clone(other.matrix),
+                color = ColorTransform.Clone(other.color),
+                name = other.name,
+                clipDepth = other.clipDepth,
+                blendMode = other.blendMode,
+            };
+        }
     }
 
     [Serializable]
@@ -76,7 +94,7 @@ namespace CWAEmu.OFUCU.Flash {
         private bool hadR;
         private bool hadS;
 
-        public static Matrix2x3 fromFlash(Matrix matrix) {
+        public static Matrix2x3 FromFlash(Matrix matrix) {
             Matrix2x3 mat = new();
 
             mat.scaleX = matrix.ScaleX;
@@ -90,6 +108,19 @@ namespace CWAEmu.OFUCU.Flash {
             mat.hadS = matrix.hasS();
 
             return mat;
+        }
+
+        public static Matrix2x3 Clone(Matrix2x3 other) {
+            return new() {
+                scaleX = other.scaleX,
+                scaleY = other.scaleY,
+                rotateSkew0 = other.rotateSkew0,
+                rotateSkew1 = other.rotateSkew1,
+                translateX = other.translateX,
+                translateY = other.translateY,
+                hadR = other.hadR,
+                hadS = other.hadS
+            };
         }
 
         // TODO: is this correct??
@@ -143,7 +174,7 @@ namespace CWAEmu.OFUCU.Flash {
         public bool hasMult;
         public bool hasAdd;
 
-        public static ColorTransform frameFlash(CXFormWithAlpha cx) {
+        public static ColorTransform FromFlash(CXFormWithAlpha cx) {
             var ting =  new ColorTransform {
                 hasMult = cx.HasMult,
                 hasAdd = cx.HasAdd,
@@ -158,6 +189,15 @@ namespace CWAEmu.OFUCU.Flash {
             }
 
             return ting;
+        }
+
+        public static ColorTransform Clone(ColorTransform other) {
+            return new() {
+                mult = other.mult,
+                add = other.add,
+                hasMult = other.hasMult,
+                hasAdd = other.hasAdd
+            };
         }
     }
 }

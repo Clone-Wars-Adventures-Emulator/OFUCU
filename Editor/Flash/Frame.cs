@@ -24,7 +24,10 @@ namespace CWAEmu.OFUCU.Flash {
 
             foreach (var tag in Tags) {
                 if (tag is PlaceObject2 po2) {
-                    if (previous == null || !previous.states.TryGetValue(po2.Depth, out var prev)) {
+                    if (previous != null && previous.states.TryGetValue(po2.Depth, out var prev)) {
+                        // we got a previous state object from the dictionary, clone it so we dont corrupt it
+                        prev = DisplayObject.Clone(prev);
+                    } else {
                         prev = new();
                     }
                     DisplayObject delt = new();
@@ -51,7 +54,7 @@ namespace CWAEmu.OFUCU.Flash {
                     }
 
                     if (po2.HasMatrix) {
-                        prev.matrix = delt.matrix = Matrix2x3.fromFlash(po2.Matrix);
+                        prev.matrix = delt.matrix = Matrix2x3.FromFlash(po2.Matrix);
                         prev.hasMatrixChange = delt.hasMatrixChange = true;
                     } else {
                         // TODO: does this work the way you expected?
@@ -59,7 +62,7 @@ namespace CWAEmu.OFUCU.Flash {
                     }
 
                     if (po2.HasColorTransform) {
-                        prev.color = delt.color = ColorTransform.frameFlash(po2.ColorTransform);
+                        prev.color = delt.color = ColorTransform.FromFlash(po2.ColorTransform);
                         prev.hasColor = delt.hasColor = true;
                     }
 
