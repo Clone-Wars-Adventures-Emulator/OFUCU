@@ -100,7 +100,7 @@ namespace CWAEmu.OFUCU {
                     Directory.CreateDirectory(prefabSaveDir);
                 }
                 prefabAssetPath = $"{prefabSaveDir}/{name}.prefab";
-                PrefabUtility.SaveAsPrefabAsset(gameObject, prefabAssetPath);
+                PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, prefabAssetPath, InteractionMode.AutomatedAction);
             } else {
                 PrefabUtility.SavePrefabAsset(gameObject);
             }
