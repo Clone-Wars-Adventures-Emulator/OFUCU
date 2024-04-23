@@ -3,6 +3,6 @@ using UnityEngine;
 
 namespace CWAEmu.OFUCU {
     public abstract class AbstractOFUCUObject : MonoBehaviour {
-        public abstract void setBlendMode(EnumFlashBlendMode blendMode);
+        public abstract void setBlendMode(EnumFlashBlendMode blendMode, string saveFolder, string path);
     }
 }

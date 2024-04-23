@@ -158,9 +158,10 @@ namespace CWAEmu.OFUCU {
         }
 
         // This stays here because this isnt runtime
-        public override void setBlendMode(EnumFlashBlendMode mode) {
+        public override void setBlendMode(EnumFlashBlendMode mode, string saveFolder, string path) {
+            loadChildren();
             foreach (var obj in children) {
-                obj.setBlendMode(mode);
+                obj.setBlendMode(mode, saveFolder, $"{path}~{name}");
             }
         }
     }

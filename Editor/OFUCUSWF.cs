@@ -127,10 +127,13 @@ namespace CWAEmu.OFUCU {
             foreach (var df in dl.frames) {
                 string name = df.label ?? $"Frame {df.frameIndex}";
 
-                // create frame object
-                GameObject frameGo = new(name, typeof(RectTransform));
-                RectTransform frameRt = (RectTransform)frameGo.transform;
-                frameRt.SetParent(root, false);
+                // create frame object (only when there is more than one frame)
+                RectTransform frameRt = root;
+                if (dl.frames.Length > 1) {
+                    GameObject frameGo = new(name, typeof(RectTransform));
+                    frameRt = (RectTransform)frameGo.transform;
+                    frameRt.SetParent(root, false);
+                }
 
                 RectTransform maskTrans = null;
                 int maskDepth = -1;
@@ -173,12 +176,11 @@ namespace CWAEmu.OFUCU {
                     }
 
                     if (obj.hasName) {
-                        // TODO: decide if this is an override or just an additional
                         go.name = obj.name;
                     }
 
                     if (obj.hasBlendMode) {
-                        aoo.setBlendMode(obj.blendMode);
+                        aoo.setBlendMode(obj.blendMode, $"{unityRoot}/materials", goRt.parent.name);
                     }
 
                     if (obj.depth < maskDepth) {
@@ -266,15 +268,19 @@ namespace CWAEmu.OFUCU {
 
                 // check objects added and spawn them
                 foreach (var depth in f.objectsAdded) {
-                    var (go, _, _) = createObjectReference(root, f.states[depth]);
+                    var objDesc = f.states[depth];
+                    var (go, aoo, _) = createObjectReference(root, objDesc);
                     go.AddComponent<AnimatedRuntimeObject>();
 
-                    go.name = $"{go.name}.{depth}";
+                    if (objDesc.hasName) {
+                        go.name = objDesc.name;
+                    }
+
+                    go.name = $"{go.name}.{depth}".Replace("(Clone)", "");
 
                     go.SetActive(false);
                     string objPath = go.name;
 
-                    // TODO: does this work the way i epxect?
                     if (f.states.TryGetValue(depth, out var o) && o.hasClipDepth) {
                         masks.Add(depth, (depth, o.clipDepth, go.transform as RectTransform));
                         var mask = go.AddComponent<Mask>();
@@ -289,7 +295,9 @@ namespace CWAEmu.OFUCU {
                         }
                     }
 
-                    // TODO: initial state?
+                    if (objDesc.hasBlendMode) {
+                        aoo.setBlendMode(objDesc.blendMode, $"{unityRoot}/materials", go.transform.parent.name);
+                    }
 
                     var afo = new AnimatedFrameObject() {
                         start = f.frameIndex,
@@ -409,7 +417,7 @@ namespace CWAEmu.OFUCU {
                     continue;
                 }
 
-                if (!neoSprites.TryGetValue(id, out var sprite) || !sprite.Filled || !sprite.HasPrefab) {
+                if (!neoSprites.TryGetValue(id, out var sprite) || !(sprite.Filled || sprite.HasPrefab)) {
                     return id;
                 }
             }
