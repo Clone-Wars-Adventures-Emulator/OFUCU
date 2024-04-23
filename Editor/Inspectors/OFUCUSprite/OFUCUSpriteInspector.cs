@@ -43,6 +43,13 @@ namespace CWAEmu.OFUCU {
                 };
             }
 
+            var matsBtnEle = root.Q("mats");
+            if (matsBtnEle is Button matsBtn) {
+                matsBtn.clicked += () => {
+                    sprite.uniqueifyMaterials();
+                };
+            }
+
             var saveBtnEle = root.Q("save");
             if (saveBtnEle is Button saveBtn) {
                 saveBtn.clicked += () => {

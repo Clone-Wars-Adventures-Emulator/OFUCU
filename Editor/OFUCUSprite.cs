@@ -1,8 +1,10 @@
 using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.OFUCU.Runtime;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.VectorGraphics;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,10 +23,9 @@ namespace CWAEmu.OFUCU {
         [SerializeField]
         private string prefabAssetPath;
         public bool HasPrefab => prefabAssetPath != null;
-
-        public bool Cloned => cloned;
         [SerializeField]
-        private bool cloned;
+        private string matSaveDir;
+
         public bool Filled => filled;
         [SerializeField]
         private bool filled;
@@ -38,10 +39,11 @@ namespace CWAEmu.OFUCU {
             loadChildren();
         }
 
-        public void init(OFUCUSWF swf, DefineSprite sprite, string prefabSaveDir) {
+        public void init(OFUCUSWF swf, DefineSprite sprite, string prefabSaveDir, string matSaveDir) {
             this.swf = swf;
             this.sprite = sprite;
             this.prefabSaveDir = prefabSaveDir;
+            this.matSaveDir = matSaveDir;
 
             foreach (var f in sprite.Frames) {
                 foreach (var t in f.Tags) {
@@ -86,15 +88,39 @@ namespace CWAEmu.OFUCU {
             loadChildren();
         }
 
-        public void saveAsPrefab() {
-            if (cloned) {
-                Debug.LogError("Cannot save a clone as a prefab");
-                return;
+        public void uniqueifyMaterials() {
+            try {
+                AssetDatabase.StartAssetEditing();
+                recurseMats(transform, name);
+                if (prefabAssetPath != null) {
+                    PrefabUtility.SavePrefabAsset(gameObject);
+                }
+            } catch (Exception e) {
+                Debug.LogException(e);
+            } finally {
+                AssetDatabase.StopAssetEditing();
+            }
+        }
+
+        private void recurseMats(Transform cur, string path) {
+            if (cur.TryGetComponent<SVGImage>(out var img)) {
+                var mat = new Material(img.material);
+                img.material = mat;
+
+                if (!Directory.Exists(matSaveDir)) {
+                    Directory.CreateDirectory(matSaveDir);
+                }
+                AssetDatabase.CreateAsset(mat, $"{matSaveDir}/{path}.mat");
             }
 
-            var clone = cloned;
-            cloned = false;
+            for (int i = 0; i < cur.childCount; i++) {
+                var child = cur.GetChild(i);
 
+                recurseMats(child, $"{path}~{child.name}");
+            }
+        }
+
+        public void saveAsPrefab() {
             if (prefabAssetPath == null) {
                 if (!Directory.Exists(prefabSaveDir)) {
                     Directory.CreateDirectory(prefabSaveDir);
@@ -102,25 +128,20 @@ namespace CWAEmu.OFUCU {
                 prefabAssetPath = $"{prefabSaveDir}/{name}.prefab";
                 PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, prefabAssetPath, InteractionMode.AutomatedAction);
             } else {
-                PrefabUtility.SavePrefabAsset(gameObject);
+                Debug.LogWarning($"{name} already has a prefab at path {prefabAssetPath}, modify that directly");
+                // PrefabUtility.SavePrefabAsset(gameObject);
             }
-
-            cloned = clone;
-
-            // TODO: reload all copies
         }
 
         public GameObject getCopy() {
             if (prefabAssetPath != null) {
                 GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>(prefabAssetPath);
                 GameObject rgo = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
-                rgo.GetComponent<OFUCUSprite>().cloned = true;
 
                 return rgo;
             }
 
             GameObject go = Instantiate(gameObject);
-            go.GetComponent<OFUCUSprite>().cloned = true;
 
             return go;
         }

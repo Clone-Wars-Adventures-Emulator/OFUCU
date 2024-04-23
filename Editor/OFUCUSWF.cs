@@ -86,6 +86,7 @@ namespace CWAEmu.OFUCU {
             foreach (var pair in file.Sprites) {
                 var name = $"Sprite.{pair.Value.CharacterId}";
                 var prefabDir = $"{unityRoot}/prefabs";
+                var matDir = $"{unityRoot}/materials";
 
                 GameObject go;
                 if (File.Exists($"{prefabDir}/{name}.prefab")) {
@@ -98,7 +99,7 @@ namespace CWAEmu.OFUCU {
                 RectTransform rt = go.transform as RectTransform;
                 rt.SetParent(dictonaryT, false);
                 var dict = go.GetComponent<OFUCUSprite>();
-                dict.init(this, pair.Value, prefabDir);
+                dict.init(this, pair.Value, prefabDir, matDir);
                 neoSprites.Add(pair.Key, dict);
             }
 
