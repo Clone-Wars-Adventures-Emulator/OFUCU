@@ -88,7 +88,7 @@ namespace CWAEmu.OFUCU {
             loadChildren();
         }
 
-        public void uniqueifyMaterials() {
+        public void uniquifyMaterials() {
             try {
                 AssetDatabase.StartAssetEditing();
                 recurseMats(transform, name);

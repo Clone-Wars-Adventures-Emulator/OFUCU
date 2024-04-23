@@ -46,7 +46,7 @@ namespace CWAEmu.OFUCU {
             var matsBtnEle = root.Q("mats");
             if (matsBtnEle is Button matsBtn) {
                 matsBtn.clicked += () => {
-                    sprite.uniqueifyMaterials();
+                    sprite.uniquifyMaterials();
                 };
             }
 
