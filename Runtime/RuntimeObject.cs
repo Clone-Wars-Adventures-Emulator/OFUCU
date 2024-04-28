@@ -58,5 +58,10 @@ namespace CWAEmu.OFUCU.Runtime {
         public virtual void applyAdd(Color col) {
 
         }
+
+        // hack to get around the issues of awake/start not being called if the object is disabled
+        public virtual void initReferences() {
+
+        }
     }
 }

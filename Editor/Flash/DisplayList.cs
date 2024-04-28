@@ -74,7 +74,7 @@ namespace CWAEmu.OFUCU.Flash {
                 hasClipDepth = other.hasClipDepth,
                 hasBlendMode = other.hasBlendMode,
                 matrix = Matrix2x3.Clone(other.matrix),
-                color = ColorTransform.Clone(other.color),
+                color = other.color != null ? ColorTransform.Clone(other.color) : null,
                 name = other.name,
                 clipDepth = other.clipDepth,
                 blendMode = other.blendMode,
@@ -142,7 +142,7 @@ namespace CWAEmu.OFUCU.Flash {
                 rotz = 0;
             }
 
-            return (translate, scale, rotz);
+            return (translate, scale, -rotz);
         }
 
         private Vector2 scaleOnly() {
