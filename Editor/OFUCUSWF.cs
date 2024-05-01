@@ -446,16 +446,6 @@ namespace CWAEmu.OFUCU {
 
                 go = (GameObject)PrefabUtility.InstantiatePrefab(prefabGo, parent);
                 aoo = go.AddComponent<OFUCUShape>();
-                // Dont duplicate materials for now, if extra materials are needed, do it manually
-                // TODO: no duplication breaks (as expected) when multiple instances of the same shape are being used at the same time and one is being animated
-                // manual feels like a lot of extra work to get this to work right, and not something i want to do
-                // Do i do this type of stuff as a check box on the animations only?
-                // that would make sense for animation cases but what if in the place case there are 2 of the same shape being used that have 2 different adds or mults? what then?
-                // or even better, one of them is additive blend and the other is regular blend? how does that get de-conflicted?
-                // If i do do some auto de-duplication tactics, i will essentially need to save the path of the material and the depth as its name so it can be uniqely identified
-
-                // var sg = go.GetComponent<SVGImage>();
-                // sg.material = new Material(sg.material);
             }
 
             // TODO: handle text and other? objects

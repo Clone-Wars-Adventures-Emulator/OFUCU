@@ -5,19 +5,14 @@ namespace CWAEmu.OFUCU.Runtime {
     public class RuntimeShape : RuntimeObject {
         private SVGImage img;
         private Material mat;
-        private bool initGuard = false;
 
         private void Awake() {
             initReferences();
         }
 
         public override void initReferences() {
-            if (initGuard) {
-                return;
-            }
-            initGuard = true;
             img = GetComponent<SVGImage>();
-            mat = img.material;
+            mat = img.materialForRendering;
         }
 
         public override void applyMult(Color col) {
