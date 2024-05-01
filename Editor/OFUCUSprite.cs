@@ -105,8 +105,6 @@ namespace CWAEmu.OFUCU {
 
         private void recurseMats(Transform cur, string path) {
             if (cur.TryGetComponent<SVGImage>(out var img)) {
-                // TODO: this doesnt modify the material on prefabs? or is it nested prefabs? not sure but this doesnt always work
-                // TODO: is there a better way of applying these properties per game object other than a material? if so that would work much better (and probably be more performant)
                 var mat = new Material(img.material);
                 img.material = mat;
 

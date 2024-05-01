@@ -1,6 +1,7 @@
 using CWAEmu.OFUCU.Flash;
 using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.OFUCU.Runtime;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -248,7 +249,6 @@ namespace CWAEmu.OFUCU {
                 }
             }
 
-
             DisplayList dl = new(frames);
             AnimatedThingList<AnimatedFrameObject> objs = new();
             Dictionary<int, (int start, int end, RectTransform rt)> masks = new();
@@ -291,6 +291,7 @@ namespace CWAEmu.OFUCU {
                         if (trip.start < depth && trip.end >= depth) {
                             go.transform.SetParent(trip.rt, false);
                             go.AddComponent<RuntimeAnchor>();
+                            // TODO: this doesnt take into account nested masks (though is that even possible??)
                             objPath = $"{trip.rt.name}/{objPath}";
                         }
                     }
@@ -751,6 +752,35 @@ namespace CWAEmu.OFUCU {
                     ac.SetCurve(path, typeof(RectTransform), "localScale.y", new AnimationCurve(yscale.ToArray()));
                 }
                 if (zrot.Count != 0) {
+                    // Run a sanity check on the zRot values to make sure there are no extreme jumps that cause weird interpolations
+                    float offset = 0;
+                    float lastVal = zrot[0].value;
+                    for (int i = 1; i < zrot.Count; i++) {
+                        float val = zrot[i].value;
+
+                        if (Mathf.Abs(lastVal - val) > 330) {
+                            if (lastVal < 0) {
+                                offset -= 360;
+                            } else {
+                                offset += 360;
+                            }
+
+                            Debug.Log($"Adjusting offset on zrot for path {path} by {offset}");
+                        }
+
+                        var lastKf = zrot[i - 1];
+                        var kf = zrot[i];
+                        kf.value += offset;
+
+                        var interpolate = (kf.value - lastKf.value) / (kf.time - lastKf.time);
+                        lastKf = new Keyframe(lastKf.time, lastKf.value, lastKf.inTangent, interpolate);
+                        kf = new Keyframe(kf.time, kf.value, interpolate, kf.outTangent);
+                        zrot[i - 1] = lastKf;
+                        zrot[i] = kf;
+
+                        lastVal = val;
+                    }
+
                     ac.SetCurve(path, typeof(AnimatedRuntimeObject), "zRot", new AnimationCurve(zrot.ToArray()));
                 }
 
