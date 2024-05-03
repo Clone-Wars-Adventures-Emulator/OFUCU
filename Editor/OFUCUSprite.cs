@@ -54,7 +54,7 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        public void place(bool forceDeps = false) {
+        public void place(bool forceDeps = false, bool ignoreMissing = false) {
             if (forceDeps) {
                 swf.placeFrames(transform as RectTransform, sprite.Frames, dependencies);
 
@@ -63,7 +63,7 @@ namespace CWAEmu.OFUCU {
 
             // check if dependencies are filled, if not, dont do this
             var dep = swf.allSpritesFilled(dependencies);
-            if (dep != 0) {
+            if (dep != 0 && !ignoreMissing) {
                 Debug.LogError($"Not placing {sprite.CharacterId}, sprite {dep} is not filled.");
                 return;
             }

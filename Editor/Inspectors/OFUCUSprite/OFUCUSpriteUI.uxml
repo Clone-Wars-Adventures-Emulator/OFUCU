@@ -1,7 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <ui:Label text="OFUCU Sprite" display-tooltip-when-elided="true" />
     <ui:Button text="Place Frames" display-tooltip-when-elided="true" name="place" style="top: 2px;" />
-    <ui:Button text="Place Frames With Dependencies" display-tooltip-when-elided="true" name="placedeps" style="top: 2px;" />
+    <ui:Button text="Place Frames and Force Place Dependencies" display-tooltip-when-elided="true" name="placedeps" style="top: 2px;" />
+    <ui:Button text="Place Frames Without Missing" display-tooltip-when-elided="true" name="placelight" style="top: 2px;" />
     <ui:Button text="Animate Frames" display-tooltip-when-elided="true" name="anim" style="top: 2px;" />
     <ui:Button text="Uniquify Materials" display-tooltip-when-elided="true" name="mats" style="top: 2px;" />
     <ui:Button text="Save as Prefab" display-tooltip-when-elided="true" name="save" style="top: 2px;" />

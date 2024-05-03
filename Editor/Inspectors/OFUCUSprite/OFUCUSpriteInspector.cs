@@ -32,7 +32,14 @@ namespace CWAEmu.OFUCU {
             var placeDepsBtnEle = root.Q("placedeps");
             if (placeDepsBtnEle is Button placeDepsBtn) {
                 placeDepsBtn.clicked += () => {
-                    sprite.place(true);
+                    sprite.place(forceDeps: true);
+                };
+            }
+
+            var placeLightBtnEle = root.Q("placelight");
+            if (placeLightBtnEle is Button placeLightBtn) {
+                placeLightBtn.clicked += () => {
+                    sprite.place(ignoreMissing: true);
                 };
             }
 

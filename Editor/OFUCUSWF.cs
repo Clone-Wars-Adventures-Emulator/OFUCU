@@ -149,6 +149,11 @@ namespace CWAEmu.OFUCU {
                     // create object (can be extracted)
                     var (go, aoo, ro) = createObjectReference(frameRt, obj);
 
+                    if (go == null) {
+                        Debug.LogWarning($"Skipping missing dependency {obj.charId} of {root.name}");
+                        continue;
+                    }
+
                     // handle all the funnies
                     RectTransform goRt = (RectTransform)go.transform;
                     goRt.SetParent(maskTrans ?? frameRt, false);
@@ -448,10 +453,10 @@ namespace CWAEmu.OFUCU {
                 GameObject prefabGo = AssetDatabase.LoadAssetAtPath<GameObject>(svg);
                 if (prefabGo == null) {
                     Debug.LogError("Failed to find svg file");
+                } else {
+                    go = (GameObject)PrefabUtility.InstantiatePrefab(prefabGo, parent);
+                    aoo = go.AddComponent<OFUCUShape>();
                 }
-
-                go = (GameObject)PrefabUtility.InstantiatePrefab(prefabGo, parent);
-                aoo = go.AddComponent<OFUCUShape>();
             }
 
             // TODO: handle text and other? objects
