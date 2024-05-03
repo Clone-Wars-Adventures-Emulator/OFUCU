@@ -287,11 +287,11 @@ namespace CWAEmu.OFUCU {
                         mask.showMaskGraphic = false;
                     }
 
+                    RuntimeAnchor anchor = null;
                     foreach (var trip in masks.Values) {
                         if (trip.start < depth && trip.end >= depth) {
-                            go.transform.SetParent(trip.rt, false);
-                            go.AddComponent<RuntimeAnchor>();
-                            // TODO: this doesnt take into account nested masks (though is that even possible??)
+                            go.transform.SetParent(trip.rt, true);
+                            anchor = go.AddComponent<RuntimeAnchor>();
                             objPath = $"{trip.rt.name}/{objPath}";
                         }
                     }
@@ -305,6 +305,11 @@ namespace CWAEmu.OFUCU {
                         go = go,
                         path = objPath,
                     };
+
+                    if (anchor != null) {
+                        anchor.anchorPosition = go.transform.position;
+                        anchor.anchorRotation = go.transform.rotation;
+                    }
 
                     objs.addAtDepth(depth, afo);
                 }
