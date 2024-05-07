@@ -3,11 +3,45 @@ using UnityEngine;
 namespace CWAEmu.OFUCU.Runtime {
     // TODO: how does this handle getting animated? do we even animate props of things under a mask? (yes we do, but only position?)
     public class RuntimeAnchor : MonoBehaviour {
-        public Vector3 anchorPosition;
-        public Quaternion anchorRotation;
+        public RectTransform canvas;
+        public RectTransform anchorReference;
+        public Vector3 anchorPositionOffset;
+        public Vector3 anchorScale;
+        public Quaternion anchorRotationOffset;
 
+        public bool uns = true;
+
+        // TODO: Find a way to performance optimize this, yea its just math, but this is a lot of extra math to do every frame
         private void LateUpdate() {
-            transform.SetPositionAndRotation(anchorPosition, anchorRotation);
+            var canvasScale = canvas.localScale;
+            var tmp = anchorPositionOffset;
+            tmp = new Vector3(tmp.x * canvasScale.x, tmp.y * canvasScale.y, tmp.z * canvasScale.z);
+            var pos = anchorReference.position + tmp;
+            var rot = anchorReference.rotation * anchorRotationOffset;
+            transform.SetPositionAndRotation(pos, rot);
+
+            var parLoss = transform.parent.lossyScale;
+            float x = (anchorScale.x * canvasScale.x) / parLoss.x;
+            float y = (anchorScale.y * canvasScale.y) / parLoss.y;
+            float z = (anchorScale.z * canvasScale.z) / parLoss.z;
+            transform.localScale = new Vector3(x, y, z);
+        }
+
+        public void savePos(RectTransform anchor, RectTransform canvas) {
+            Debug.Log($"{name} saving {transform.position}");
+            var canvasScale = canvas.localScale;
+            this.canvas = canvas;
+
+            anchorReference = anchor;
+            anchorPositionOffset = (transform.position - anchor.position);
+            anchorPositionOffset = new Vector3(anchorPositionOffset.x / canvasScale.x, anchorPositionOffset.y / canvasScale.y, anchorPositionOffset.z / canvasScale.z);
+            anchorRotationOffset = anchor.rotation * Quaternion.Inverse(transform.rotation);
+
+            var lossyScale = transform.lossyScale;
+            float x = lossyScale.x / canvasScale.x;
+            float y = lossyScale.y / canvasScale.y;
+            float z = lossyScale.z / canvasScale.z;
+            anchorScale = new Vector3(x, y, z);
         }
     }
 }

@@ -118,7 +118,7 @@ namespace CWAEmu.OFUCU {
             if (dependencies != null) {
                 foreach (int i in dependencies) {
                     if (neoSprites.TryGetValue(i, out var sprite) && !sprite.Filled) {
-                        sprite.place(true);
+                        sprite.place(forceDeps: true);
                     }
                 }
             }
@@ -153,6 +153,8 @@ namespace CWAEmu.OFUCU {
                         Debug.LogWarning($"Skipping missing dependency {obj.charId} of {root.name}");
                         continue;
                     }
+
+                    ro.initReferences();
 
                     // handle all the funnies
                     RectTransform goRt = (RectTransform)go.transform;
@@ -194,6 +196,15 @@ namespace CWAEmu.OFUCU {
                     }
                 }
             }
+
+            // delete all RuntimeRoots in the children of this
+            var rrs = root.GetComponentsInChildren<RuntimeRoot>(true);
+            foreach (var r in rrs) {
+                DestroyImmediate(r);
+            }
+
+            var rr = root.gameObject.AddComponent<RuntimeRoot>();
+            rr.canvasScalar = transform as RectTransform;
         }
 
         public void animateFrames(RectTransform root, List<Frame> frames) {
@@ -292,11 +303,10 @@ namespace CWAEmu.OFUCU {
                         mask.showMaskGraphic = false;
                     }
 
-                    RuntimeAnchor anchor = null;
                     foreach (var trip in masks.Values) {
                         if (trip.start < depth && trip.end >= depth) {
                             go.transform.SetParent(trip.rt, true);
-                            anchor = go.AddComponent<RuntimeAnchor>();
+                            go.AddComponent<RuntimeAnchor>();
                             objPath = $"{trip.rt.name}/{objPath}";
                         }
                     }
@@ -311,14 +321,18 @@ namespace CWAEmu.OFUCU {
                         path = objPath,
                     };
 
-                    if (anchor != null) {
-                        anchor.anchorPosition = go.transform.position;
-                        anchor.anchorRotation = go.transform.rotation;
-                    }
-
                     objs.addAtDepth(depth, afo);
                 }
             }
+
+            // delete all RuntimeRoots in the children of this
+            var rrs = root.GetComponentsInChildren<RuntimeRoot>(true);
+            foreach (var r in rrs) {
+                DestroyImmediate(r);
+            }
+
+            var rr = root.gameObject.AddComponent<RuntimeRoot>();
+            rr.canvasScalar = transform as RectTransform;
 
             List<AnimationClip> clips = new();
             foreach (var clipDef in clipDefs) {
