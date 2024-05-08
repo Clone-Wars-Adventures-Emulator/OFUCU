@@ -46,6 +46,10 @@ namespace CWAEmu.OFUCU.Flash {
         private readonly Dictionary<int, ImageCharacterTag> images = new();
         public Dictionary<int, DefineSprite> Sprites => sprites;
         private readonly Dictionary<int, DefineSprite> sprites = new();
+        public Dictionary<int, DefineEditText> EditTexts => editTexts;
+        private readonly Dictionary<int, DefineEditText> editTexts = new();
+        public Dictionary<int, DefineText> Texts => texts;
+        private readonly Dictionary<int, DefineText> texts = new();
         public List<Frame> Frames => frames;
         private readonly List<Frame> frames = new();
         public List<DefineScalingGrid> ScalingGrids => scalingGrids;
@@ -188,6 +192,15 @@ namespace CWAEmu.OFUCU.Flash {
                         det.read(reader);
 
                         CharacterTags.Add(det.CharacterId, det);
+                        EditTexts.Add(det.CharacterId, det);
+                        break;
+
+                    case 11: // DefineText
+                        readText(header, reader, 1);
+                        break;
+
+                    case 33: // DefineText2
+                        readText(header, reader, 2);
                         break;
 
                     case 78: // DefineScalingGrid
@@ -265,6 +278,16 @@ namespace CWAEmu.OFUCU.Flash {
 
             CharacterTags.Add(ds.CharacterId, ds);
             Sprites.Add(ds.CharacterId, ds);
+        }
+
+        private void readText(FlashTagHeader header, Reader reader, int type) {
+            DefineText dt = new();
+            dt.Header = header;
+            dt.Type = type;
+            dt.read(reader);
+
+            CharacterTags.Add(dt.CharacterId, dt);
+            Texts.Add(dt.CharacterId, dt);
         }
 
         public static SWFFile readFull(string path, bool parseImages = true) {
