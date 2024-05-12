@@ -1,4 +1,5 @@
 using CWAEmu.OFUCU.Flash;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,64 +11,87 @@ namespace CWAEmu.OFUCU {
         private string swfPath;
         private string unityRoot;
 
+        [SerializeField]
+        private List<FontMapping> fonts;
+        private SerializedObject so;
+        private bool placeDict = true;
+
+        private bool debounced;
+
         [MenuItem("Flash Tools/Parse Flash")]
         public static void showWindow() {
             GetWindow<ParseFlashWindow>("SWF Parser");
         }
 
-        // TODO: check box to disable placing the dictionary
-        // TODO: input to specify font for entire SWF? (this might be nice? idk)
+        private void OnEnable() {
+            var p = position;
+            p.width = 600 / EditorGUIUtility.pixelsPerPoint;
+            p.height = 600 / EditorGUIUtility.pixelsPerPoint;
+            position = p;
+            so = new(this);
+        }
+
         private void OnGUI() {
             GUILayout.BeginArea(new Rect(0, 0, Screen.width / EditorGUIUtility.pixelsPerPoint, Screen.height / EditorGUIUtility.pixelsPerPoint));
 
             GUILayout.Space(20);
 
             GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
+            GUILayout.Space(5);
             GUILayout.Label("SWF File Path: ");
-
-            GUILayout.FlexibleSpace();
+            GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
+            GUILayout.Space(5);
             swfPath = EditorGUILayout.TextField(swfPath);
-
-            GUILayout.FlexibleSpace();
+            GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
+            GUILayout.Space(5);
             GUILayout.Label("Unity Input/Output root: ");
-
-            GUILayout.FlexibleSpace();
+            GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
+            GUILayout.Space(5);
             unityRoot = EditorGUILayout.TextField(unityRoot);
-
-            GUILayout.FlexibleSpace();
+            GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
+            GUILayout.Space(5);
+            EditorGUILayout.PropertyField(so.FindProperty("fonts"), new GUIContent("Font mapping"));
+            if (so.hasModifiedProperties) {
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+            GUILayout.Space(5);
+            GUILayout.EndHorizontal();
 
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(5);
+            placeDict = GUILayout.Toggle(placeDict, "Place Dictionary");
+            GUILayout.Space(5);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(5);
             if (GUILayout.Button("Read SWF")) {
                 attemptSWFRead();
             }
-
-            GUILayout.FlexibleSpace();
+            GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
             GUILayout.EndArea();
         }
 
         private void attemptSWFRead() {
+            if (debounced) {
+                return;
+            }
+            debounced = true;
+
             // parse the file, this does the actual interaction with the SWF specification
             SWFFile file = SWFFile.readFull(swfPath, false);
 
@@ -76,8 +100,18 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
+            Dictionary<int, Font> fontMap = new();
+            foreach (var mapping in fonts) {
+                if (fontMap.TryGetValue(mapping.fontId, out var f)) {
+                    Debug.LogError($"Duplicate font mapping for {mapping.fontId}, found {f.name}, not using {mapping.font.name}");
+                    continue;
+                }
+
+                fontMap.Add(mapping.fontId, mapping.font);
+            }
+
             // "Place" the file, this is the start of the conversion steps from SWF to Unity
-            OFUCUSWF.placeNewSWFFile(file, unityRoot);
+            OFUCUSWF.placeNewSWFFile(file, unityRoot, placeDict, fontMap);
         }
     }
 }

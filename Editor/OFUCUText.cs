@@ -78,9 +78,13 @@ namespace CWAEmu.OFUCU {
             }
 
             if (text.HasFont) {
+                if (swf.fontMap.TryGetValue(text.FontId, out var font)) {
+                    t.font = font;
+                } else {
+                    Debug.LogWarning($"No Unity Font mapping for {text.FontId} on {swf.name} {text.CharacterId}");
+                }
+
                 t.fontSize = Mathf.RoundToInt(text.FontHeight);
-                // TODO: Handle font specifications (need a way to map to an existing Unity Font)
-                Debug.LogWarning($"Unsupported Font specification on {swf.name} {text.CharacterId}");
             }
 
             if (text.HasFontClass) {

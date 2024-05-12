@@ -24,15 +24,17 @@ namespace CWAEmu.OFUCU {
         private SWFFile file;
         [SerializeField]
         private string unityRoot;
-        
+        private bool placeDict = true;
+
         [SerializeField]
         private HashSet<int> dependencies = new();
 
         public Dictionary<int, OFUCUSprite> sprites = new();
         public Dictionary<int, OFUCUText> editTexts = new();
+        public Dictionary<int, Font> fontMap = new();
         public HashSet<int> svgIds = new();
 
-        public static void placeNewSWFFile(SWFFile file, string unityRoot) {
+        public static void placeNewSWFFile(SWFFile file, string unityRoot, bool placeDict, Dictionary<int, Font> fontMap) {
             if (!Directory.Exists(unityRoot)) {
                 Debug.LogError($"Input/Output {unityRoot} does not exist.");
                 return;
@@ -42,6 +44,8 @@ namespace CWAEmu.OFUCU {
             OFUCUSWF swf = go.AddComponent<OFUCUSWF>();
             swf.unityRoot = unityRoot;
             swf.file = file;
+            swf.fontMap = fontMap;
+            swf.placeDict = placeDict;
             swf.init();
         }
 
@@ -81,10 +85,19 @@ namespace CWAEmu.OFUCU {
             dictonaryT = dictonaryRoot.transform as RectTransform;
             dictonaryT.SetParent(canvas.transform, false);
 
-            // find shape SVGs from specified output foler
-            // create dictionary of all sprites and svg shapes
-            // sprites need custom inspector that allows them to be made into prefabs (with further changes to the sprite by code modifying the prefab), and placed manually or animated
-            
+            // calculate dependencies
+            foreach (var f in file.Frames) {
+                foreach (var t in f.Tags) {
+                    if (t is PlaceObject2 po2 && po2.HasCharacter) {
+                        dependencies.Add(po2.CharacterId);
+                    }
+                }
+            }
+
+            if (!placeDict) {
+                return;
+            }
+
             var prefabDir = $"{unityRoot}/prefabs";
             var matDir = $"{unityRoot}/materials";
             foreach (var pair in file.Sprites) {
@@ -121,15 +134,6 @@ namespace CWAEmu.OFUCU {
                 var text = go.GetComponent<OFUCUText>();
                 text.init(this, pair.Value, prefabDir, matDir);
                 editTexts.Add(pair.Key, text);
-            }
-
-            // calculate dependencies
-            foreach (var f in file.Frames) {
-                foreach (var t in f.Tags) {
-                    if (t is PlaceObject2 po2 && po2.HasCharacter) {
-                        dependencies.Add(po2.CharacterId);
-                    }
-                }
             }
         }
 
@@ -884,5 +888,11 @@ namespace CWAEmu.OFUCU {
                 return frameIndex >= Start;
             }
         }
+    }
+
+    [Serializable]
+    public class FontMapping {
+        public int fontId;
+        public Font font;
     }
 }
