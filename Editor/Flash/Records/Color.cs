@@ -7,8 +7,8 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte B { get; private set; }
         public byte A { get; private set; }
         
-        public static Color Black => new Color() { R = 0, B = 0, G = 0, A = 255 };
-        public static Color White => new Color() { R = 255, B = 255, G = 255, A = 255 };
+        public static Color Black => new() { R = 0, B = 0, G = 0, A = 255 };
+        public static Color White => new() { R = 255, B = 255, G = 255, A = 255 };
 
         public static Color readARGB(Reader reader) {
             Color argb = new() {
@@ -87,6 +87,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
             };
         }
 
+        // TODO: add operators to do this instead
         public UColor32 asUnityColor() {
             return new() {
                 r = R,

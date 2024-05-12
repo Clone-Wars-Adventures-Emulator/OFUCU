@@ -16,15 +16,15 @@ namespace CWAEmu.OFUCU {
         private OFUCUSWF swf;
         [SerializeField]
         private DefineSprite sprite;
-
-        // generated
         [SerializeField]
         private string prefabSaveDir;
         [SerializeField]
+        private string matSaveDir;
+
+        // generated
+        [SerializeField]
         private string prefabAssetPath;
         public bool HasPrefab => prefabAssetPath != null;
-        [SerializeField]
-        private string matSaveDir;
 
         public bool Filled => filled;
         [SerializeField]

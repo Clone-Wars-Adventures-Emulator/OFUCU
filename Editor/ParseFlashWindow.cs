@@ -15,6 +15,8 @@ namespace CWAEmu.OFUCU {
             GetWindow<ParseFlashWindow>("SWF Parser");
         }
 
+        // TODO: check box to disable placing the dictionary
+        // TODO: input to specify font for entire SWF? (this might be nice? idk)
         private void OnGUI() {
             GUILayout.BeginArea(new Rect(0, 0, Screen.width / EditorGUIUtility.pixelsPerPoint, Screen.height / EditorGUIUtility.pixelsPerPoint));
 

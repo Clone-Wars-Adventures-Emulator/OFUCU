@@ -28,7 +28,8 @@ namespace CWAEmu.OFUCU {
         [SerializeField]
         private HashSet<int> dependencies = new();
 
-        public Dictionary<int, OFUCUSprite> neoSprites = new();
+        public Dictionary<int, OFUCUSprite> sprites = new();
+        public Dictionary<int, OFUCUText> editTexts = new();
         public HashSet<int> svgIds = new();
 
         public static void placeNewSWFFile(SWFFile file, string unityRoot) {
@@ -84,10 +85,10 @@ namespace CWAEmu.OFUCU {
             // create dictionary of all sprites and svg shapes
             // sprites need custom inspector that allows them to be made into prefabs (with further changes to the sprite by code modifying the prefab), and placed manually or animated
             
+            var prefabDir = $"{unityRoot}/prefabs";
+            var matDir = $"{unityRoot}/materials";
             foreach (var pair in file.Sprites) {
                 var name = $"Sprite.{pair.Value.CharacterId}";
-                var prefabDir = $"{unityRoot}/prefabs";
-                var matDir = $"{unityRoot}/materials";
 
                 GameObject go;
                 if (File.Exists($"{prefabDir}/{name}.prefab")) {
@@ -99,9 +100,27 @@ namespace CWAEmu.OFUCU {
 
                 RectTransform rt = go.transform as RectTransform;
                 rt.SetParent(dictonaryT, false);
-                var dict = go.GetComponent<OFUCUSprite>();
-                dict.init(this, pair.Value, prefabDir, matDir);
-                neoSprites.Add(pair.Key, dict);
+                var sprite = go.GetComponent<OFUCUSprite>();
+                sprite.init(this, pair.Value, prefabDir, matDir);
+                sprites.Add(pair.Key, sprite);
+            }
+
+            foreach (var pair in file.EditTexts) {
+                var name = $"EditText.{pair.Value.CharacterId}";
+
+                GameObject go;
+                if (File.Exists($"")) {
+                    GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/{name}.prefab");
+                    go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
+                } else {
+                    go = new(name, typeof(OFUCUText));
+                }
+
+                RectTransform rt = go.transform as RectTransform;
+                rt.SetParent(dictonaryT, false);
+                var text = go.GetComponent<OFUCUText>();
+                text.init(this, pair.Value, prefabDir, matDir);
+                editTexts.Add(pair.Key, text);
             }
 
             // calculate dependencies
@@ -117,7 +136,7 @@ namespace CWAEmu.OFUCU {
         public void placeFrames(RectTransform root, List<Frame> frames, HashSet<int> dependencies = null) {
             if (dependencies != null) {
                 foreach (int i in dependencies) {
-                    if (neoSprites.TryGetValue(i, out var sprite) && !sprite.Filled) {
+                    if (sprites.TryGetValue(i, out var sprite) && !sprite.Filled) {
                         sprite.place(forceDeps: true);
                     }
                 }
@@ -442,7 +461,7 @@ namespace CWAEmu.OFUCU {
                     continue;
                 }
 
-                if (!neoSprites.TryGetValue(id, out var sprite) || !(sprite.Filled || sprite.HasPrefab)) {
+                if (!sprites.TryGetValue(id, out var sprite) || !(sprite.Filled || sprite.HasPrefab)) {
                     return id;
                 }
             }
@@ -454,8 +473,15 @@ namespace CWAEmu.OFUCU {
             GameObject go = null;
             AbstractOFUCUObject aoo = null;
             RuntimeObject ro = null;
-            if (neoSprites.TryGetValue(obj.charId, out var sprite)) {
+            if (sprites.TryGetValue(obj.charId, out var sprite)) {
                 go = sprite.getCopy();
+                go.transform.SetParent(parent, false);
+                aoo = go.GetComponent<AbstractOFUCUObject>();
+                Debug.Log($"Found {obj.charId} as sprite");
+            }
+
+            if (editTexts.TryGetValue(obj.charId, out var text)) {
+                go = text.getCopy();
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
                 Debug.Log($"Found {obj.charId} as sprite");
