@@ -16,8 +16,6 @@ namespace CWAEmu.OFUCU {
         private SerializedObject so;
         private bool placeDict = true;
 
-        private bool debounced;
-
         [MenuItem("Flash Tools/Parse Flash")]
         public static void showWindow() {
             GetWindow<ParseFlashWindow>("SWF Parser");
@@ -34,7 +32,7 @@ namespace CWAEmu.OFUCU {
         private void OnGUI() {
             GUILayout.BeginArea(new Rect(0, 0, Screen.width / EditorGUIUtility.pixelsPerPoint, Screen.height / EditorGUIUtility.pixelsPerPoint));
 
-            GUILayout.Space(20);
+            GUILayout.Space(5);
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
@@ -87,11 +85,6 @@ namespace CWAEmu.OFUCU {
         }
 
         private void attemptSWFRead() {
-            if (debounced) {
-                return;
-            }
-            debounced = true;
-
             // parse the file, this does the actual interaction with the SWF specification
             SWFFile file = SWFFile.readFull(swfPath, false);
 

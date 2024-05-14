@@ -29,6 +29,13 @@ namespace CWAEmu.OFUCU {
                 };
             }
 
+            var placeLightBtnEle = root.Q("placelight");
+            if (placeLightBtnEle is Button placeLightBtn) {
+                placeLightBtn.clicked += () => {
+                    swf.placeSwf(ignoreMissing: true);
+                };
+            }
+
             var animBtnEle = root.Q("anim");
             if (animBtnEle is Button animBtn) {
                 animBtn.clicked += () => {

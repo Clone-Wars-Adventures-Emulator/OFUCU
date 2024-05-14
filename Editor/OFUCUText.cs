@@ -34,7 +34,7 @@ namespace CWAEmu.OFUCU {
             this.prefabSaveDir = prefabSaveDir;
             this.matSaveDir = matSaveDir;
 
-            child = new("Text", typeof(Text), typeof(RectTransform));
+            child = new("Text", typeof(RectTransform), typeof(Text));
             childT = child.transform as RectTransform;
             childT.SetParent(transform, false);
             childT.pivot = new Vector2(0, 1);

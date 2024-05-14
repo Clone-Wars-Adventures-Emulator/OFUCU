@@ -28,6 +28,10 @@ namespace CWAEmu.OFUCU {
 
         [SerializeField]
         private HashSet<int> dependencies = new();
+        [SerializeField]
+        private string prefabDir;
+        [SerializeField]
+        private string matDir;
 
         public Dictionary<int, OFUCUSprite> sprites = new();
         public Dictionary<int, OFUCUText> editTexts = new();
@@ -81,10 +85,6 @@ namespace CWAEmu.OFUCU {
             vfswfhT.SetParent(canvas.transform, false);
             vfswfhT.sizeDelta = new Vector2(file.FrameSize.Width, file.FrameSize.Height);
 
-            GameObject dictonaryRoot = new($"Dictonary", typeof(RectTransform));
-            dictonaryT = dictonaryRoot.transform as RectTransform;
-            dictonaryT.SetParent(canvas.transform, false);
-
             // calculate dependencies
             foreach (var f in file.Frames) {
                 foreach (var t in f.Tags) {
@@ -94,12 +94,24 @@ namespace CWAEmu.OFUCU {
                 }
             }
 
+            prefabDir = $"{unityRoot}/prefabs";
+            matDir = $"{unityRoot}/materials";
+
             if (!placeDict) {
                 return;
             }
 
-            var prefabDir = $"{unityRoot}/prefabs";
-            var matDir = $"{unityRoot}/materials";
+            GameObject dictonaryRoot = new($"Dictonary", typeof(RectTransform));
+            dictonaryT = dictonaryRoot.transform as RectTransform;
+            dictonaryT.SetParent(canvas.transform, false);
+            if (!Directory.Exists(prefabDir)) {
+                Directory.CreateDirectory(prefabDir);
+            }
+
+            if (!Directory.Exists(matDir)) {
+                Directory.CreateDirectory(matDir);
+            }
+
             foreach (var pair in file.Sprites) {
                 var name = $"Sprite.{pair.Value.CharacterId}";
 
@@ -137,7 +149,7 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        public void placeFrames(RectTransform root, List<Frame> frames, HashSet<int> dependencies = null) {
+        public void placeFrames(RectTransform root, List<Frame> frames, HashSet<int> dependencies = null, bool anchorTopLeft = false) {
             if (dependencies != null) {
                 foreach (int i in dependencies) {
                     if (sprites.TryGetValue(i, out var sprite) && !sprite.Filled) {
@@ -465,6 +477,10 @@ namespace CWAEmu.OFUCU {
                     continue;
                 }
 
+                if (editTexts.ContainsKey(id)) {
+                    continue;
+                }
+
                 if (!sprites.TryGetValue(id, out var sprite) || !(sprite.Filled || sprite.HasPrefab)) {
                     return id;
                 }
@@ -481,14 +497,30 @@ namespace CWAEmu.OFUCU {
                 go = sprite.getCopy();
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
-                Debug.Log($"Found {obj.charId} as sprite");
+                Debug.Log($"Found {obj.charId} as sprite in dictionary");
+            }
+
+            if (File.Exists($"{prefabDir}/Sprite.{obj.charId}.prefab")) {
+                GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/Sprite.{obj.charId}.prefab");
+                go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
+                go.transform.SetParent(parent, false);
+                aoo = go.GetComponent<AbstractOFUCUObject>();
+                Debug.Log($"Found {obj.charId} as sprite prefab");
             }
 
             if (editTexts.TryGetValue(obj.charId, out var text)) {
                 go = text.getCopy();
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
-                Debug.Log($"Found {obj.charId} as sprite");
+                Debug.Log($"Found {obj.charId} as text in dictionary");
+            }
+
+            if (File.Exists($"{prefabDir}/EditText.{obj.charId}.prefab")) {
+                GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/EditText.{obj.charId}.prefab");
+                go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
+                go.transform.SetParent(parent, false);
+                aoo = go.GetComponent<AbstractOFUCUObject>();
+                Debug.Log($"Found {obj.charId} as text prefab");
             }
 
             if (aoo == null) {
@@ -513,15 +545,15 @@ namespace CWAEmu.OFUCU {
             return (go, aoo, ro);
         }
 
-        public void placeSwf() {
+        public void placeSwf(bool ignoreMissing = false) {
             // check if dependencies are filled, if not, dont do this
             var dep = allSpritesFilled(dependencies);
-            if (dep != 0) {
+            if (dep != 0 && !ignoreMissing) {
                 Debug.LogError($"Not placing swf, sprite {dep} is not filled.");
                 return;
             }
 
-            placeFrames(vfswfhT, file.Frames);
+            placeFrames(vfswfhT, file.Frames, anchorTopLeft: true);
         }
 
         public void animSwf() {
