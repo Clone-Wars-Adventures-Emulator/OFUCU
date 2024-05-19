@@ -57,6 +57,9 @@ namespace CWAEmu.OFUCU {
         private void bulkParse() {
             Matrix.All.Clear();
 
+            int count = 0;
+            int fileCount = 0;
+            int total = 0;
             var files = Directory.EnumerateFiles(path, "*.swf", SearchOption.TopDirectoryOnly);
             foreach (var file in files) {
                 Debug.Log($"Parsing SWF file at {file}");
@@ -68,7 +71,17 @@ namespace CWAEmu.OFUCU {
                         continue;
                     }
 
+                    fileCount++;
+
                     Debug.Log($"{swfFile.Name} has {swfFile.CharacterTags.Count} parsed characters");
+
+                    foreach (var text in swfFile.EditTexts) {
+                        if (text.Value.HasLayout) {
+                            Debug.Log($"{swfFile.Name} has layout of {text.Value.LeftMargin} {text.Value.RightMargin} {text.Value.Indent} {text.Value.Leading}");
+                            count++;
+                        }
+                        total++;
+                    }
 
                 } catch (Exception e) {
                     Debug.LogError($"File at {file} failed to parse with exception: ");
@@ -133,6 +146,8 @@ namespace CWAEmu.OFUCU {
             Debug.Log($"only s: {s}");
             Debug.Log($"only r: {r}");
             Debug.Log($"Scale things: {nonUnifScale}/{anyWithScale}");
+
+            Debug.Log($"There are {count} with layout over {fileCount} files with {total} text entries");
         }
     }
 }

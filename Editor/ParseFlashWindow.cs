@@ -8,7 +8,9 @@ namespace CWAEmu.OFUCU {
     /// Main plugin Editor Window. Used to parse a supplied SWF file and load it into the scene.
     /// </summary>
     public class ParseFlashWindow : EditorWindow {
+        [SerializeField]
         private string swfPath;
+        [SerializeField]
         private string unityRoot;
 
         [SerializeField]
@@ -16,7 +18,7 @@ namespace CWAEmu.OFUCU {
         private SerializedObject so;
         private bool placeDict = true;
 
-        [MenuItem("Flash Tools/Parse Flash")]
+        [MenuItem("Flash Tools/Parse Flash %#&F")]
         public static void showWindow() {
             GetWindow<ParseFlashWindow>("SWF Parser");
         }
@@ -42,7 +44,8 @@ namespace CWAEmu.OFUCU {
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
-            swfPath = EditorGUILayout.TextField(swfPath);
+            EditorGUILayout.PropertyField(so.FindProperty("swfPath"), new GUIContent(""));
+            // swfPath = EditorGUILayout.TextField(swfPath);
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
@@ -61,9 +64,6 @@ namespace CWAEmu.OFUCU {
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
             EditorGUILayout.PropertyField(so.FindProperty("fonts"), new GUIContent("Font mapping"));
-            if (so.hasModifiedProperties) {
-                so.ApplyModifiedPropertiesWithoutUndo();
-            }
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
@@ -72,6 +72,10 @@ namespace CWAEmu.OFUCU {
             placeDict = GUILayout.Toggle(placeDict, "Place Dictionary");
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
+
+            if (so.hasModifiedProperties) {
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);

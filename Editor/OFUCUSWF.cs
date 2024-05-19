@@ -500,7 +500,7 @@ namespace CWAEmu.OFUCU {
                 Debug.Log($"Found {obj.charId} as sprite in dictionary");
             }
 
-            if (File.Exists($"{prefabDir}/Sprite.{obj.charId}.prefab")) {
+            if (aoo == null && File.Exists($"{prefabDir}/Sprite.{obj.charId}.prefab")) {
                 GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/Sprite.{obj.charId}.prefab");
                 go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
                 go.transform.SetParent(parent, false);
@@ -508,14 +508,14 @@ namespace CWAEmu.OFUCU {
                 Debug.Log($"Found {obj.charId} as sprite prefab");
             }
 
-            if (editTexts.TryGetValue(obj.charId, out var text)) {
+            if (aoo == null && editTexts.TryGetValue(obj.charId, out var text)) {
                 go = text.getCopy();
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
                 Debug.Log($"Found {obj.charId} as text in dictionary");
             }
 
-            if (File.Exists($"{prefabDir}/EditText.{obj.charId}.prefab")) {
+            if (aoo == null && File.Exists($"{prefabDir}/EditText.{obj.charId}.prefab")) {
                 GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/EditText.{obj.charId}.prefab");
                 go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
                 go.transform.SetParent(parent, false);
