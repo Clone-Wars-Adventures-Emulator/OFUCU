@@ -11,7 +11,7 @@ namespace CWAEmu.OFUCU {
         public static Action<RectTransform, List<Frame>, bool, List<int>> onPress;
 
         [SerializeField]
-        private List<int> indicies;
+        private List<int> indices;
         private bool labelsAsSeps;
         private SerializedObject so;
         private bool debounced;
@@ -40,7 +40,7 @@ namespace CWAEmu.OFUCU {
             if (!labelsAsSeps) {
                 GUILayout.BeginHorizontal();
                 GUILayout.Space(5);
-                EditorGUILayout.PropertyField(so.FindProperty("indicies"), new GUIContent("Clip Seperation Indicies (1 based)"));
+                EditorGUILayout.PropertyField(so.FindProperty("indices"), new GUIContent("Clip Seperation Indices (1 based)"));
                 if (so.hasModifiedProperties) {
                     so.ApplyModifiedPropertiesWithoutUndo();
                 }
@@ -70,7 +70,7 @@ namespace CWAEmu.OFUCU {
 
             Close();
 
-            onPress.Invoke(root, frames, l, indicies);
+            onPress.Invoke(root, frames, l, indices);
         }
     }
 }
