@@ -195,6 +195,11 @@ namespace CWAEmu.OFUCU {
                     RectTransform goRt = (RectTransform)go.transform;
                     goRt.SetParent(maskTrans ?? frameRt, false);
 
+                    if (anchorTopLeft) {
+                        goRt.anchorMax = new(0, 1);
+                        goRt.anchorMin = new(0, 1);
+                    }
+
                     // handle matrix (can be extracted?? (prob not, considering anim needs to do its own thing))
                     var (translate, scale, rotz) = obj.matrix.getTransformation();
                     goRt.anchoredPosition = translate;
