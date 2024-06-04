@@ -11,6 +11,14 @@ namespace CWAEmu.OFUCU.Runtime {
         [SerializeField]
         private Color selfAdd = new(0, 0, 0, 0);
 
+        public Color getSelfMult() {
+            return selfMult;
+        }
+
+        public Color getSelfAdd() {
+            return selfAdd;
+        }
+
         public void setMultColor(Color color) {
             selfMult = color;
             var r = Mathf.Clamp(parentMult.r * selfMult.r, 0, 1);
