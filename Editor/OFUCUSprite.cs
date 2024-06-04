@@ -56,7 +56,7 @@ namespace CWAEmu.OFUCU {
 
         public void place(bool forceDeps = false, bool ignoreMissing = false) {
             if (forceDeps) {
-                swf.placeFrames(transform as RectTransform, sprite.Frames, dependencies);
+                swf.placeFrames(transform as RectTransform, sprite.Frames, dependencies, missingIsError: !ignoreMissing);
 
                 return;
             }
@@ -68,7 +68,7 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
-            swf.placeFrames(transform as RectTransform, sprite.Frames);
+            swf.placeFrames(transform as RectTransform, sprite.Frames, missingIsError: !ignoreMissing);
             filled = true;
 
             loadChildren();

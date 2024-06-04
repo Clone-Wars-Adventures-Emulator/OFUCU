@@ -16,6 +16,9 @@ using UnityEngine.UI;
 namespace CWAEmu.OFUCU {
     public class OFUCUSWF : MonoBehaviour {
         [SerializeField]
+        private AnimationClip emptyClip;
+
+        [SerializeField]
         private RectTransform vfswfhT;
         [SerializeField]
         private RectTransform dictonaryT;
@@ -149,7 +152,7 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        public void placeFrames(RectTransform root, List<Frame> frames, HashSet<int> dependencies = null, bool anchorTopLeft = false) {
+        public void placeFrames(RectTransform root, List<Frame> frames, HashSet<int> dependencies = null, bool anchorTopLeft = false, bool missingIsError = true) {
             if (dependencies != null) {
                 foreach (int i in dependencies) {
                     if (sprites.TryGetValue(i, out var sprite) && !sprite.Filled) {
@@ -182,7 +185,7 @@ namespace CWAEmu.OFUCU {
                     }
 
                     // create object (can be extracted)
-                    var (go, aoo, ro) = createObjectReference(frameRt, obj);
+                    var (go, aoo, ro) = createObjectReference(frameRt, obj, missingIsError);
 
                     if (go == null) {
                         Debug.LogWarning($"Skipping missing dependency {obj.charId} of {root.name}");
@@ -332,7 +335,7 @@ namespace CWAEmu.OFUCU {
                         go.name = objDesc.name;
                     }
 
-                    go.name = $"{go.name}.{depth}".Replace("(Clone)", "");
+                    go.name = $"{go.name}.{depth}";
 
                     go.SetActive(false);
                     string objPath = go.name;
@@ -381,6 +384,7 @@ namespace CWAEmu.OFUCU {
             }
 
             var rootSM = controller.layers[0].stateMachine;
+            rootSM.AddState("Empty loop").motion = emptyClip;
             foreach (var clip in clips) {
                 var state = rootSM.AddState(clip.name.Replace('.', ' '));
                 state.motion = clip;
@@ -494,7 +498,7 @@ namespace CWAEmu.OFUCU {
             return 0;
         }
 
-        private (GameObject go, AbstractOFUCUObject aoo, RuntimeObject ro) createObjectReference(RectTransform parent, DisplayObject obj) {
+        private (GameObject go, AbstractOFUCUObject aoo, RuntimeObject ro) createObjectReference(RectTransform parent, DisplayObject obj, bool missingIsError = true) {
             GameObject go = null;
             AbstractOFUCUObject aoo = null;
             RuntimeObject ro = null;
@@ -533,7 +537,9 @@ namespace CWAEmu.OFUCU {
                 Debug.Log($"Looking for {obj.charId} as shape at {svg}");
                 GameObject prefabGo = AssetDatabase.LoadAssetAtPath<GameObject>(svg);
                 if (prefabGo == null) {
-                    Debug.LogError("Failed to find svg file");
+                    if (missingIsError) {
+                        Debug.LogError($"Failed to find svg file {obj.charId}");
+                    }
                 } else {
                     go = (GameObject)PrefabUtility.InstantiatePrefab(prefabGo, parent);
                     aoo = go.AddComponent<OFUCUShape>();
@@ -545,6 +551,7 @@ namespace CWAEmu.OFUCU {
                 Debug.Log($"Not placing {obj.charId}, not shape or sprite");
             } else {
                 ro = go.GetComponent<RuntimeObject>();
+                go.name = go.name.Replace("(Clone)", "");
             }
 
             return (go, aoo, ro);
@@ -814,7 +821,7 @@ namespace CWAEmu.OFUCU {
 
                 if (interp) {
                     var lastVal = last.value;
-                    var interpolate = (value -  lastVal) / (time - last.time);
+                    var interpolate = (value - lastVal) / (time - last.time);
                     last = new Keyframe(last.time, last.value, last.inTangent, interpolate);
                     var thisF = new Keyframe(time, value, interpolate, 0f);
                     kfs[^1] = last;
@@ -892,7 +899,7 @@ namespace CWAEmu.OFUCU {
                     if (ma.Count != 0) {
                         ac.SetCurve(path, typeof(AnimatedRuntimeObject), "multColor.a", new AnimationCurve(ma.ToArray()));
                     }
-                    
+
                     if (hasa.Count != 0) {
                         ac.SetCurve(path, typeof(AnimatedRuntimeObject), "hasAdd", new AnimationCurve(hasa.ToArray()));
                     }

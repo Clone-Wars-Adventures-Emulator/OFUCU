@@ -100,13 +100,13 @@ namespace CWAEmu.OFUCU {
             if (text.HasLayout) {
                 switch (text.Align) {
                     case 0:
-                        t.alignment = TextAnchor.MiddleLeft;
+                        t.alignment = TextAnchor.UpperLeft;
                         break;
                     case 1:
-                        t.alignment = TextAnchor.MiddleRight;
+                        t.alignment = TextAnchor.UpperRight;
                         break;
                     case 2:
-                        t.alignment = TextAnchor.MiddleCenter;
+                        t.alignment = TextAnchor.UpperCenter;
                         break;
                     case 3:
                         Debug.LogError($"Unsupported Justify Text on {swf.name} {text.CharacterId}");
@@ -135,9 +135,6 @@ namespace CWAEmu.OFUCU {
             if (text.UseOutlines) {
                 Debug.LogWarning($"Unsupported UseOutlines specification on {swf.name} {text.CharacterId}");
             }
-
-
-            // TODO: reference that one image you made to make these props
         }
 
         private void OnDrawGizmos() {
