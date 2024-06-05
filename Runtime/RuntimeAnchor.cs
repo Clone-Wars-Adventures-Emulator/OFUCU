@@ -28,7 +28,6 @@ namespace CWAEmu.OFUCU.Runtime {
         }
 
         public void savePos(RectTransform anchor, RectTransform canvas) {
-            Debug.Log($"{name} saving {transform.position}");
             var canvasScale = canvas.localScale;
             this.canvas = canvas;
 
