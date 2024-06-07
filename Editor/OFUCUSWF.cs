@@ -209,6 +209,7 @@ namespace CWAEmu.OFUCU {
                     goRt.localScale = scale.ToVector3(1);
                     goRt.rotation = Quaternion.Euler(0, 0, rotz);
 
+                    // TODO: future fix: support sprites as masks
                     if (obj.hasClipDepth) {
                         maskDepth = obj.clipDepth;
                         maskTrans = goRt;
@@ -310,7 +311,7 @@ namespace CWAEmu.OFUCU {
 
             DisplayList dl = new(frames);
             AnimatedThingList<AnimatedFrameObject> objs = new();
-            Dictionary<int, (int start, int end, RectTransform rt)> masks = new();
+            Dictionary<int, (int start, int end, RectTransform rt, string path)> masks = new();
             // for each frame
             foreach (var f in dl.frames) {
                 // check objects removed and set them
@@ -330,6 +331,7 @@ namespace CWAEmu.OFUCU {
                     var objDesc = f.states[depth];
                     var (go, aoo, _) = createObjectReference(root, objDesc);
                     go.AddComponent<AnimatedRuntimeObject>();
+                    var goRt = go.transform as RectTransform;
 
                     if (objDesc.hasName) {
                         go.name = objDesc.name;
@@ -341,16 +343,34 @@ namespace CWAEmu.OFUCU {
                     string objPath = go.name;
 
                     if (f.states.TryGetValue(depth, out var o) && o.hasClipDepth) {
-                        masks.Add(depth, (depth, o.clipDepth, go.transform as RectTransform));
-                        var mask = go.AddComponent<Mask>();
+                        string path = go.name;
+                        GameObject target = go;
+                        if (aoo is OFUCUSprite) {
+                            if (go.transform.childCount != 1) {
+                                Debug.LogError($"Cannot process mask for {objDesc.name}.{objDesc.depth} on frame {f.frameIndex}, will not animate");
+                                return;
+                            }
+
+                            var child = go.transform.GetChild(0);
+                            target = child.gameObject;
+                            path = $"{path}/{child.name}";
+                        }
+
+                        masks.Add(depth, (depth, o.clipDepth, target.transform as RectTransform, path));
+                        var mask = target.AddComponent<Mask>();
                         mask.showMaskGraphic = false;
                     }
 
-                    foreach (var trip in masks.Values) {
-                        if (trip.start < depth && trip.end >= depth) {
-                            go.transform.SetParent(trip.rt, true);
+                    foreach (var (start, end, rt, path) in masks.Values) {
+                        if (start < depth && end >= depth) {
+                            // set the initial positions because they need to be saved
+                            var (translate, scale, rotz) = objDesc.matrix.getTransformation();
+                            goRt.anchoredPosition = translate;
+                            goRt.localScale = scale.ToVector3(1);
+                            goRt.rotation = Quaternion.Euler(0, 0, rotz);
+                            go.transform.SetParent(rt, true);
                             go.AddComponent<RuntimeAnchor>();
-                            objPath = $"{trip.rt.name}/{objPath}";
+                            objPath = $"{path}/{objPath}";
                         }
                     }
 
