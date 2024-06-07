@@ -8,11 +8,15 @@ namespace CWAEmu.OFUCU {
     public class AnimateFramesWindow : EditorWindow {
         public static RectTransform root;
         public static List<Frame> frames;
-        public static Action<RectTransform, List<Frame>, bool, List<int>> onPress;
+        public static Action<RectTransform, List<Frame>, bool, List<int>, bool, bool> onPress;
 
         [SerializeField]
         private List<int> indices;
         private bool labelsAsSeps;
+        [SerializeField]
+        private bool animsLoop;
+        [SerializeField]
+        private bool animEmpty;
         private SerializedObject so;
         private bool debounced;
 
@@ -30,6 +34,18 @@ namespace CWAEmu.OFUCU {
             GUILayout.BeginArea(new Rect(0, 0, Screen.width / EditorGUIUtility.pixelsPerPoint, Screen.height / EditorGUIUtility.pixelsPerPoint));
 
             GUILayout.Space(5);
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(5);
+            animsLoop = GUILayout.Toggle(animsLoop, "Animations loop");
+            GUILayout.Space(5);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(5);
+            animEmpty = GUILayout.Toggle(animEmpty, "Include Empty Trailing Frames");
+            GUILayout.Space(5);
+            GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
@@ -70,7 +86,7 @@ namespace CWAEmu.OFUCU {
 
             Close();
 
-            onPress.Invoke(root, frames, l, indices);
+            onPress.Invoke(root, frames, l, indices, animsLoop, animEmpty);
         }
     }
 }

@@ -257,7 +257,7 @@ namespace CWAEmu.OFUCU {
             EditorWindow.GetWindow<AnimateFramesWindow>($"Animate {root.name}");
         }
 
-        private void onAnimateButton(RectTransform root, List<Frame> frames, bool labelsAsClips, List<int> clipIndexes) {
+        private void onAnimateButton(RectTransform root, List<Frame> frames, bool labelsAsClips, List<int> clipIndexes, bool animationsLoop, bool includeEmptyTrail) {
             if (!root.gameObject.TryGetComponent<Animator>(out var anim)) {
                 anim = root.gameObject.AddComponent<Animator>();
             }
@@ -379,12 +379,20 @@ namespace CWAEmu.OFUCU {
 
             List<AnimationClip> clips = new();
             foreach (var clipDef in clipDefs) {
-                var clip = animateImpl(dl, objs, clipDef.start, clipDef.end, $"{root.name}.{clipDef.name}");
+                var clip = animateImpl(dl, objs, clipDef.start, clipDef.end, includeEmptyTrail, $"{root.name}.{clipDef.name}");
                 clips.Add(clip);
+                if (animationsLoop) {
+                    var settings = AnimationUtility.GetAnimationClipSettings(clip);
+                    settings.loopTime = true;
+                    AnimationUtility.SetAnimationClipSettings(clip, settings);
+                }
             }
 
             var rootSM = controller.layers[0].stateMachine;
-            rootSM.AddState("Empty loop").motion = emptyClip;
+            if (!animationsLoop) {
+                rootSM.AddState("Empty loop").motion = emptyClip;
+            }
+
             foreach (var clip in clips) {
                 var state = rootSM.AddState(clip.name.Replace('.', ' '));
                 state.motion = clip;
@@ -408,7 +416,7 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        private AnimationClip animateImpl(DisplayList dl, AnimatedThingList<AnimatedFrameObject> objs, int start, int end, string clipname = "default") {
+        private AnimationClip animateImpl(DisplayList dl, AnimatedThingList<AnimatedFrameObject> objs, int start, int end, bool includeEmpty, string clipname = "default") {
             AnimationClip ac = new() {
                 name = clipname,
                 frameRate = file.FrameRate
@@ -471,6 +479,14 @@ namespace CWAEmu.OFUCU {
                         ad.animateColor(i - start + 1, file.FrameRate, change.color);
                     }
                 }
+            }
+
+            if (includeEmpty) {
+                var itor = animData.GetEnumerator();
+                itor.MoveNext();
+                var anim = itor.Current;
+
+                anim.addEnableOnFinal(end, file.FrameRate);
             }
 
             foreach (AnimationData anim in animData) {
@@ -778,6 +794,21 @@ namespace CWAEmu.OFUCU {
 
             public void animateEnable(int frame, float frameRate, bool enable) {
                 addKeyframe(enabled, frame, frameRate, enable ? 1 : 0, false);
+            }
+
+            public void addEnableOnFinal(int end, float frameRate) {
+                var endTime = (end - 1) / frameRate;
+                bool lastEnabled = false;
+                foreach (var frame in enabled) {
+                    if (Math.Abs(endTime - frame.time) < double.Epsilon) {
+                        // found a key frame at the end point, not atting
+                        return;
+                    }
+
+                    lastEnabled = frame.value == 1;
+                }
+
+                animateEnable(end, frameRate, lastEnabled);
             }
 
             private void addKeyframe(List<Keyframe> kfs, int frame, float frameRate, float value, bool interp = true) {
