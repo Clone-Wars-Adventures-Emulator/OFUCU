@@ -15,7 +15,7 @@ namespace CWAEmu.OFUCU {
     public class BulkParseWindow : EditorWindow {
         private string path;
 
-        [MenuItem("Flash Tools/Bulk Parse (DEBUG)")]
+        [MenuItem("OFUCU/Bulk Parse (DEBUG)")]
         public static void showWindow() {
             GetWindow<BulkParseWindow>("SWF Bulk Parser");
         }

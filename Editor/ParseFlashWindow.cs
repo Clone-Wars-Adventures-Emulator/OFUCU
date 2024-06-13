@@ -18,7 +18,7 @@ namespace CWAEmu.OFUCU {
         private SerializedObject so;
         private bool placeDict = true;
 
-        [MenuItem("Flash Tools/Parse Flash %#&F")]
+        [MenuItem("OFUCU/Parse Flash %#&F")]
         public static void showWindow() {
             GetWindow<ParseFlashWindow>("SWF Parser");
         }
