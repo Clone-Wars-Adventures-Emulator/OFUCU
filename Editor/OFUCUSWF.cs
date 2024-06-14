@@ -309,9 +309,15 @@ namespace CWAEmu.OFUCU {
                 }
             }
 
+            // object creation vars
             DisplayList dl = new(frames);
             AnimatedThingList<AnimatedFrameObject> objs = new();
             Dictionary<int, (int start, int end, RectTransform rt, string path)> masks = new();
+
+            // depth fixing vars
+            Dictionary<int, List<GameObject>> sortableObjectByDepth = new();
+            List<int> sortableObjectDepths = new();
+
             // for each frame
             foreach (var f in dl.frames) {
                 // check objects removed and set them
@@ -342,6 +348,7 @@ namespace CWAEmu.OFUCU {
                     go.SetActive(false);
                     string objPath = go.name;
 
+                    // if this object is a mask
                     if (f.states.TryGetValue(depth, out var o) && o.hasClipDepth) {
                         string path = go.name;
                         GameObject target = go;
@@ -361,7 +368,10 @@ namespace CWAEmu.OFUCU {
                         mask.showMaskGraphic = false;
                     }
 
+                    // check to see if this object is getting masked
+                    int maskedByCount = 0;
                     foreach (var (start, end, rt, path) in masks.Values) {
+                        // TODO: it is unknown how this will work with 2 masks at once, I dont think Flash supports that so this should be okay, but keep and eye on it
                         if (start < depth && end >= depth) {
                             // set the initial positions because they need to be saved
                             var (translate, scale, rotz) = objDesc.matrix.getTransformation();
@@ -371,7 +381,22 @@ namespace CWAEmu.OFUCU {
                             go.transform.SetParent(rt, true);
                             go.AddComponent<RuntimeAnchor>();
                             objPath = $"{path}/{objPath}";
+
+                            maskedByCount++;
+                            if (maskedByCount > 1) {
+                                // TODO: Log Warning here
+                            }
                         }
+                    }
+
+                    // we arent being masked, we can be sorted (TODO: sort masked children or something)
+                    if (maskedByCount == 0) {
+                        sortableObjectDepths.Add(depth);
+                        if (!sortableObjectByDepth.TryGetValue(depth, out var list)) {
+                            list = new();
+                            sortableObjectByDepth.Add(depth, list);
+                        }
+                        list.Add(go);
                     }
 
                     if (objDesc.hasBlendMode) {
@@ -385,6 +410,18 @@ namespace CWAEmu.OFUCU {
                     };
 
                     objs.addAtDepth(depth, afo);
+                }
+            }
+
+            // fix depth sorting that got borked as a result of the way we load stuff
+            var sortedDepths = sortableObjectDepths.ToArray();
+            Array.Sort(sortedDepths);
+            int siblingIndex = 0;
+
+            foreach (var depth in sortedDepths) {
+                var toSort = sortableObjectByDepth[depth];
+                foreach (var go in toSort) {
+                    go.transform.SetSiblingIndex(siblingIndex++);
                 }
             }
 
