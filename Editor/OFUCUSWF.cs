@@ -384,7 +384,7 @@ namespace CWAEmu.OFUCU {
 
                             maskedByCount++;
                             if (maskedByCount > 1) {
-                                // TODO: Log Warning here
+                                Debug.LogWarning($"{go.name} is masked by {maskedByCount} masks, this isnt really supported");
                             }
                         }
                     }
@@ -563,9 +563,20 @@ namespace CWAEmu.OFUCU {
                     continue;
                 }
 
-                if (!sprites.TryGetValue(id, out var sprite) || !(sprite.Filled || sprite.HasPrefab)) {
-                    return id;
+                if (sprites.TryGetValue(id, out var sprite) && (sprite.Filled || sprite.HasPrefab)) {
+                    continue;
                 }
+
+                // the dictionary may not be loaded, so check the files for prefabs
+                if (File.Exists($"{prefabDir}/Sprite.{id}.prefab")) {
+                    continue;
+                }
+
+                if (File.Exists($"{prefabDir}/EditText.{id}.prefab")) {
+                    continue;
+                }
+
+                return id;
             }
 
             return 0;
