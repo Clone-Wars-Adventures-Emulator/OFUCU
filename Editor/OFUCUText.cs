@@ -137,22 +137,6 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        private void OnDrawGizmos() {
-            Vector3 pos = transform.position;
-
-            if (text?.Bounds != null) {
-                Vector3 topLeft = pos + new Vector3(text.Bounds.X, text.Bounds.Y, 0);
-                Vector3 topRight = topLeft + new Vector3(text.Bounds.Width, 0, 0);
-                Vector3 bottomLeft = topLeft + new Vector3(0, text.Bounds.Height, 0);
-                Vector3 bottomRight = topLeft + new Vector3(text.Bounds.Width, text.Bounds.Height, 0);
-                Gizmos.color = Color.magenta;
-                Gizmos.DrawSphere(topLeft, 10);
-                Gizmos.DrawSphere(topRight, 10);
-                Gizmos.DrawSphere(bottomLeft, 10);
-                Gizmos.DrawSphere(bottomRight, 10);
-            }
-        }
-
         public override void setBlendMode(EnumFlashBlendMode blendMode, string saveFolder, string path) {
             Debug.LogError("Unimplemented");
         }
