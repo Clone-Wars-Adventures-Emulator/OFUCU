@@ -45,7 +45,6 @@ namespace CWAEmu.OFUCU {
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
             EditorGUILayout.PropertyField(so.FindProperty("swfPath"), new GUIContent(""));
-            // swfPath = EditorGUILayout.TextField(swfPath);
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
@@ -57,7 +56,7 @@ namespace CWAEmu.OFUCU {
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
-            unityRoot = EditorGUILayout.TextField(unityRoot);
+            EditorGUILayout.PropertyField(so.FindProperty("unityRoot"), new GUIContent(""));
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
