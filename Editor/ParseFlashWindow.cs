@@ -16,6 +16,7 @@ namespace CWAEmu.OFUCU {
         [SerializeField]
         private List<FontMapping> fonts;
         private SerializedObject so;
+        private SerializedObject So => so ??= new(this);
         private bool placeDict = true;
 
         [MenuItem("OFUCU/Parse Flash %#&F")]
@@ -28,7 +29,6 @@ namespace CWAEmu.OFUCU {
             p.width = 600 / EditorGUIUtility.pixelsPerPoint;
             p.height = 600 / EditorGUIUtility.pixelsPerPoint;
             position = p;
-            so = new(this);
         }
 
         private void OnGUI() {
@@ -44,7 +44,7 @@ namespace CWAEmu.OFUCU {
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
-            EditorGUILayout.PropertyField(so.FindProperty("swfPath"), new GUIContent(""));
+            EditorGUILayout.PropertyField(So.FindProperty("swfPath"), new GUIContent(""));
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
@@ -56,13 +56,13 @@ namespace CWAEmu.OFUCU {
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
-            EditorGUILayout.PropertyField(so.FindProperty("unityRoot"), new GUIContent(""));
+            EditorGUILayout.PropertyField(So.FindProperty("unityRoot"), new GUIContent(""));
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
-            EditorGUILayout.PropertyField(so.FindProperty("fonts"), new GUIContent("Font mapping"));
+            EditorGUILayout.PropertyField(So.FindProperty("fonts"), new GUIContent("Font mapping"));
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
