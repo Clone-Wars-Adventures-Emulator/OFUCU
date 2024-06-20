@@ -24,11 +24,12 @@ namespace CWAEmu.OFUCU.Flash {
 
             foreach (var tag in Tags) {
                 if (tag is PlaceObject2 po2) {
+                    DisplayObject state;
                     if (previous != null && previous.states.TryGetValue(po2.Depth, out var prev)) {
                         // we got a previous state object from the dictionary, clone it so we dont corrupt it
-                        prev = DisplayObject.Clone(prev);
+                        state = DisplayObject.Clone(prev);
                     } else {
-                        prev = new();
+                        state = new();
                     }
                     DisplayObject delt = new();
 
@@ -43,47 +44,47 @@ namespace CWAEmu.OFUCU.Flash {
                         df.objectsAdded.Add(po2.Depth);
                         df.objectsRemoved.Add(po2.Depth);
                         // force prev to be new obj
-                        prev = new();
+                        state = new();
                     }
 
-                    prev.depth = delt.depth = po2.Depth;
+                    state.depth = delt.depth = po2.Depth;
 
                     if (po2.HasCharacter) {
-                        prev.charId = delt.charId = po2.CharacterId;
-                        prev.hasCharId = delt.hasCharId = true;
+                        state.charId = delt.charId = po2.CharacterId;
+                        state.hasCharId = delt.hasCharId = true;
                     }
 
                     if (po2.HasMatrix) {
-                        prev.matrix = delt.matrix = Matrix2x3.FromFlash(po2.Matrix);
-                        prev.hasMatrixChange = delt.hasMatrixChange = true;
+                        state.matrix = delt.matrix = Matrix2x3.FromFlash(po2.Matrix);
+                        state.hasMatrixChange = delt.hasMatrixChange = true;
                     } else {
-                        // TODO: does this work the way you expected?
-                        prev.matrix = new();
+                        // only assign a new matrix if the old one was null
+                        state.matrix ??= new();
                     }
 
                     if (po2.HasColorTransform) {
-                        prev.color = delt.color = ColorTransform.FromFlash(po2.ColorTransform);
-                        prev.hasColor = delt.hasColor = true;
+                        state.color = delt.color = ColorTransform.FromFlash(po2.ColorTransform);
+                        state.hasColor = delt.hasColor = true;
                     }
 
                     if (po2.HasName) {
-                        prev.name = delt.name = po2.Name;
-                        prev.hasName = delt.hasName = true;
+                        state.name = delt.name = po2.Name;
+                        state.hasName = delt.hasName = true;
                     }
 
                     if (po2.HasClipDepth) {
-                        prev.clipDepth = delt.clipDepth = po2.ClipDepth;
-                        prev.hasClipDepth = delt.hasClipDepth = true;
+                        state.clipDepth = delt.clipDepth = po2.ClipDepth;
+                        state.hasClipDepth = delt.hasClipDepth = true;
                     }
 
                     if (po2 is PlaceObject3 po3) {
                         if (po3.HasBlendMode) {
-                            prev.blendMode = delt.blendMode = po3.BlendMode;
-                            prev.hasBlendMode = delt.hasBlendMode = true;
+                            state.blendMode = delt.blendMode = po3.BlendMode;
+                            state.hasBlendMode = delt.hasBlendMode = true;
                         }
                     }
 
-                    df.states.Add(po2.Depth, prev);
+                    df.states.Add(po2.Depth, state);
                     if (isDelta) {
                         df.changes.Add(po2.Depth, delt);
                     }
