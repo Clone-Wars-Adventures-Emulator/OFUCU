@@ -1,13 +1,11 @@
 using CWAEmu.OFUCU.Flash;
 using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.OFUCU.Runtime;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Unity.VectorGraphics;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;

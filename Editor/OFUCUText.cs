@@ -39,7 +39,7 @@ namespace CWAEmu.OFUCU {
             childT.SetParent(transform, false);
             childT.pivot = new Vector2(0, 1);
 
-            childT.anchoredPosition = new Vector2(text.Bounds.X, text.Bounds.Y);
+            childT.anchoredPosition = new Vector2(text.Bounds.X, -text.Bounds.Y);
             childT.sizeDelta = new Vector2(text.Bounds.Width, text.Bounds.Height);
 
             Text t = child.GetComponent<Text>();
