@@ -21,40 +21,40 @@ namespace CWAEmu.OFUCU.Runtime {
 
         public void setMultColor(Color color) {
             selfMult = color;
-            var r = Mathf.Clamp(parentMult.r * selfMult.r, 0, 1);
-            var g = Mathf.Clamp(parentMult.g * selfMult.g, 0, 1);
-            var b = Mathf.Clamp(parentMult.b * selfMult.b, 0, 1);
-            var a = Mathf.Clamp(parentMult.a * selfMult.a, 0, 1);
+            var r = parentMult.r * selfMult.r;
+            var g = parentMult.g * selfMult.g;
+            var b = parentMult.b * selfMult.b;
+            var a = parentMult.a * selfMult.a;
             var res = new Color(r, g, b, a);
             applyMult(res);
         }
 
         public void setAddColor(Color color) {
             selfAdd = color;
-            var r = Mathf.Clamp(parentAdd.r + selfAdd.r, 0, 1);
-            var g = Mathf.Clamp(parentAdd.g + selfAdd.g, 0, 1);
-            var b = Mathf.Clamp(parentAdd.b + selfAdd.b, 0, 1);
-            var a = Mathf.Clamp(parentAdd.a + selfAdd.a, 0, 1);
+            var r = parentAdd.r + selfAdd.r;
+            var g = parentAdd.g + selfAdd.g;
+            var b = parentAdd.b + selfAdd.b;
+            var a = parentAdd.a + selfAdd.a;
             var res = new Color(r, g, b, a);
             applyAdd(res);
         }
 
         public void setParentMultColor(Color color) {
             parentMult = color;
-            var r = Mathf.Clamp(parentMult.r * selfMult.r, 0, 1);
-            var g = Mathf.Clamp(parentMult.g * selfMult.g, 0, 1);
-            var b = Mathf.Clamp(parentMult.b * selfMult.b, 0, 1);
-            var a = Mathf.Clamp(parentMult.a * selfMult.a, 0, 1);
+            var r = parentMult.r * selfMult.r;
+            var g = parentMult.g * selfMult.g;
+            var b = parentMult.b * selfMult.b;
+            var a = parentMult.a * selfMult.a;
             var res = new Color(r, g, b, a);
             applyMult(res);
         }
 
         public void setParentAddColor(Color color) {
             parentAdd = color;
-            var r = Mathf.Clamp(parentAdd.r + selfAdd.r, 0, 1);
-            var g = Mathf.Clamp(parentAdd.g + selfAdd.g, 0, 1);
-            var b = Mathf.Clamp(parentAdd.b + selfAdd.b, 0, 1);
-            var a = Mathf.Clamp(parentAdd.a + selfAdd.a, 0, 1);
+            var r = parentAdd.r + selfAdd.r;
+            var g = parentAdd.g + selfAdd.g;
+            var b = parentAdd.b + selfAdd.b;
+            var a = parentAdd.a + selfAdd.a;
             var res = new Color(r, g, b, a);
             applyAdd(res);
         }
