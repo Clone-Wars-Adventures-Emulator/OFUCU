@@ -44,7 +44,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
 
             // This is also called JpegDataLen
             uint alphaDataOffset = reader.readUInt32();
-            uint remaingData = (uint)(Header.TagLength - alphaDataOffset - 6);
+            uint remaingData = (uint) (Header.TagLength - alphaDataOffset - 6);
 
             Image = JPEG3Image.readJpeg3(reader, alphaDataOffset, remaingData);
         }

@@ -14,9 +14,9 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public int YMaxTwips { get; private set; }
 
         public static Rect readRect(Reader reader) {
-            Rect rect = new();
-
-            rect.nBits = (int) reader.readUBits(5);
+            Rect rect = new() {
+                nBits = (int) reader.readUBits(5)
+            };
             rect.XMinTwips = reader.readBits(rect.nBits);
             rect.XMaxTwips = reader.readBits(rect.nBits);
             rect.YMinTwips = reader.readBits(rect.nBits);

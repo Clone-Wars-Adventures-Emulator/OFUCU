@@ -14,12 +14,12 @@ namespace CWAEmu.OFUCU.Flash.Records {
         private uint curNumLineBits;
 
         public static ShapeWithStyle readShapeWithStyle(Reader reader, int shapeTagType) {
-            ShapeWithStyle style = new();
-
-            style.FillStyles = FillStyleArray.readFillStyleArray(reader, shapeTagType);
-            style.LineStyles = LineStyleArray.readLineStyleArray(reader, shapeTagType);
-            style.NumFillBits = reader.readUBits(4);
-            style.NumLineBits = reader.readUBits(4);
+            ShapeWithStyle style = new() {
+                FillStyles = FillStyleArray.readFillStyleArray(reader, shapeTagType),
+                LineStyles = LineStyleArray.readLineStyleArray(reader, shapeTagType),
+                NumFillBits = reader.readUBits(4),
+                NumLineBits = reader.readUBits(4)
+            };
 
             style.curFillStyle = style.FillStyles;
             style.curLineStyle = style.LineStyles;
@@ -44,12 +44,13 @@ namespace CWAEmu.OFUCU.Flash.Records {
                         break;
                     }
 
-                    StyleChangeRecord scr = new();
-                    scr.StateNewStyles = stateNewStyles;
-                    scr.StateLineStyle = stateLineStyle;
-                    scr.StateFillStyle1 = stateFillStyle1;
-                    scr.StateFillStyle0 = stateFillStyle0;
-                    scr.StateMoveTo = stateMoveTo;
+                    StyleChangeRecord scr = new() {
+                        StateNewStyles = stateNewStyles,
+                        StateLineStyle = stateLineStyle,
+                        StateFillStyle1 = stateFillStyle1,
+                        StateFillStyle0 = stateFillStyle0,
+                        StateMoveTo = stateMoveTo
+                    };
 
                     if (stateMoveTo) {
                         scr.MoveBits = reader.readUBits(5);
@@ -86,9 +87,10 @@ namespace CWAEmu.OFUCU.Flash.Records {
                     bool straightFlag = reader.readBitFlag();
 
                     if (straightFlag) {
-                        StraightEdgeRecord ser = new();
-                        ser.NumBits = reader.readUBits(4);
-                        ser.GeneralLineFlag = reader.readBitFlag();
+                        StraightEdgeRecord ser = new() {
+                            NumBits = reader.readUBits(4),
+                            GeneralLineFlag = reader.readBitFlag()
+                        };
 
                         if (!ser.GeneralLineFlag) {
                             ser.VertLineFlag = reader.readBitFlag();
@@ -211,7 +213,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
 
         public static FillStyle readFillStyle(Reader reader, int shapeTagType) {
             FillStyle fs = new() {
-                Type = (EnumFillStyleType)reader.readByte()
+                Type = (EnumFillStyleType) reader.readByte()
             };
 
             if (fs.Type == EnumFillStyleType.Solid) {
@@ -270,10 +272,10 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public Color Color { get; protected set; }
 
         public static LineStyle readLineStyle(Reader reader, int shapeTagType) {
-            LineStyle lineStyle = new();
+            LineStyle lineStyle = new() {
+                Width = reader.readUInt16()
+            };
 
-            lineStyle.Width = reader.readUInt16();
-                
             if (shapeTagType == 3) {
                 lineStyle.Color = Color.readRGBA(reader);
             } else {
@@ -300,8 +302,8 @@ namespace CWAEmu.OFUCU.Flash.Records {
             LineStyle2 lineStyle = new();
 
             lineStyle.Width = reader.readUInt16();
-            lineStyle.StartCapStyle = (byte)reader.readUBits(2);
-            lineStyle.JoinStyle = (byte)reader.readUBits(2);
+            lineStyle.StartCapStyle = (byte) reader.readUBits(2);
+            lineStyle.JoinStyle = (byte) reader.readUBits(2);
             lineStyle.HasFillFlag = reader.readBitFlag();
             lineStyle.NoHScaleFlag = reader.readBitFlag();
             lineStyle.NoVScaleFlag = reader.readBitFlag();
@@ -309,12 +311,12 @@ namespace CWAEmu.OFUCU.Flash.Records {
             // reserved
             reader.readUBits(5);
             lineStyle.NoClose = reader.readBitFlag();
-            lineStyle.EndCapStyle = (byte)reader.readUBits(2);
+            lineStyle.EndCapStyle = (byte) reader.readUBits(2);
 
             if (lineStyle.JoinStyle == 2) {
                 lineStyle.MiterLimitFactor = reader.readUInt16();
             }
-                
+
             if (!lineStyle.HasFillFlag) {
                 lineStyle.Color = Color.readRGBA(reader);
             } else {

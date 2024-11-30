@@ -29,7 +29,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
         public override void read(Reader reader) {
             CharacterId = reader.readUInt16();
 
-            Reserved = (byte)reader.readUBits(7);
+            Reserved = (byte) reader.readUBits(7);
 
             TrackAsMenu = reader.readBitFlag();
 

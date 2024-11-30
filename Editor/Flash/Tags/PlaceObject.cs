@@ -157,7 +157,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
             }
 
             if (HasBlendMode) {
-                BlendMode = (EnumFlashBlendMode)reader.readByte();
+                BlendMode = (EnumFlashBlendMode) reader.readByte();
             }
 
             if (HasCacheAsBitmap) {

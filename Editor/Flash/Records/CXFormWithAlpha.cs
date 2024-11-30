@@ -15,11 +15,11 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public bool HasMult { get; private set; }
 
         public static CXFormWithAlpha readCXForm(Reader reader) {
-            CXFormWithAlpha cxform = new();
-
-            cxform.HasAdd = reader.readBitFlag();
-            cxform.HasMult = reader.readBitFlag();
-            cxform.nBits = reader.readUBits(4);
+            CXFormWithAlpha cxform = new() {
+                HasAdd = reader.readBitFlag(),
+                HasMult = reader.readBitFlag(),
+                nBits = reader.readUBits(4)
+            };
 
             if (cxform.HasMult) {
                 cxform.RMult = (short)reader.readBits(cxform.nBits);

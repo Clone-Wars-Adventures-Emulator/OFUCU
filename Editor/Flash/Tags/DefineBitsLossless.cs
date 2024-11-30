@@ -15,7 +15,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
 
             BitmapWidth = reader.readUInt16();
             BitmapHeight = reader.readUInt16();
-            
+
             if (reader.SkipImageData) {
                 // skip (taglength - 7) bytes, as 7 bytes were already read from the tag.
                 reader.readBytes(Header.TagLength - 7);

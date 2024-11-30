@@ -157,7 +157,7 @@ namespace CWAEmu.OFUCU {
         public GameObject getCopy() {
             if (prefabAssetPath != null) {
                 GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>(prefabAssetPath);
-                GameObject rgo = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
+                GameObject rgo = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
 
                 return rgo;
             }

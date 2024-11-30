@@ -13,9 +13,10 @@ namespace CWAEmu.OFUCU.Flash.Records {
         [SerializeField] private int height;
 
         public static FlashImage createBlankImage(int width, int height) {
-            FlashImage fi = new();
-            fi.Width = width;
-            fi.Height = height;
+            FlashImage fi = new() {
+                Width = width,
+                Height = height
+            };
 
             return fi;
         }
@@ -30,9 +31,10 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public int[,] ImgData { get; private set; }
 
         public static ColorMapData readColorMapData(Reader reader, int colorTableSize, int losslessType, int width, int height, int widthPadding) {
-            ColorMapData cmd = new();
-            cmd.Width = width;
-            cmd.Height = height;
+            ColorMapData cmd = new() {
+                Width = width,
+                Height = height
+            };
 
             Func<Reader, Color> generator = Color.readRGBA;
             if (losslessType == 1) {
@@ -67,9 +69,10 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public Color[,] ImgData { get; private set; }
 
         public static BitMapData readBitMapData(Reader reader, int losslessType, int bitmapFormat, int width, int height, int widthPadding) {
-            BitMapData bmd = new();
-            bmd.Width = width;
-            bmd.Height = height;
+            BitMapData bmd = new() {
+                Width = width,
+                Height = height
+            };
 
             Func<Reader, Color> generator = Color.readARGB;
             if (losslessType == 1) {

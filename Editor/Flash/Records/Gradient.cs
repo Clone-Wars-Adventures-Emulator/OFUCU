@@ -9,9 +9,9 @@ namespace CWAEmu.OFUCU.Flash.Records {
 
         public static Gradient readGradient(Reader reader, int shapeTagType) {
             Gradient grad = new() {
-                SpreadMode = (byte)reader.readBits(2),
-                InterpolationMode = (byte)reader.readBits(2),
-                NumGradients = (byte)reader.readUBits(4)
+                SpreadMode = (byte) reader.readBits(2),
+                InterpolationMode = (byte) reader.readBits(2),
+                NumGradients = (byte) reader.readUBits(4)
             };
 
             reader.endBitRead();
@@ -33,9 +33,9 @@ namespace CWAEmu.OFUCU.Flash.Records {
 
         public static FocalGradient readGradient(Reader reader, int shapeTagType) {
             FocalGradient grad = new() {
-                SpreadMode = (byte)reader.readBits(2),
-                InterpolationMode = (byte)reader.readBits(2),
-                NumGradients = (byte)reader.readUBits(4)
+                SpreadMode = (byte) reader.readBits(2),
+                InterpolationMode = (byte) reader.readBits(2),
+                NumGradients = (byte) reader.readUBits(4)
             };
 
             reader.endBitRead();

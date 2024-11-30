@@ -17,23 +17,23 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte BlendMode { get; private set; }
 
         public static ButtonRecord ReadButtonRecord(Reader reader, byte firstByte, int buttonType) {
-            ButtonRecord br = new();
+            ButtonRecord br = new() {
+                Reserved = (byte) ((firstByte & 0b1100_0000) >> 6),
+                HasBlendMode = (firstByte & 0b0010_0000) == 0b0010_0000,
+                HasFilterList = (firstByte & 0b0001_0000) == 0b0001_0000,
+                StateHitTest = (firstByte & 0b0000_1000) == 0b0000_1000,
+                StateDown = (firstByte & 0b0000_0100) == 0b0000_0100,
+                StateOver = (firstByte & 0b0000_0010) == 0b0000_0010,
+                StateUp = (firstByte & 0b0000_0001) == 0b0000_0001,
 
-            br.Reserved = (byte)((firstByte & 0b1100_0000) >> 6);
-            br.HasBlendMode = (firstByte & 0b0010_0000) == 0b0010_0000;
-            br.HasFilterList = (firstByte & 0b0001_0000) == 0b0001_0000;
-            br.StateHitTest = (firstByte & 0b0000_1000) == 0b0000_1000;
-            br.StateDown = (firstByte & 0b0000_0100) == 0b0000_0100;
-            br.StateOver = (firstByte & 0b0000_0010) == 0b0000_0010;
-            br.StateUp = (firstByte & 0b0000_0001) == 0b0000_0001;
-
-            br.CharacterId = reader.readUInt16();
-            br.PlaceDepth = reader.readUInt16();
-            br.Matrix = Matrix.readMatrix(reader);
+                CharacterId = reader.readUInt16(),
+                PlaceDepth = reader.readUInt16(),
+                Matrix = Matrix.readMatrix(reader)
+            };
 
             if (buttonType == 2) {
                 br.ColorTransform = CXFormWithAlpha.readCXForm(reader);
-            
+
                 if (br.HasFilterList) {
                     br.FilterList = FilterList.readFilterList(reader);
                 }
@@ -62,20 +62,20 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public List<ActionRecord> Actions { get; private set; } = new();
 
         public static ButtonCondAction readButtonCondAction(Reader reader, ushort condActionSize) {
-            ButtonCondAction bca = new();
-
-            bca.CondActionSize = condActionSize;
-            bca.IdleToOverDown = reader.readBitFlag();
-            bca.OutDownToIdle = reader.readBitFlag();
-            bca.OutDownToOverDown = reader.readBitFlag();
-            bca.OverDownToOutDown = reader.readBitFlag();
-            bca.OverDownToOverUp = reader.readBitFlag();
-            bca.OverUpToOverDown = reader.readBitFlag();
-            bca.OverUpToIdle = reader.readBitFlag();
-            bca.IdleToOverUp = reader.readBitFlag();
-            bca.KeyPress = (byte)reader.readUBits(7);
-            bca.OverDownToIdle = reader.readBitFlag();
-            bca.Actions = ActionRecord.readActionRecordList(reader);
+            ButtonCondAction bca = new() {
+                CondActionSize = condActionSize,
+                IdleToOverDown = reader.readBitFlag(),
+                OutDownToIdle = reader.readBitFlag(),
+                OutDownToOverDown = reader.readBitFlag(),
+                OverDownToOutDown = reader.readBitFlag(),
+                OverDownToOverUp = reader.readBitFlag(),
+                OverUpToOverDown = reader.readBitFlag(),
+                OverUpToIdle = reader.readBitFlag(),
+                IdleToOverUp = reader.readBitFlag(),
+                KeyPress = (byte) reader.readUBits(7),
+                OverDownToIdle = reader.readBitFlag(),
+                Actions = ActionRecord.readActionRecordList(reader)
+            };
 
             return bca;
         }

@@ -119,7 +119,7 @@ namespace CWAEmu.OFUCU {
                 GameObject go;
                 if (File.Exists($"{prefabDir}/{name}.prefab")) {
                     GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/{name}.prefab");
-                    go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
+                    go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 } else {
                     go = new(name, typeof(OFUCUSprite));
                 }
@@ -137,7 +137,7 @@ namespace CWAEmu.OFUCU {
                 GameObject go;
                 if (File.Exists($"")) {
                     GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/{name}.prefab");
-                    go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
+                    go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 } else {
                     go = new(name, typeof(OFUCUText));
                 }
@@ -168,7 +168,7 @@ namespace CWAEmu.OFUCU {
                 RectTransform frameRt = root;
                 if (dl.frames.Length > 1) {
                     GameObject frameGo = new(name, typeof(RectTransform));
-                    frameRt = (RectTransform)frameGo.transform;
+                    frameRt = (RectTransform) frameGo.transform;
                     frameRt.SetParent(root, false);
                 }
 
@@ -193,7 +193,7 @@ namespace CWAEmu.OFUCU {
                     ro.initReferences();
 
                     // handle all the funnies
-                    RectTransform goRt = (RectTransform)go.transform;
+                    RectTransform goRt = (RectTransform) go.transform;
                     goRt.SetParent(maskTrans ?? frameRt, false);
 
                     if (anchorTopLeft) {
@@ -593,7 +593,7 @@ namespace CWAEmu.OFUCU {
 
             if (aoo == null && File.Exists($"{prefabDir}/Sprite.{obj.charId}.prefab")) {
                 GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/Sprite.{obj.charId}.prefab");
-                go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
+                go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
                 Debug.Log($"Found {obj.charId} as sprite prefab");
@@ -608,7 +608,7 @@ namespace CWAEmu.OFUCU {
 
             if (aoo == null && File.Exists($"{prefabDir}/EditText.{obj.charId}.prefab")) {
                 GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/EditText.{obj.charId}.prefab");
-                go = (GameObject)PrefabUtility.InstantiatePrefab(pgo);
+                go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
                 Debug.Log($"Found {obj.charId} as text prefab");
@@ -623,7 +623,7 @@ namespace CWAEmu.OFUCU {
                         Debug.LogError($"Failed to find svg file {obj.charId}");
                     }
                 } else {
-                    go = (GameObject)PrefabUtility.InstantiatePrefab(prefabGo, parent);
+                    go = (GameObject) PrefabUtility.InstantiatePrefab(prefabGo, parent);
                     aoo = go.AddComponent<OFUCUShape>();
                 }
             }
@@ -670,7 +670,7 @@ namespace CWAEmu.OFUCU {
                     objs.Add(pair.Key, list);
 
                     foreach (var v in pair.Value) {
-                        var t = (T)Activator.CreateInstance(typeof(T));
+                        var t = (T) Activator.CreateInstance(typeof(T));
                         t.Start = v.Start;
                         t.End = v.End;
                         t.Path = v.Path;
@@ -759,22 +759,22 @@ namespace CWAEmu.OFUCU {
             private bool animatedMultLast = false;
             private bool animatedAddLast = false;
 
-            private List<Keyframe> enabled = new();
-            private List<Keyframe> xpos = new();
-            private List<Keyframe> ypos = new();
-            private List<Keyframe> xscale = new();
-            private List<Keyframe> yscale = new();
-            private List<Keyframe> zrot = new();
-            private List<Keyframe> hasm = new();
-            private List<Keyframe> hasa = new();
-            private List<Keyframe> mr = new();
-            private List<Keyframe> mg = new();
-            private List<Keyframe> mb = new();
-            private List<Keyframe> ma = new();
-            private List<Keyframe> ar = new();
-            private List<Keyframe> ag = new();
-            private List<Keyframe> ab = new();
-            private List<Keyframe> aa = new();
+            private readonly List<Keyframe> enabled = new();
+            private readonly List<Keyframe> xpos = new();
+            private readonly List<Keyframe> ypos = new();
+            private readonly List<Keyframe> xscale = new();
+            private readonly List<Keyframe> yscale = new();
+            private readonly List<Keyframe> zrot = new();
+            private readonly List<Keyframe> hasm = new();
+            private readonly List<Keyframe> hasa = new();
+            private readonly List<Keyframe> mr = new();
+            private readonly List<Keyframe> mg = new();
+            private readonly List<Keyframe> mb = new();
+            private readonly List<Keyframe> ma = new();
+            private readonly List<Keyframe> ar = new();
+            private readonly List<Keyframe> ag = new();
+            private readonly List<Keyframe> ab = new();
+            private readonly List<Keyframe> aa = new();
 
             public void animateMatrix(int frame, float frameRate, Matrix2x3 matrix) {
                 var (t, s, r) = matrix.getTransformation();
@@ -907,7 +907,7 @@ namespace CWAEmu.OFUCU {
                 // TODO: check if there is already a KF for this frame? (would this be needed now that i fixed the timing?)
 
                 var last = kfs[^1];
-                int lastFrameIdx = (int)Math.Round(last.time * frameRate) + 1;
+                int lastFrameIdx = (int) Math.Round(last.time * frameRate) + 1;
 
                 // check for the gap that we need to fil
                 if (lastFrameIdx != frame - 1) {

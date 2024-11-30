@@ -1,5 +1,4 @@
 using CWAEmu.OFUCU.Flash.Records;
-using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -73,15 +72,15 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                     }
 
                     if (scr.StateFillStyle0) {
-                        fill0Idx = (int)scr.FillStyle0 - 1;
+                        fill0Idx = (int) scr.FillStyle0 - 1;
                     }
 
                     if (scr.StateFillStyle1) {
-                        fill1Idx = (int)scr.FillStyle1 - 1;
+                        fill1Idx = (int) scr.FillStyle1 - 1;
                     }
 
                     if (scr.StateLineStyle) {
-                        lineIdx = (int)scr.LineStyle - 1;
+                        lineIdx = (int) scr.LineStyle - 1;
                     }
                 }
 
@@ -171,7 +170,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                     return;
                 }
 
-                byte fillTypeAsByte = ((byte)singleStyle.Type);
+                byte fillTypeAsByte = ((byte) singleStyle.Type);
                 if ((fillTypeAsByte & 0x10) == 0x10) {
                     // TODO: what all properties will i need for this??
                     Debug.LogWarning("Gradient fill. Unknown how to properly handle.");

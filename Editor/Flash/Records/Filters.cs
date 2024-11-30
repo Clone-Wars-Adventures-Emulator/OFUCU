@@ -72,19 +72,19 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte Passes { get; private set; }
 
         public static DropShadowFitler readFilter(Reader reader) {
-            DropShadowFitler dsf = new();
+            DropShadowFitler dsf = new() {
+                DropShadowColor = Color.readRGBA(reader),
+                BlurX = reader.readFixed16(),
+                BlurY = reader.readFixed16(),
+                Angle = reader.readFixed16(),
+                Distance = reader.readFixed16(),
+                Strength = reader.readFixed8(),
 
-            dsf.DropShadowColor = Color.readRGBA(reader);
-            dsf.BlurX = reader.readFixed16();
-            dsf.BlurY = reader.readFixed16();
-            dsf.Angle = reader.readFixed16();
-            dsf.Distance = reader.readFixed16();
-            dsf.Strength = reader.readFixed8();
-
-            dsf.InnerShadow = reader.readBitFlag();
-            dsf.Knockout = reader.readBitFlag();
-            dsf.CompositeSource = reader.readBitFlag();
-            dsf.Passes = (byte)reader.readUBits(5);
+                InnerShadow = reader.readBitFlag(),
+                Knockout = reader.readBitFlag(),
+                CompositeSource = reader.readBitFlag(),
+                Passes = (byte) reader.readUBits(5)
+            };
 
             return dsf;
         }
@@ -96,12 +96,12 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte Passes { get; private set; }
 
         public static BlurFilter readFilter(Reader reader) {
-            BlurFilter bf = new();
+            BlurFilter bf = new() {
+                BlurX = reader.readFixed16(),
+                BlurY = reader.readFixed16(),
 
-            bf.BlurX = reader.readFixed16();
-            bf.BlurY = reader.readFixed16();
-
-            bf.Passes = (byte)reader.readUBits(5);
+                Passes = (byte) reader.readUBits(5)
+            };
 
             // reserved
             reader.readUBits(3);
@@ -121,17 +121,17 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte Passes { get; private set; }
 
         public static GlowFilter readFilter(Reader reader) {
-            GlowFilter gf = new();
+            GlowFilter gf = new() {
+                GlowColor = Color.readRGBA(reader),
+                BlurX = reader.readFixed16(),
+                BlurY = reader.readFixed16(),
+                Strength = reader.readFixed8(),
 
-            gf.GlowColor = Color.readRGBA(reader);
-            gf.BlurX = reader.readFixed16();
-            gf.BlurY = reader.readFixed16();
-            gf.Strength = reader.readFixed8();
-
-            gf.InnerGlow = reader.readBitFlag();
-            gf.Knockout = reader.readBitFlag();
-            gf.CompositeSource = reader.readBitFlag();
-            gf.Passes = (byte)reader.readUBits(5);
+                InnerGlow = reader.readBitFlag(),
+                Knockout = reader.readBitFlag(),
+                CompositeSource = reader.readBitFlag(),
+                Passes = (byte) reader.readUBits(5)
+            };
 
             return gf;
         }
@@ -152,21 +152,21 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte Passes { get; private set; }
 
         public static BevelFilter readFilter(Reader reader) {
-            BevelFilter bf = new();
+            BevelFilter bf = new() {
+                ShadowColor = Color.readRGBA(reader),
+                HighlightColor = Color.readRGBA(reader),
+                BlurX = reader.readFixed16(),
+                BlurY = reader.readFixed16(),
+                Angle = reader.readFixed16(),
+                Distance = reader.readFixed16(),
+                Strength = reader.readFixed8(),
 
-            bf.ShadowColor = Color.readRGBA(reader);
-            bf.HighlightColor = Color.readRGBA(reader);
-            bf.BlurX = reader.readFixed16();
-            bf.BlurY = reader.readFixed16();
-            bf.Angle = reader.readFixed16();
-            bf.Distance = reader.readFixed16();
-            bf.Strength = reader.readFixed8();
-
-            bf.InnerShadow = reader.readBitFlag();
-            bf.Knockout = reader.readBitFlag();
-            bf.CompositeSource = reader.readBitFlag();
-            bf.OnTop = reader.readBitFlag();
-            bf.Passes = (byte)reader.readUBits(4);
+                InnerShadow = reader.readBitFlag(),
+                Knockout = reader.readBitFlag(),
+                CompositeSource = reader.readBitFlag(),
+                OnTop = reader.readBitFlag(),
+                Passes = (byte) reader.readUBits(4)
+            };
 
             return bf;
         }
@@ -188,9 +188,9 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte Passes { get; private set; }
 
         public static GradientGlowFilter readFilter(Reader reader) {
-            GradientGlowFilter ggf = new();
-
-            ggf.NumColors = reader.readByte();
+            GradientGlowFilter ggf = new() {
+                NumColors = reader.readByte()
+            };
             ggf.GradientColors = new Color[ggf.NumColors];
             ggf.GradientRatio = new byte[ggf.NumColors];
 
@@ -212,7 +212,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
             ggf.Knockout = reader.readBitFlag();
             ggf.CompositeSource = reader.readBitFlag();
             ggf.OnTop = reader.readBitFlag();
-            ggf.Passes = (byte)reader.readUBits(4);
+            ggf.Passes = (byte) reader.readUBits(4);
 
             return ggf;
         }
@@ -229,15 +229,15 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public bool PreserveAlpha { get; private set; }
 
         public static ConvolutionFilter readFilter(Reader reader) {
-            ConvolutionFilter cf = new();
-
-            cf.MatrixX = reader.readByte();
-            cf.MatrixY = reader.readByte();
-            cf.Divisor = reader.readSingle();
-            cf.Bias = reader.readSingle();
+            ConvolutionFilter cf = new() {
+                MatrixX = reader.readByte(),
+                MatrixY = reader.readByte(),
+                Divisor = reader.readSingle(),
+                Bias = reader.readSingle()
+            };
 
             cf.Matrix = new float[cf.MatrixX * cf.MatrixY];
-            for (int i  = 0; i < cf.Matrix.Length; i++) {
+            for (int i = 0; i < cf.Matrix.Length; i++) {
                 cf.Matrix[i] = reader.readSingle();
             }
 
@@ -282,9 +282,9 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte Passes { get; private set; }
 
         public static GradientBevelFilter readFilter(Reader reader) {
-            GradientBevelFilter gbf = new();
-
-            gbf.NumColors = reader.readByte();
+            GradientBevelFilter gbf = new() {
+                NumColors = reader.readByte()
+            };
             gbf.GradientColors = new Color[gbf.NumColors];
             gbf.GradientRatio = new byte[gbf.NumColors];
 
@@ -306,7 +306,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
             gbf.Knockout = reader.readBitFlag();
             gbf.CompositeSource = reader.readBitFlag();
             gbf.OnTop = reader.readBitFlag();
-            gbf.Passes = (byte)reader.readUBits(4);
+            gbf.Passes = (byte) reader.readUBits(4);
 
             return gbf;
         }

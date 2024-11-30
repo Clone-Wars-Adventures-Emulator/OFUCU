@@ -6,7 +6,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public List<ClipActionRecord> Records { get; private set; } = new();
 
         public static ClipActions readClipActions(Reader reader) {
-            ClipActions ca = new ClipActions();
+            ClipActions ca = new();
 
             // reserved
             reader.readUInt16();
@@ -32,12 +32,13 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public List<ActionRecord> Actions { get; private set; } = new();
 
         public static ClipActionRecord readClipActionRecord(Reader reader, ClipEventFlags flags) {
-            ClipActionRecord car = new();
-            car.EventFlags = flags;
-            car.RecordSize = reader.readUInt32();
+            ClipActionRecord car = new() {
+                EventFlags = flags,
+                RecordSize = reader.readUInt32()
+            };
 
             uint bytesToRead = car.RecordSize;
-            
+
             if (flags.KeyPress) {
                 car.KeyCode = reader.readByte();
                 bytesToRead--;
@@ -77,39 +78,39 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte Reserved2 { get; private set; }
 
         public bool notAllZero() {
-            return KeyUp || KeyDown || MouseUp || MouseDown || MouseMove || Unload || EnterFrame || Load 
-                || DragOver || RollOut || RollOver || ReleaseOutside || Release || Press || Initialize 
+            return KeyUp || KeyDown || MouseUp || MouseDown || MouseMove || Unload || EnterFrame || Load
+                || DragOver || RollOut || RollOver || ReleaseOutside || Release || Press || Initialize
                 || Data || Reserved1 != 0 || Construct || KeyPress || DragOut || Reserved2 != 0;
         }
 
         public static ClipEventFlags readClipEventFlags(Reader reader) {
-            ClipEventFlags cef = new();
-
-            cef.KeyUp = reader.readBitFlag();
-            cef.KeyDown = reader.readBitFlag();
-            cef.MouseUp = reader.readBitFlag();
-            cef.MouseDown = reader.readBitFlag();
-            cef.MouseMove = reader.readBitFlag();
-            cef.Unload = reader.readBitFlag();
-            cef.EnterFrame = reader.readBitFlag();
-            cef.Load = reader.readBitFlag();
-            cef.DragOver = reader.readBitFlag();
-            cef.RollOut = reader.readBitFlag();
-            cef.RollOver = reader.readBitFlag();
-            cef.ReleaseOutside = reader.readBitFlag();
-            cef.Release = reader.readBitFlag();
-            cef.Press = reader.readBitFlag();
-            cef.Initialize = reader.readBitFlag();
-            cef.Data = reader.readBitFlag();
+            ClipEventFlags cef = new() {
+                KeyUp = reader.readBitFlag(),
+                KeyDown = reader.readBitFlag(),
+                MouseUp = reader.readBitFlag(),
+                MouseDown = reader.readBitFlag(),
+                MouseMove = reader.readBitFlag(),
+                Unload = reader.readBitFlag(),
+                EnterFrame = reader.readBitFlag(),
+                Load = reader.readBitFlag(),
+                DragOver = reader.readBitFlag(),
+                RollOut = reader.readBitFlag(),
+                RollOver = reader.readBitFlag(),
+                ReleaseOutside = reader.readBitFlag(),
+                Release = reader.readBitFlag(),
+                Press = reader.readBitFlag(),
+                Initialize = reader.readBitFlag(),
+                Data = reader.readBitFlag()
+            };
 
             if (reader.Version >= 6) {
-                cef.Reserved1 = (byte)reader.readUBits(5);
+                cef.Reserved1 = (byte) reader.readUBits(5);
 
                 cef.Construct = reader.readBitFlag();
                 cef.KeyPress = reader.readBitFlag();
                 cef.DragOut = reader.readBitFlag();
 
-                cef.Reserved2 = (byte)reader.readUBits(8);
+                cef.Reserved2 = (byte) reader.readUBits(8);
             }
 
             reader.endBitRead();

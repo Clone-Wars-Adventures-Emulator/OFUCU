@@ -25,19 +25,19 @@ namespace CWAEmu.OFUCU.Flash.Records {
 
             bool hasScale = reader.readBitFlag();
             if (hasScale) {
-                matrix.nScaleBits = (int)reader.readUBits(5);
+                matrix.nScaleBits = (int) reader.readUBits(5);
                 matrix.ScaleX = reader.readFixedBits(matrix.nScaleBits);
                 matrix.ScaleY = reader.readFixedBits(matrix.nScaleBits);
             }
 
             bool hasRotate = reader.readBitFlag();
             if (hasRotate) {
-                matrix.nRotateBits = (int)reader.readUBits(5);
+                matrix.nRotateBits = (int) reader.readUBits(5);
                 matrix.RotateSkew0 = reader.readFixedBits(matrix.nRotateBits);
                 matrix.RotateSkew1 = reader.readFixedBits(matrix.nRotateBits);
             }
 
-            matrix.nTranslateBits = (int)reader.readUBits(5);
+            matrix.nTranslateBits = (int) reader.readUBits(5);
             matrix.TranslateXTwips = reader.readBits(matrix.nTranslateBits);
             matrix.TranslateYTwips = reader.readBits(matrix.nTranslateBits);
 

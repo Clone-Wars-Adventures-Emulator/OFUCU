@@ -14,7 +14,7 @@ namespace CWAEmu.OFUCU.Flash {
     // G:\Programming\CWAEmu\OldCWAData\StarTyper.swf
     // G:\Programming\CWAEmu\OldCWAData\DailyTrivia.swf
     // G:\Programming\CWAEmu\OldCWAData\FleetCommander.swf
-    [System.Serializable]
+    [Serializable]
     public class SWFFile {
         public char Signature1 => sig1;
         private char sig1;
@@ -108,8 +108,9 @@ namespace CWAEmu.OFUCU.Flash {
                         break;
 
                     case 6:  // DefineBits
-                        DefineBits defBits = new();
-                        defBits.Header = header;
+                        DefineBits defBits = new() {
+                            Header = header
+                        };
                         defBits.read(reader);
 
                         CharacterTags.Add(defBits.CharacterId, defBits);
@@ -120,24 +121,27 @@ namespace CWAEmu.OFUCU.Flash {
                             Debug.LogError("There cannot be more than one JPEGTable tag in a flash file");
                             break;
                         }
-                        
-                        JPEGTable jTable = new();
-                        jTable.Header = header;
+
+                        JPEGTable jTable = new() {
+                            Header = header
+                        };
                         jTable.read(reader);
 
                         jpegTable = jTable;
                         break;
                     case 21: // DefineBitsJPEG2
-                        DefineBitsJPEG2 jpg2 = new();
-                        jpg2.Header = header;
+                        DefineBitsJPEG2 jpg2 = new() {
+                            Header = header
+                        };
                         jpg2.read(reader);
 
                         CharacterTags.Add(jpg2.CharacterId, jpg2);
                         Images.Add(jpg2.CharacterId, jpg2);
                         break;
                     case 35: // DefineBitsJPEG3
-                        DefineBitsJPEG3 jpg3 = new();
-                        jpg3.Header = header;
+                        DefineBitsJPEG3 jpg3 = new() {
+                            Header = header
+                        };
                         jpg3.read(reader);
 
                         CharacterTags.Add(jpg3.CharacterId, jpg3);
@@ -156,8 +160,9 @@ namespace CWAEmu.OFUCU.Flash {
                         break;
 
                     case 26: // PlaceObject2
-                        PlaceObject2 po2 = new();
-                        po2.Header = header;
+                        PlaceObject2 po2 = new() {
+                            Header = header
+                        };
                         po2.read(reader);
 
                         curFrame.addTag(po2);
@@ -166,29 +171,33 @@ namespace CWAEmu.OFUCU.Flash {
                     case 1:  // ShowFrame
                         Frames.Add(curFrame);
                         int nextIdx = curFrame.FrameIndex + 1;
-                        curFrame = new();
-                        curFrame.FrameIndex = nextIdx;
+                        curFrame = new() {
+                            FrameIndex = nextIdx
+                        };
                         break;
 
                     case 7: // DefineButton
-                        DefineButton db = new();
-                        db.Header = header;
+                        DefineButton db = new() {
+                            Header = header
+                        };
                         db.read(reader);
 
                         CharacterTags.Add(db.CharacterId, db);
                         break;
 
                     case 34: // DefineButton2
-                        DefineButton2 db2 = new();
-                        db2.Header = header;
+                        DefineButton2 db2 = new() {
+                            Header = header
+                        };
                         db2.read(reader);
 
                         CharacterTags.Add(db2.CharacterId, db2);
                         break;
 
                     case 37: // DefineEditText
-                        DefineEditText det = new();
-                        det.Header = header;
+                        DefineEditText det = new() {
+                            Header = header
+                        };
                         det.read(reader);
 
                         CharacterTags.Add(det.CharacterId, det);
@@ -204,8 +213,9 @@ namespace CWAEmu.OFUCU.Flash {
                         break;
 
                     case 78: // DefineScalingGrid
-                        DefineScalingGrid dsg = new();
-                        dsg.Header = header;
+                        DefineScalingGrid dsg = new() {
+                            Header = header
+                        };
                         dsg.read(reader);
 
                         ScalingGrids.Add(dsg);
@@ -252,9 +262,10 @@ namespace CWAEmu.OFUCU.Flash {
         }
 
         private void readShape(int shapeType, FlashTagHeader header, Reader reader) {
-            DefineShape ds = new();
-            ds.Header = header;
-            ds.ShapeType = shapeType;
+            DefineShape ds = new() {
+                Header = header,
+                ShapeType = shapeType
+            };
             ds.read(reader);
 
             CharacterTags.Add(ds.CharacterId, ds);
@@ -262,9 +273,10 @@ namespace CWAEmu.OFUCU.Flash {
         }
 
         private void readBitsLossless(int type, FlashTagHeader header, Reader reader) {
-            DefineBitsLossless bits = new();
-            bits.Header = header;
-            bits.BitsLosslessType = type;
+            DefineBitsLossless bits = new() {
+                Header = header,
+                BitsLosslessType = type
+            };
             bits.read(reader);
 
             CharacterTags.Add(bits.CharacterId, bits);
@@ -272,8 +284,9 @@ namespace CWAEmu.OFUCU.Flash {
         }
 
         private void readSprite(FlashTagHeader header, Reader reader) {
-            DefineSprite ds = new();
-            ds.Header = header;
+            DefineSprite ds = new() {
+                Header = header
+            };
             ds.read(reader);
 
             CharacterTags.Add(ds.CharacterId, ds);
@@ -281,9 +294,10 @@ namespace CWAEmu.OFUCU.Flash {
         }
 
         private void readText(FlashTagHeader header, Reader reader, int type) {
-            DefineText dt = new();
-            dt.Header = header;
-            dt.Type = type;
+            DefineText dt = new() {
+                Header = header,
+                Type = type
+            };
             dt.read(reader);
 
             CharacterTags.Add(dt.CharacterId, dt);
@@ -320,7 +334,7 @@ namespace CWAEmu.OFUCU.Flash {
 
             uint uncompressedLen = binReader.ReadUInt32();
             // may read less than uncompressedLen, this is okay as long as it reads all of the remaining data
-            byte[] rawBytes = binReader.ReadBytes((int)uncompressedLen);
+            byte[] rawBytes = binReader.ReadBytes((int) uncompressedLen);
             byte[] data = rawBytes;
 
             binReader.Close();
@@ -386,7 +400,7 @@ namespace CWAEmu.OFUCU.Flash {
                         return;
                     }
 
-                    byte fillTypeAsByte = ((byte)singleStyle.Type);
+                    byte fillTypeAsByte = ((byte) singleStyle.Type);
                     if ((fillTypeAsByte & 0x40) != 0x40) {
                         // ignore
                         return;
@@ -414,15 +428,15 @@ namespace CWAEmu.OFUCU.Flash {
                         }
 
                         if (scr.StateFillStyle0) {
-                            fill0Idx = (int)scr.FillStyle0 - 1;
+                            fill0Idx = (int) scr.FillStyle0 - 1;
                         }
 
                         if (scr.StateFillStyle1) {
-                            fill1Idx = (int)scr.FillStyle1 - 1;
+                            fill1Idx = (int) scr.FillStyle1 - 1;
                         }
 
                         if (scr.StateLineStyle) {
-                            lineIdx = (int)scr.LineStyle - 1;
+                            lineIdx = (int) scr.LineStyle - 1;
                         }
                     }
 

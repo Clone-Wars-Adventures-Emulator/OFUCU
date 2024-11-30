@@ -1,5 +1,3 @@
-using UnityEngine.TextCore.Text;
-
 namespace CWAEmu.OFUCU.Flash.Tags {
     public class RemoveObject : FlashTag {
         public ushort CharacterId { get; private set; }

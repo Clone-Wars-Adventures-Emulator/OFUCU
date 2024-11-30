@@ -84,7 +84,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
             }
 
             VariableName = reader.readString();
-            
+
             if (HasText) {
                 InitialText = reader.readString();
             }

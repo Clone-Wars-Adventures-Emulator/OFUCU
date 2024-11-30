@@ -6,7 +6,7 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public byte G { get; private set; }
         public byte B { get; private set; }
         public byte A { get; private set; }
-        
+
         public static Color Black => new() { R = 0, B = 0, G = 0, A = 255 };
         public static Color White => new() { R = 255, B = 255, G = 255, A = 255 };
 
@@ -58,9 +58,9 @@ namespace CWAEmu.OFUCU.Flash.Records {
         public static Color readPIX15(Reader reader) {
             reader.readBits(1);
             Color rgba = new() {
-                R = (byte)reader.readUBits(5),
-                G = (byte)reader.readUBits(5),
-                B = (byte)reader.readUBits(5),
+                R = (byte) reader.readUBits(5),
+                G = (byte) reader.readUBits(5),
+                B = (byte) reader.readUBits(5),
                 A = 255
             };
 

@@ -6,7 +6,7 @@ using System.IO;
 using System.Text;
 
 namespace CWAEmu.OFUCU.Flash {
-    public class Reader  {
+    public class Reader {
         private const float FIXED_16_CONVERT = 0x10000;
         private const float FIXED_8_CONVERT = 0x100;
 
@@ -43,12 +43,12 @@ namespace CWAEmu.OFUCU.Flash {
         public sbyte readSByte() {
             endBitRead();
 
-            return (sbyte)data[index++];
+            return (sbyte) data[index++];
         }
 
         public char readChar() {
             endBitRead();
-            return (char)data[index++];
+            return (char) data[index++];
         }
 
         public byte readUInt8() {
@@ -88,7 +88,7 @@ namespace CWAEmu.OFUCU.Flash {
 
             char[] chars = new char[count];
             for (int i = 0; i < count; i++) {
-                chars[i] = (char)data[index++];
+                chars[i] = (char) data[index++];
             }
 
             return chars;
@@ -98,14 +98,14 @@ namespace CWAEmu.OFUCU.Flash {
             byte lower = readByte();
             byte upper = readByte();
 
-            return (short)((upper << 8) | lower);
+            return (short) ((upper << 8) | lower);
         }
 
         public ushort readUInt16() {
             byte lower = readByte();
             byte upper = readByte();
 
-            return (ushort)((upper << 8) | lower);
+            return (ushort) ((upper << 8) | lower);
         }
 
         public int readInt32() {
@@ -123,7 +123,7 @@ namespace CWAEmu.OFUCU.Flash {
             byte upperLow = readByte();
             byte upperHig = readByte();
 
-            return (uint)((upperHig << 24) | (upperLow << 16) | (lowerHig << 8) | lowerLow);
+            return (uint) ((upperHig << 24) | (upperLow << 16) | (lowerHig << 8) | lowerLow);
         }
 
         public float readFixed16() {
@@ -150,7 +150,7 @@ namespace CWAEmu.OFUCU.Flash {
 
         public FlashTagHeader readFlashTagHeader() {
             ushort header = readUInt16();
-            ushort tag = (ushort)((header & 0b1111_1111_1100_0000) >> 6);
+            ushort tag = (ushort) ((header & 0b1111_1111_1100_0000) >> 6);
             int length = (header & 0b0011_1111);
 
             if (length == 0x3f) {
@@ -165,7 +165,7 @@ namespace CWAEmu.OFUCU.Flash {
             return tHeader;
         }
 
-        public uint readUBits(uint numBits) => readUBits((int)numBits);
+        public uint readUBits(uint numBits) => readUBits((int) numBits);
 
         public uint readUBits(int numBits) {
             uint result = 0;
@@ -186,7 +186,7 @@ namespace CWAEmu.OFUCU.Flash {
 
                 // read the bit
                 byte @byte = data[index];
-                uint bit = (uint)((@byte & bitMask) >> readBit);
+                uint bit = (uint) ((@byte & bitMask) >> readBit);
 
                 // add the bit to the result
                 result |= bit;
@@ -210,7 +210,7 @@ namespace CWAEmu.OFUCU.Flash {
             return result;
         }
 
-        public int readBits(uint numBits) => readBits((int)numBits);
+        public int readBits(uint numBits) => readBits((int) numBits);
 
         public int readBits(int numBits) {
             return signExtend(readUBits(numBits), numBits);
@@ -229,7 +229,7 @@ namespace CWAEmu.OFUCU.Flash {
         private int signExtend(uint source, int numBits) {
             int shiftAmount = 32 - numBits;
 
-            return ((int)(source << shiftAmount)) >> shiftAmount;
+            return ((int) (source << shiftAmount)) >> shiftAmount;
         }
 
         // consume all remaining padding bits and move the index to the next whole byte

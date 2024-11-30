@@ -95,17 +95,17 @@ namespace CWAEmu.OFUCU.Flash {
         private bool hadS;
 
         public static Matrix2x3 FromFlash(Matrix matrix) {
-            Matrix2x3 mat = new();
+            Matrix2x3 mat = new() {
+                scaleX = matrix.ScaleX,
+                scaleY = matrix.ScaleY,
+                rotateSkew0 = matrix.RotateSkew0,
+                rotateSkew1 = matrix.RotateSkew1,
+                translateX = matrix.TranslateX,
+                translateY = -matrix.TranslateY,
 
-            mat.scaleX = matrix.ScaleX;
-            mat.scaleY = matrix.ScaleY;
-            mat.rotateSkew0 = matrix.RotateSkew0;
-            mat.rotateSkew1 = matrix.RotateSkew1;
-            mat.translateX = matrix.TranslateX;
-            mat.translateY = -matrix.TranslateY;
-
-            mat.hadR = matrix.hasR();
-            mat.hadS = matrix.hasS();
+                hadR = matrix.hasR(),
+                hadS = matrix.hasS()
+            };
 
             return mat;
         }
@@ -175,7 +175,7 @@ namespace CWAEmu.OFUCU.Flash {
         public bool hasAdd;
 
         public static ColorTransform FromFlash(CXFormWithAlpha cx) {
-            var ting =  new ColorTransform {
+            var ting = new ColorTransform {
                 hasMult = cx.HasMult,
                 hasAdd = cx.HasAdd,
             };
