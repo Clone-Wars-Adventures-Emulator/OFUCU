@@ -45,7 +45,7 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
-            GameObject go = new($"SWFRoot - {file.Name}");
+            GameObject go = new($"SWFRoot-{file.Name}");
             OFUCUSWF swf = go.AddComponent<OFUCUSWF>();
             swf.unityRoot = unityRoot;
             swf.file = file;
