@@ -16,12 +16,12 @@ namespace CWAEmu.OFUCU.Flash {
         public GlyphEntry[] Glyphs { get; private set; }
 
         public static TextRecord readTextRecord(Reader reader, byte firstByte, byte glyphBits, byte advanceBits, int type) {
-            TextRecord record = new();
-
-            record.HasFont = (firstByte & 0b1000 >> 3) == 1;
-            record.HasColor = (firstByte & 0b100 >> 2) == 1;
-            record.HasYOffset = (firstByte & 0b10 >> 1) == 1;
-            record.HasXOffset = (firstByte & 0b1) == 1;
+            TextRecord record = new() {
+                HasFont =    ((firstByte & 0b1000) >> 3) == 1,
+                HasColor =   ((firstByte & 0b0100) >> 2) == 1,
+                HasYOffset = ((firstByte & 0b0010) >> 1) == 1,
+                HasXOffset =  (firstByte & 0b0001) == 1
+            };
 
             if (record.HasFont) {
                 record.FontID = reader.readUInt16();
