@@ -41,7 +41,7 @@ namespace CWAEmu.OFUCU {
 
         public static void placeNewSWFFile(SWFFile file, string unityRoot, bool placeDict, Dictionary<int, Font> fontMap) {
             if (!Directory.Exists(unityRoot)) {
-                Debug.LogError($"Input/Output {unityRoot} does not exist.");
+                Debug.LogError($"Input/Output root directory '{unityRoot}' does not exist.");
                 return;
             }
 
