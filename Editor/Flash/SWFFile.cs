@@ -9,6 +9,65 @@ using Rect = CWAEmu.OFUCU.Flash.Records.Rect;
 using CWAEmu.OFUCU.Data;
 
 namespace CWAEmu.OFUCU.Flash {
+    public enum EnumTagType {
+        // shapes
+        DefineShape = 2,
+        DefineShape2 = 22,
+        DefineShape3 = 32,
+        DefineShape4 = 83,
+
+        // jpegs
+        DefineBits = 6,
+        JPEGTables = 8,
+        DefineBitsJPEG2 = 21,
+        DefineBitsJPEG3 = 35,
+
+        // PNGs
+        DefineBitsLossless = 20,
+        DefineBitsLossless2 = 36,
+
+        // Sprites
+        DefineSprite = 39,
+
+        // Buttons
+        DefineButton = 7,
+        DefineButton2 = 34,
+
+        // Text
+        DefineEditText = 37,
+        DefineText = 11,
+        DefineText2 = 33,
+
+        // 9-Slicing
+        DefineScalingGrid = 78,
+
+        // Control
+        ShowFrame = 1,
+        PlaceObject2 = 26,
+        PlaceObject3 = 70,
+        FrameLabel = 43,
+        RemoveObject = 5,
+        RemoveObject2 = 28,
+
+        // Metadata / Unknowns
+        CSMTextSettings = 74,
+        ExportAssets = 56,
+        FileAttributes = 69,
+
+        // Unknown if care
+        ImportAssets2 = 71,
+        DefineFont3 = 75,
+        DefineFontAlignZones = 73,
+        Metadata = 77,
+        DefineFontName = 88,
+
+        // Wont care ever
+        SetBackgroundColor = 9,
+        Protect = 24, // really dont care about this one, we are intending to break these files...
+        DoAction = 12,
+        DoInitAction = 59,
+    }
+
     // G:\Programming\CWAEmu\OldCWAData\____.swf
     // G:\Programming\CWAEmu\OldCWAData\StuntGungan.swf
     // G:\Programming\CWAEmu\OldCWAData\StarTyper.swf
@@ -65,7 +124,8 @@ namespace CWAEmu.OFUCU.Flash {
         private void parseFull(Reader reader) {
             if (Version >= 8) {
                 FlashTagHeader header = reader.readFlashTagHeader();
-                if (header.TagType != FileAttributesTag.TAG_TYPE) {
+                if (header.TagType != EnumTagType.FileAttributes) {
+                    Debug.LogError($"SWF File {name} did not start with FileAttributes tag, this is unexpected. Bailing out.");
                     // error
                     return;
                 }
@@ -94,20 +154,20 @@ namespace CWAEmu.OFUCU.Flash {
 
                 switch (header.TagType) {
                     // = = = = = = = = = = Need to parse = = = = = = = = = =
-                    case 2:  // DefineShape
+                    case EnumTagType.DefineShape:
                         readShape(1, header, reader);
                         break;
-                    case 22: // DefineShape2
+                    case EnumTagType.DefineShape2:
                         readShape(2, header, reader);
                         break;
-                    case 32: // DefineShape3
+                    case EnumTagType.DefineShape3:
                         readShape(3, header, reader);
                         break;
-                    case 83: // DefineShape4
+                    case EnumTagType.DefineShape4:
                         readShape(4, header, reader);
                         break;
 
-                    case 6:  // DefineBits
+                    case EnumTagType.DefineBits:
                         DefineBits defBits = new() {
                             Header = header
                         };
@@ -116,7 +176,7 @@ namespace CWAEmu.OFUCU.Flash {
                         CharacterTags.Add(defBits.CharacterId, defBits);
                         Images.Add(defBits.CharacterId, defBits);
                         break;
-                    case 8:  // JPEGTables
+                    case EnumTagType.JPEGTables:
                         if (JPEGTable != null) {
                             Debug.LogError("There cannot be more than one JPEGTable tag in a flash file");
                             break;
@@ -129,7 +189,7 @@ namespace CWAEmu.OFUCU.Flash {
 
                         jpegTable = jTable;
                         break;
-                    case 21: // DefineBitsJPEG2
+                    case EnumTagType.DefineBitsJPEG2:
                         DefineBitsJPEG2 jpg2 = new() {
                             Header = header
                         };
@@ -138,7 +198,7 @@ namespace CWAEmu.OFUCU.Flash {
                         CharacterTags.Add(jpg2.CharacterId, jpg2);
                         Images.Add(jpg2.CharacterId, jpg2);
                         break;
-                    case 35: // DefineBitsJPEG3
+                    case EnumTagType.DefineBitsJPEG3:
                         DefineBitsJPEG3 jpg3 = new() {
                             Header = header
                         };
@@ -148,18 +208,18 @@ namespace CWAEmu.OFUCU.Flash {
                         Images.Add(jpg3.CharacterId, jpg3);
                         break;
 
-                    case 20: // DefineBitsLossless
+                    case EnumTagType.DefineBitsLossless:
                         readBitsLossless(1, header, reader);
                         break;
-                    case 36: // DefineBitsLossless2
+                    case EnumTagType.DefineBitsLossless2:
                         readBitsLossless(2, header, reader);
                         break;
 
-                    case 39: // DefineSprite
+                    case EnumTagType.DefineSprite:
                         readSprite(header, reader);
                         break;
 
-                    case 26: // PlaceObject2
+                    case EnumTagType.PlaceObject2:
                         PlaceObject2 po2 = new() {
                             Header = header
                         };
@@ -168,7 +228,7 @@ namespace CWAEmu.OFUCU.Flash {
                         curFrame.addTag(po2);
                         break;
 
-                    case 1:  // ShowFrame
+                    case EnumTagType.ShowFrame:
                         Frames.Add(curFrame);
                         int nextIdx = curFrame.FrameIndex + 1;
                         curFrame = new() {
@@ -176,7 +236,7 @@ namespace CWAEmu.OFUCU.Flash {
                         };
                         break;
 
-                    case 7: // DefineButton
+                    case EnumTagType.DefineButton:
                         DefineButton db = new() {
                             Header = header
                         };
@@ -185,7 +245,7 @@ namespace CWAEmu.OFUCU.Flash {
                         CharacterTags.Add(db.CharacterId, db);
                         break;
 
-                    case 34: // DefineButton2
+                    case EnumTagType.DefineButton2:
                         DefineButton2 db2 = new() {
                             Header = header
                         };
@@ -194,7 +254,7 @@ namespace CWAEmu.OFUCU.Flash {
                         CharacterTags.Add(db2.CharacterId, db2);
                         break;
 
-                    case 37: // DefineEditText
+                    case EnumTagType.DefineEditText:
                         DefineEditText det = new() {
                             Header = header
                         };
@@ -204,15 +264,15 @@ namespace CWAEmu.OFUCU.Flash {
                         EditTexts.Add(det.CharacterId, det);
                         break;
 
-                    case 11: // DefineText
+                    case EnumTagType.DefineText:
                         readText(header, reader, 1);
                         break;
 
-                    case 33: // DefineText2
+                    case EnumTagType.DefineText2:
                         readText(header, reader, 2);
                         break;
 
-                    case 78: // DefineScalingGrid
+                    case EnumTagType.DefineScalingGrid:
                         DefineScalingGrid dsg = new() {
                             Header = header
                         };
@@ -221,21 +281,21 @@ namespace CWAEmu.OFUCU.Flash {
                         ScalingGrids.Add(dsg);
                         break;
 
-                    case 74: // CSMTextSettings           IMPORTANT
-                    case 56: // ExportAssets              THIS NAMES SPRITES IT NEEDS TO BE PARSED
+                    case EnumTagType.CSMTextSettings: // TODO: IMPORTANT
+                    case EnumTagType.ExportAssets: // TODO: THIS NAMES SPRITES IT NEEDS TO BE PARSED
 
                     //  = = = = = = = = = = Unknown how to handle = = = = = = = = = =
-                    case 71: // ImportAssets2
-                    case 75: // DefineFont3
-                    case 73: // DefineFontAlignZones
-                    case 77: // Metadata
-                    case 88: // DefineFontName
+                    case EnumTagType.ImportAssets2:
+                    case EnumTagType.DefineFont3:
+                    case EnumTagType.DefineFontAlignZones:
+                    case EnumTagType.Metadata:
+                    case EnumTagType.DefineFontName:
 
                     //  = = = = = = = = = = No need to parse = = = = = = = = = =
 
-                    case 9:  // SetBackgroundColor
-                    case 24: // Protect
-                    case 59: // DoInitAction
+                    case EnumTagType.SetBackgroundColor:
+                    case EnumTagType.Protect:
+                    case EnumTagType.DoInitAction:
                         reader.skip(header.TagLength);
                         break;
                     default:
@@ -245,7 +305,7 @@ namespace CWAEmu.OFUCU.Flash {
                 }
             }
 
-            Dictionary<int, int> count = new();
+            Dictionary<EnumTagType, int> count = new();
             foreach (var header in TagHeaders) {
                 if (count.ContainsKey(header.TagType)) {
                     count[header.TagType]++;

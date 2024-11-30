@@ -33,55 +33,61 @@ namespace CWAEmu.OFUCU.Flash.Tags {
 
                 switch (header.TagType) {
                     // = = = = = = = = = = Need to parse = = = = = = = = = =
-                    case 1:  // ShowFrame
+                    case EnumTagType.ShowFrame:
                         Frames.Add(curFrame);
                         int nextIdx = curFrame.FrameIndex + 1;
-                        curFrame = new();
-                        curFrame.FrameIndex = nextIdx;
+                        curFrame = new() {
+                            FrameIndex = nextIdx
+                        };
                         break;
 
-                    case 43: // FrameLabel
-                        FrameLabel fl = new();
-                        fl.Header = header;
+                    case EnumTagType.FrameLabel:
+                        FrameLabel fl = new() {
+                            Header = header
+                        };
                         fl.read(reader);
 
                         curFrame.addTag(fl);
                         break;
 
-                    case 26: // PlaceObject2
-                        PlaceObject2 po2 = new();
-                        po2.Header = header;
+                    case EnumTagType.PlaceObject2:
+                        PlaceObject2 po2 = new() {
+                            Header = header
+                        };
                         po2.read(reader);
 
                         curFrame.addTag(po2);
                         break;
 
-                    case 70: // RemoveObject3
-                        PlaceObject3 po3 = new();
-                        po3.Header = header;
+                    case EnumTagType.PlaceObject3:
+                        PlaceObject3 po3 = new() {
+                            Header = header
+                        };
                         po3.read(reader);
 
                         curFrame.addTag(po3);
                         break;
 
-                    case 5: // RemoveObject
-                        RemoveObject ro = new();
-                        ro.Header = header;
+                    case EnumTagType.RemoveObject:
+                        RemoveObject ro = new() {
+                            Header = header
+                        };
                         ro.read(reader);
 
                         curFrame.addTag(ro);
                         break;
 
-                    case 28: // RemoveObject2
-                        RemoveObject2 ro2 = new();
-                        ro2.Header = header;
+                    case EnumTagType.RemoveObject2:
+                        RemoveObject2 ro2 = new() {
+                            Header = header
+                        };
                         ro2.read(reader);
 
                         curFrame.addTag(ro2);
                         break;
 
                     //  = = = = = = = = = = No need to parse = = = = = = = = = =
-                    case 12: // DoAction
+                    case EnumTagType.DoAction:
                         reader.skip(header.TagLength);
                         break;
 

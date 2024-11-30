@@ -158,7 +158,7 @@ namespace CWAEmu.OFUCU.Flash {
             }
 
             FlashTagHeader tHeader = new() {
-                TagType = tag,
+                TagType = (EnumTagType) tag,
                 TagLength = length
             };
 
