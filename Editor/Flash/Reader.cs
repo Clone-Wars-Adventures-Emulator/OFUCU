@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace CWAEmu.OFUCU.Flash {
     public class Reader {
@@ -249,6 +250,21 @@ namespace CWAEmu.OFUCU.Flash {
             while (read != 0) {
                 bytes.Add(read);
                 read = readByte();
+            }
+
+            if (flashVersion >= 6) {
+                return Encoding.UTF8.GetString(bytes.ToArray());
+            }
+
+            return Encoding.Default.GetString(bytes.ToArray());
+        }
+
+        public string readLengthEncodedString() {
+            byte size = readByte();
+
+            byte[] bytes = new byte[size];
+            for (int i = 0; i < size; i++) {
+                bytes[i] = readByte();
             }
 
             if (flashVersion >= 6) {

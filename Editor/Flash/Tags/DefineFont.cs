@@ -42,7 +42,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
 
             Langcode = reader.readByte();
 
-            FontName = reader.readString();
+            FontName = reader.readLengthEncodedString();
 
             NumGlyphs = reader.readUInt16();
 
@@ -63,7 +63,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                 offsetTableBytes += 4;
             } else {
                 CodeTableOffset = reader.readUInt16();
-                offsetTableBytes += 4;
+                offsetTableBytes += 2;
             }
 
             GlyphShapeTable = new ShapeRecord[NumGlyphs];

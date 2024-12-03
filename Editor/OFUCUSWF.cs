@@ -35,7 +35,7 @@ namespace CWAEmu.OFUCU {
         private string matDir;
 
         public Dictionary<int, OFUCUSprite> sprites = new();
-        public Dictionary<int, OFUCUText> editTexts = new();
+        public Dictionary<int, OFUCUText> texts = new();
         public Dictionary<int, Font> fontMap = new();
         public HashSet<int> svgIds = new();
 
@@ -146,7 +146,25 @@ namespace CWAEmu.OFUCU {
                 rt.SetParent(dictonaryT, false);
                 var text = go.GetComponent<OFUCUText>();
                 text.init(this, pair.Value, prefabDir, matDir);
-                editTexts.Add(pair.Key, text);
+                texts.Add(pair.Key, text);
+            }
+
+            foreach (var pair in file.Texts) {
+                var name = $"Text.{pair.Value.CharacterId}";
+
+                GameObject go;
+                if (File.Exists($"")) {
+                    GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/{name}.prefab");
+                    go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
+                } else {
+                    go = new(name, typeof(OFUCUText));
+                }
+
+                RectTransform rt = go.transform as RectTransform;
+                rt.SetParent(dictonaryT, false);
+                var text = go.GetComponent<OFUCUText>();
+                text.init(file, this, pair.Value, prefabDir, matDir);
+                texts.Add(pair.Key, text);
             }
         }
 
@@ -557,7 +575,7 @@ namespace CWAEmu.OFUCU {
                     continue;
                 }
 
-                if (editTexts.ContainsKey(id)) {
+                if (texts.ContainsKey(id)) {
                     continue;
                 }
 
@@ -599,7 +617,7 @@ namespace CWAEmu.OFUCU {
                 Debug.Log($"Found {obj.charId} as sprite prefab");
             }
 
-            if (aoo == null && editTexts.TryGetValue(obj.charId, out var text)) {
+            if (aoo == null && texts.TryGetValue(obj.charId, out var text)) {
                 go = text.getCopy();
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
