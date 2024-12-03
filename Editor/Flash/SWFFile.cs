@@ -109,6 +109,8 @@ namespace CWAEmu.OFUCU.Flash {
         private readonly Dictionary<int, DefineEditText> editTexts = new();
         public Dictionary<int, DefineText> Texts => texts;
         private readonly Dictionary<int, DefineText> texts = new();
+        public Dictionary<int, DefineFont3> Fonts => fonts;
+        private readonly Dictionary<int, DefineFont3> fonts = new();
         public List<Frame> Frames => frames;
         private readonly List<Frame> frames = new();
         public List<DefineScalingGrid> ScalingGrids => scalingGrids;
@@ -169,7 +171,7 @@ namespace CWAEmu.OFUCU.Flash {
 
                     case EnumTagType.DefineBits:
                         DefineBits defBits = new() {
-                            Header = header
+                            Header = header,
                         };
                         defBits.read(reader);
 
@@ -183,7 +185,7 @@ namespace CWAEmu.OFUCU.Flash {
                         }
 
                         JPEGTable jTable = new() {
-                            Header = header
+                            Header = header,
                         };
                         jTable.read(reader);
 
@@ -191,7 +193,7 @@ namespace CWAEmu.OFUCU.Flash {
                         break;
                     case EnumTagType.DefineBitsJPEG2:
                         DefineBitsJPEG2 jpg2 = new() {
-                            Header = header
+                            Header = header,
                         };
                         jpg2.read(reader);
 
@@ -200,7 +202,7 @@ namespace CWAEmu.OFUCU.Flash {
                         break;
                     case EnumTagType.DefineBitsJPEG3:
                         DefineBitsJPEG3 jpg3 = new() {
-                            Header = header
+                            Header = header,
                         };
                         jpg3.read(reader);
 
@@ -221,7 +223,7 @@ namespace CWAEmu.OFUCU.Flash {
 
                     case EnumTagType.PlaceObject2:
                         PlaceObject2 po2 = new() {
-                            Header = header
+                            Header = header,
                         };
                         po2.read(reader);
 
@@ -232,13 +234,13 @@ namespace CWAEmu.OFUCU.Flash {
                         Frames.Add(curFrame);
                         int nextIdx = curFrame.FrameIndex + 1;
                         curFrame = new() {
-                            FrameIndex = nextIdx
+                            FrameIndex = nextIdx,
                         };
                         break;
 
                     case EnumTagType.DefineButton:
                         DefineButton db = new() {
-                            Header = header
+                            Header = header,
                         };
                         db.read(reader);
 
@@ -247,7 +249,7 @@ namespace CWAEmu.OFUCU.Flash {
 
                     case EnumTagType.DefineButton2:
                         DefineButton2 db2 = new() {
-                            Header = header
+                            Header = header,
                         };
                         db2.read(reader);
 
@@ -256,7 +258,7 @@ namespace CWAEmu.OFUCU.Flash {
 
                     case EnumTagType.DefineEditText:
                         DefineEditText det = new() {
-                            Header = header
+                            Header = header,
                         };
                         det.read(reader);
 
@@ -274,11 +276,21 @@ namespace CWAEmu.OFUCU.Flash {
 
                     case EnumTagType.DefineScalingGrid:
                         DefineScalingGrid dsg = new() {
-                            Header = header
+                            Header = header,
                         };
                         dsg.read(reader);
 
                         ScalingGrids.Add(dsg);
+                        break;
+
+                    case EnumTagType.DefineFont3:
+                        DefineFont3 df3 = new() {
+                            Header = header,
+                        };
+                        df3.read(reader);
+
+                        fonts.Add(df3.CharacterId, df3);
+                        // TODO: add to character tags dict?
                         break;
 
                     case EnumTagType.CSMTextSettings: // TODO: IMPORTANT
@@ -286,7 +298,6 @@ namespace CWAEmu.OFUCU.Flash {
 
                     //  = = = = = = = = = = Unknown how to handle = = = = = = = = = =
                     case EnumTagType.ImportAssets2:
-                    case EnumTagType.DefineFont3:
                     case EnumTagType.DefineFontAlignZones:
                     case EnumTagType.Metadata:
                     case EnumTagType.DefineFontName:
@@ -324,7 +335,7 @@ namespace CWAEmu.OFUCU.Flash {
         private void readShape(int shapeType, FlashTagHeader header, Reader reader) {
             DefineShape ds = new() {
                 Header = header,
-                ShapeType = shapeType
+                ShapeType = shapeType,
             };
             ds.read(reader);
 
@@ -335,7 +346,7 @@ namespace CWAEmu.OFUCU.Flash {
         private void readBitsLossless(int type, FlashTagHeader header, Reader reader) {
             DefineBitsLossless bits = new() {
                 Header = header,
-                BitsLosslessType = type
+                BitsLosslessType = type,
             };
             bits.read(reader);
 
@@ -345,7 +356,7 @@ namespace CWAEmu.OFUCU.Flash {
 
         private void readSprite(FlashTagHeader header, Reader reader) {
             DefineSprite ds = new() {
-                Header = header
+                Header = header,
             };
             ds.read(reader);
 
@@ -356,7 +367,7 @@ namespace CWAEmu.OFUCU.Flash {
         private void readText(FlashTagHeader header, Reader reader, int type) {
             DefineText dt = new() {
                 Header = header,
-                Type = type
+                Type = type,
             };
             dt.read(reader);
 

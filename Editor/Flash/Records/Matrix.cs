@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace CWAEmu.OFUCU.Flash.Records {
     public class Matrix {
         public int NScaleBits { get; private set; } = 0;
