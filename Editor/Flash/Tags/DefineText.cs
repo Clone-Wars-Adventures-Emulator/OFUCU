@@ -25,6 +25,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                 records.Add(record);
                 firstByte = reader.readByte();
             }
+            Records = records.ToArray();
         }
     }
 }
