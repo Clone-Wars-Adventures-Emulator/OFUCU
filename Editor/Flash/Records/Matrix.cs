@@ -4,12 +4,9 @@ using UnityEngine;
 
 namespace CWAEmu.OFUCU.Flash.Records {
     public class Matrix {
-        // TODO: remove debug
-        public static List<Matrix> All = new();
-
-        private int nScaleBits = 0;
-        private int nRotateBits = 0;
-        private int nTranslateBits = 0;
+        public int NScaleBits { get; private set; } = 0;
+        public int NRotateBits { get; private set; } = 0;
+        public int NTranslateBits { get; private set; } = 0;
 
         public float ScaleX { get; private set; } = 1;
         public float ScaleY { get; private set; } = 1;
@@ -25,40 +22,37 @@ namespace CWAEmu.OFUCU.Flash.Records {
 
             bool hasScale = reader.readBitFlag();
             if (hasScale) {
-                matrix.nScaleBits = (int) reader.readUBits(5);
-                matrix.ScaleX = reader.readFixedBits(matrix.nScaleBits);
-                matrix.ScaleY = reader.readFixedBits(matrix.nScaleBits);
+                matrix.NScaleBits = (int) reader.readUBits(5);
+                matrix.ScaleX = reader.readFixedBits(matrix.NScaleBits);
+                matrix.ScaleY = reader.readFixedBits(matrix.NScaleBits);
             }
 
             bool hasRotate = reader.readBitFlag();
             if (hasRotate) {
-                matrix.nRotateBits = (int) reader.readUBits(5);
-                matrix.RotateSkew0 = reader.readFixedBits(matrix.nRotateBits);
-                matrix.RotateSkew1 = reader.readFixedBits(matrix.nRotateBits);
+                matrix.NRotateBits = (int) reader.readUBits(5);
+                matrix.RotateSkew0 = reader.readFixedBits(matrix.NRotateBits);
+                matrix.RotateSkew1 = reader.readFixedBits(matrix.NRotateBits);
             }
 
-            matrix.nTranslateBits = (int) reader.readUBits(5);
-            matrix.TranslateXTwips = reader.readBits(matrix.nTranslateBits);
-            matrix.TranslateYTwips = reader.readBits(matrix.nTranslateBits);
+            matrix.NTranslateBits = (int) reader.readUBits(5);
+            matrix.TranslateXTwips = reader.readBits(matrix.NTranslateBits);
+            matrix.TranslateYTwips = reader.readBits(matrix.NTranslateBits);
 
             reader.endBitRead();
-
-            // TODO: remove debug
-            All.Add(matrix);
 
             return matrix;
         }
 
         public bool hasT() {
-            return nTranslateBits > 0;
+            return NTranslateBits > 0;
         }
 
         public bool hasS() {
-            return nScaleBits > 0;
+            return NScaleBits > 0;
         }
 
         public bool hasR() {
-            return nRotateBits > 0;
+            return NRotateBits > 0;
         }
     }
 }
