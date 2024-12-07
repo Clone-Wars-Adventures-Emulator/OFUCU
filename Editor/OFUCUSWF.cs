@@ -268,13 +268,14 @@ namespace CWAEmu.OFUCU {
         }
 
         public void animateFrames(RectTransform root, List<Frame> frames) {
-            AnimateFramesWindow.root = root;
-            AnimateFramesWindow.frames = frames;
-            AnimateFramesWindow.onPress = onAnimateButton;
+            void animateDelegate(bool labelsAsClips, List<int> indicies, bool animationsLoop, bool playOnAwake, bool includeEmptyTrail) {
+                onAnimateButton(root, frames, labelsAsClips, indicies, animationsLoop, playOnAwake, includeEmptyTrail);
+            }
+            AnimateFramesWindow.onPress = animateDelegate;
             EditorWindow.GetWindow<AnimateFramesWindow>($"Animate {root.name}");
         }
 
-        private void onAnimateButton(RectTransform root, List<Frame> frames, bool labelsAsClips, List<int> clipIndexes, bool animationsLoop, bool includeEmptyTrail) {
+        private void onAnimateButton(RectTransform root, List<Frame> frames, bool labelsAsClips, List<int> clipIndexes, bool animationsLoop, bool playOnAwake, bool includeEmptyTrail) {
             if (!root.gameObject.TryGetComponent<Animator>(out var anim)) {
                 anim = root.gameObject.AddComponent<Animator>();
             }
@@ -332,7 +333,6 @@ namespace CWAEmu.OFUCU {
 
             // depth fixing vars
             Dictionary<int, List<GameObject>> sortableObjectByDepth = new();
-            List<int> sortableObjectDepths = new();
 
             // for each frame
             foreach (var f in dl.frames) {
@@ -370,7 +370,7 @@ namespace CWAEmu.OFUCU {
                         GameObject target = go;
                         if (aoo is OFUCUSprite) {
                             if (go.transform.childCount != 1) {
-                                Debug.LogError($"Cannot process mask for {objDesc.name}.{objDesc.depth} on frame {f.frameIndex}, will not animate");
+                                Debug.LogError($"Cannot process mask for {objDesc.name}.{objDesc.depth} on frame {f.frameIndex} (its a sprite), will not animate");
                                 return;
                             }
 
@@ -400,14 +400,13 @@ namespace CWAEmu.OFUCU {
 
                             maskedByCount++;
                             if (maskedByCount > 1) {
-                                Debug.LogWarning($"{go.name} is masked by {maskedByCount} masks, this isnt really supported");
+                                Debug.LogError($"{go.name} is masked by {maskedByCount} masks, this IS NOT really supported");
                             }
                         }
                     }
 
                     // we arent being masked, we can be sorted (TODO: sort masked children or something)
                     if (maskedByCount == 0) {
-                        sortableObjectDepths.Add(depth);
                         if (!sortableObjectByDepth.TryGetValue(depth, out var list)) {
                             list = new();
                             sortableObjectByDepth.Add(depth, list);
@@ -430,7 +429,7 @@ namespace CWAEmu.OFUCU {
             }
 
             // fix depth sorting that got borked as a result of the way we load stuff
-            var sortedDepths = sortableObjectDepths.ToArray();
+            var sortedDepths = sortableObjectByDepth.Keys.ToArray();
             Array.Sort(sortedDepths);
             int siblingIndex = 0;
 
@@ -462,7 +461,7 @@ namespace CWAEmu.OFUCU {
             }
 
             var rootSM = controller.layers[0].stateMachine;
-            if (!animationsLoop) {
+            if (!animationsLoop && !playOnAwake) {
                 rootSM.AddState("Empty loop").motion = emptyClip;
             }
 

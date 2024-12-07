@@ -1,4 +1,3 @@
-using CWAEmu.OFUCU.Flash;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -6,15 +5,15 @@ using UnityEngine;
 
 namespace CWAEmu.OFUCU {
     public class AnimateFramesWindow : EditorWindow {
-        public static RectTransform root;
-        public static List<Frame> frames;
-        public static Action<RectTransform, List<Frame>, bool, List<int>, bool, bool> onPress;
+        public static Action<bool, List<int>, bool, bool, bool> onPress;
 
         [SerializeField]
         private List<int> indices;
         private bool labelsAsSeps;
         [SerializeField]
         private bool animsLoop;
+        [SerializeField]
+        private bool playOnAwake;
         [SerializeField]
         private bool animEmpty;
         private SerializedObject so;
@@ -38,6 +37,12 @@ namespace CWAEmu.OFUCU {
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
             animsLoop = GUILayout.Toggle(animsLoop, "Animations loop");
+            GUILayout.Space(5);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(5);
+            playOnAwake = GUILayout.Toggle(playOnAwake, "Play First Animation on Awake");
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
@@ -86,7 +91,7 @@ namespace CWAEmu.OFUCU {
 
             Close();
 
-            onPress.Invoke(root, frames, l, indices, animsLoop, animEmpty);
+            onPress.Invoke(l, indices, animsLoop, playOnAwake, animEmpty);
         }
     }
 }
