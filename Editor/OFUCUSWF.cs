@@ -509,10 +509,11 @@ namespace CWAEmu.OFUCU {
 
             for (int i = start; i <= end; i++) {
                 DisplayFrame f = dl.frames[i - 1];
+                int clipFrameIndex = i - start + 1;
 
                 foreach (var remove in f.objectsRemoved) {
                     if (animData.tryGetObject(remove, i - 1, out var anim)) {
-                        anim.animateEnable(i - start + 1, file.FrameRate, false);
+                        anim.animateEnable(clipFrameIndex, file.FrameRate, false);
                     }
                 }
 
@@ -522,16 +523,16 @@ namespace CWAEmu.OFUCU {
                         continue;
                     }
 
-                    anim.animateEnable(i - start + 1, file.FrameRate, true);
+                    anim.animateEnable(clipFrameIndex, file.FrameRate, true);
 
                     var state = f.states[add];
 
                     if (state.hasMatrixChange) {
-                        anim.animateMatrix(i - start + 1, file.FrameRate, state.matrix);
+                        anim.animateMatrix(clipFrameIndex, file.FrameRate, state.matrix);
                     }
 
                     if (state.hasColor) {
-                        anim.animateColor(i - start + 1, file.FrameRate, state.color);
+                        anim.animateColor(clipFrameIndex, file.FrameRate, state.color);
                     }
                 }
 
@@ -550,11 +551,11 @@ namespace CWAEmu.OFUCU {
                     }
 
                     if (change.hasMatrixChange) {
-                        ad.animateMatrix(i - start + 1, file.FrameRate, change.matrix);
+                        ad.animateMatrix(clipFrameIndex, file.FrameRate, change.matrix);
                     }
 
                     if (change.hasColor) {
-                        ad.animateColor(i - start + 1, file.FrameRate, change.color);
+                        ad.animateColor(clipFrameIndex, file.FrameRate, change.color);
                     }
                 }
             }

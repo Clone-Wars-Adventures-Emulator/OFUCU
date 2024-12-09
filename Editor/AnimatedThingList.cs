@@ -109,9 +109,9 @@ namespace CWAEmu.OFUCU {
         public bool masked;
 
         private bool hasAnimatedMatrix = false;
-        private bool hasAnimatedColor = false;
-        private bool hasAnimatedColorMult = false;
-        private bool hasAnimatedColorAdd = false;
+        private bool hasInitializedColor = false;
+        private bool hasInitializedColorMult = false;
+        private bool hasInitializedColorAdd = false;
 
         private bool animatedMultLast = false;
         private bool animatedAddLast = false;
@@ -152,27 +152,25 @@ namespace CWAEmu.OFUCU {
         }
 
         public void animateColor(int frame, float frameRate, ColorTransform ct) {
-            // make sure the initial values are what we want (if we are animating frame one right now, the addKeyFrame call will handle that)
-            if (!hasAnimatedColor) {
-                addKeyframe(hasm, 1, frameRate, 0, false);
-                addKeyframe(hasa, 1, frameRate, 0, false);
-            }
-
-            hasAnimatedColor = true;
-
             bool animateMult = ct.hasMult || animatedMultLast;
             addKeyframe(hasm, frame, frameRate, animateMult ? 1 : 0, false);
             if (ct.hasMult) {
                 Color col = ct.mult;
-                if (!hasAnimatedColorMult && frame != 1) {
-                    addKeyframe(mr, 1, frameRate, col.r);
-                    addKeyframe(mg, 1, frameRate, col.g);
-                    addKeyframe(mb, 1, frameRate, col.b);
-                    addKeyframe(ma, 1, frameRate, col.a);
+
+                // if this isnt frame one and we havent initialized this type yet, initialize frame one with defaults
+                // for multiply though we want to initialize to the closest default value so the anims are smooth and dont flicker
+                if (frame != 1 && !hasInitializedColorMult) {
+                    addKeyframe(mr, 1, frameRate, col.r >= 0.5f ? 1 : 0);
+                    addKeyframe(mg, 1, frameRate, col.g >= 0.5f ? 1 : 0);
+                    addKeyframe(mb, 1, frameRate, col.b >= 0.5f ? 1 : 0);
+                    addKeyframe(ma, 1, frameRate, col.a >= 0.5f ? 1 : 0);
+                    hasInitializedColorMult = true;
+                } else if (frame == 1) {
+                    hasInitializedColorMult = true;
                 }
 
-                hasAnimatedColorMult = true;
                 animatedMultLast = true;
+
                 addKeyframe(mr, frame, frameRate, col.r);
                 addKeyframe(mg, frame, frameRate, col.g);
                 addKeyframe(mb, frame, frameRate, col.b);
@@ -190,16 +188,20 @@ namespace CWAEmu.OFUCU {
             bool animateAdd = ct.hasAdd || animatedAddLast;
             addKeyframe(hasa, frame, frameRate, animateAdd ? 1 : 0, false);
             if (ct.hasAdd) {
-                Color col = ct.add;
-                if (!hasAnimatedColorAdd && frame != 1) {
-                    addKeyframe(ar, 1, frameRate, col.r);
-                    addKeyframe(ag, 1, frameRate, col.g);
-                    addKeyframe(ab, 1, frameRate, col.b);
-                    addKeyframe(aa, 1, frameRate, col.a);
+                // if this isnt frame one and we havent initialized this type yet, initialize frame one with defaults
+                if (frame != 1 && !hasInitializedColorAdd) {
+                    addKeyframe(ar, 1, frameRate, 0);
+                    addKeyframe(ag, 1, frameRate, 0);
+                    addKeyframe(ab, 1, frameRate, 0);
+                    addKeyframe(aa, 1, frameRate, 0);
+                    hasInitializedColorAdd = true;
+                } else if (frame == 1) {
+                    hasInitializedColorAdd = true;
                 }
 
-                hasAnimatedColorAdd = true;
                 animatedAddLast = true;
+
+                Color col = ct.add;
                 addKeyframe(ar, frame, frameRate, col.r);
                 addKeyframe(ag, frame, frameRate, col.g);
                 addKeyframe(ab, frame, frameRate, col.b);
@@ -213,6 +215,17 @@ namespace CWAEmu.OFUCU {
                 }
                 animatedAddLast = false;
             }
+
+            // we need to do this down here at the end so that we ensure this is always the case
+            if (!hasInitializedColor) {
+                addKeyframe(hasm, 1, frameRate, 1, false);
+                addKeyframe(hasm, 2, frameRate, 0, false);
+
+                addKeyframe(hasa, 1, frameRate, 1, false);
+                addKeyframe(hasa, 2, frameRate, 0, false);
+            }
+
+            hasInitializedColor = true;
         }
 
         public void animateEnable(int frame, float frameRate, bool enable) {
@@ -251,7 +264,7 @@ namespace CWAEmu.OFUCU {
             // if setting something on frame one
             if (frame == 1) {
                 if (kfs.Count > 1) {
-                    Debug.LogError("There should not be more than one frame on the first frame");
+                    Debug.LogError("There should not be more than one frame of data when setting data for frame 1.");
                     return;
                 }
 
@@ -260,6 +273,16 @@ namespace CWAEmu.OFUCU {
                 kfs[0] = kf;
                 return;
             }
+
+            // check for overrides, and copy the value if we are overriding
+            for (int i = 0; i < kfs.Count; i++) {
+                if (kfs[i].time == time) {
+                    updateCurrent(kfs, i, time, value, interp);
+                    break;
+                }
+            }
+
+            // TODO: if no override, check for inserting new inbetween different frames
 
             var last = kfs[^1];
             int lastFrameIdx = (int) Math.Round(last.time * frameRate) + 1;
@@ -281,6 +304,39 @@ namespace CWAEmu.OFUCU {
             } else {
                 kfs.Add(new Keyframe(time, value));
             }
+        }
+
+        private void updateCurrent(List<Keyframe> kfs, int curIdx, float frameTime, float value, bool interp) {
+            Debug.LogWarning("Updating Current");
+            var kf = kfs[curIdx];
+            kf.value = value;
+
+            // re-calculate interpolations if needed
+            if (interp) {
+                // check for previous frame
+                if (curIdx > 0) {
+                    var localLast = kfs[curIdx - 1];
+                    var lastVal = localLast.value;
+                    var interpolate = (value - lastVal) / (frameTime - localLast.time);
+                    localLast.outTangent = interpolate;
+                    kfs[curIdx - 1] = localLast;
+
+                    kf.inTangent = interpolate;
+                }
+
+                // check for next frame
+                if (curIdx + 1 < kfs.Count) {
+                    var next = kfs[curIdx + 1];
+                    var nextVal = next.value;
+                    var interpolate = (value - nextVal) / (frameTime - next.time);
+                    next.inTangent = interpolate;
+                    kfs[curIdx + 1] = next;
+
+                    kf.outTangent = interpolate;
+                }
+            }
+
+            kfs[curIdx] = kf;
         }
 
         public void applyToAnim(AnimationClip ac) {
@@ -351,7 +407,7 @@ namespace CWAEmu.OFUCU {
             }
 
             // color props
-            if (hasAnimatedColor) {
+            if (hasInitializedColor) {
                 if (hasm.Count != 0) {
                     ac.SetCurve(path, typeof(AnimatedRuntimeObject), "hasMult", new AnimationCurve(hasm.ToArray()));
                 }
