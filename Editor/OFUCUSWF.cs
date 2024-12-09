@@ -2,7 +2,6 @@ using CWAEmu.OFUCU.Flash;
 using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.OFUCU.Runtime;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -252,6 +251,7 @@ namespace CWAEmu.OFUCU {
                     }
 
                     if (obj.depth < maskDepth) {
+                        // TODO: handle this being marked Obsolete
                         go.AddComponent<RuntimeAnchor>();
                     }
                 }
@@ -352,7 +352,7 @@ namespace CWAEmu.OFUCU {
                 foreach (var depth in f.objectsAdded) {
                     var objDesc = f.states[depth];
                     var (go, aoo, _) = createObjectReference(root, objDesc);
-                    go.AddComponent<AnimatedRuntimeObject>();
+                    var aro = go.AddComponent<AnimatedRuntimeObject>();
                     var goRt = go.transform as RectTransform;
 
                     if (objDesc.hasName) {
@@ -395,8 +395,13 @@ namespace CWAEmu.OFUCU {
                             goRt.localScale = scale.ToVector3(1);
                             goRt.rotation = Quaternion.Euler(0, 0, rotz);
                             go.transform.SetParent(rt, true);
-                            go.AddComponent<RuntimeAnchor>();
                             objPath = $"{path}/{objPath}";
+
+                            // Handle Anchoring
+                            DestroyImmediate(aro);
+                            aro = go.AddComponent<AnchoredAnimatedRuntimeObject>();
+                            var aaro = (AnchoredAnimatedRuntimeObject) aro;
+                            aaro.anchorReference = root;
 
                             maskedByCount++;
                             if (maskedByCount > 1) {
@@ -422,6 +427,7 @@ namespace CWAEmu.OFUCU {
                         start = f.frameIndex,
                         go = go,
                         path = objPath,
+                        masked = maskedByCount != 0
                     };
 
                     objs.addAtDepth(depth, afo);

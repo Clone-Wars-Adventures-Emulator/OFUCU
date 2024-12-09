@@ -9,7 +9,6 @@ namespace CWAEmu.OFUCU.Runtime {
         public bool hasMult;
         public Color addColor;
         public Color multColor;
-        public float lastZRot;
         public float zRot;
 
         private void Start() {
@@ -19,12 +18,12 @@ namespace CWAEmu.OFUCU.Runtime {
 #if UNITY_EDITOR
         [ExecuteInEditMode]
         public void Update() {
-            // late update isnt called in the editor, so we do this crap to get animations to show up during runtime
+            // late update isnt called in the editor, so we do this crap to get animations to show up during development
             LateUpdate();
         }
 #endif
 
-        private void LateUpdate() {
+        protected void handleColor() {
             if (hasAdd) {
                 obj.setAddColor(addColor);
             }
@@ -32,9 +31,13 @@ namespace CWAEmu.OFUCU.Runtime {
             if (hasMult) {
                 obj.setMultColor(multColor);
             }
+        }
 
-            // TODO: general imporvement
+        protected virtual void LateUpdate() {
+            handleColor();
 
+            // originally, the script accounted for the jumps in the rotation, but then that got moved to the AnimationData AnimatedThing.
+            // This was left for back compat and also because originally I didnt know how to animate the rotation with EULER angles (via ac.SetCurve)
             transform.localRotation = Quaternion.Euler(0, 0, zRot);
         }
     }

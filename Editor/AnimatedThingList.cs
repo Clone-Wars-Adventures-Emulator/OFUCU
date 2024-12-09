@@ -20,6 +20,7 @@ namespace CWAEmu.OFUCU {
                     t.Start = v.Start;
                     t.End = v.End;
                     t.Path = v.Path;
+                    t.Masked = v.Masked;
                     list.Add(t);
                 }
             }
@@ -77,6 +78,11 @@ namespace CWAEmu.OFUCU {
             set => path = value;
         }
         public string path;
+        public override bool Masked {
+            get => masked;
+            set => masked = value;
+        }
+        public bool masked;
         public GameObject go;
     }
 
@@ -96,6 +102,11 @@ namespace CWAEmu.OFUCU {
             set => path = value;
         }
         public string path;
+        public override bool Masked {
+            get => masked;
+            set => masked = value;
+        }
+        public bool masked;
 
         private bool hasAnimatedMatrix = false;
         private bool hasAnimatedColor = false;
@@ -250,8 +261,6 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
-            // TODO: check if there is already a KF for this frame? (would this be needed now that i fixed the timing?)
-
             var last = kfs[^1];
             int lastFrameIdx = (int) Math.Round(last.time * frameRate) + 1;
 
@@ -281,16 +290,32 @@ namespace CWAEmu.OFUCU {
 
             // Matrix Props
             if (xpos.Count != 0) {
-                ac.SetCurve(path, typeof(RectTransform), "m_AnchoredPosition.x", new AnimationCurve(xpos.ToArray()));
+                if (masked) {
+                    ac.SetCurve(path, typeof(AnchoredAnimatedRuntimeObject), "position.x", new AnimationCurve(xpos.ToArray()));
+                } else {
+                    ac.SetCurve(path, typeof(RectTransform), "m_AnchoredPosition.x", new AnimationCurve(xpos.ToArray()));
+                }
             }
             if (ypos.Count != 0) {
-                ac.SetCurve(path, typeof(RectTransform), "m_AnchoredPosition.y", new AnimationCurve(ypos.ToArray()));
+                if (masked) {
+                    ac.SetCurve(path, typeof(AnchoredAnimatedRuntimeObject), "position.y", new AnimationCurve(ypos.ToArray()));
+                } else {
+                    ac.SetCurve(path, typeof(RectTransform), "m_AnchoredPosition.y", new AnimationCurve(ypos.ToArray()));
+                }
             }
             if (xscale.Count != 0) {
-                ac.SetCurve(path, typeof(RectTransform), "localScale.x", new AnimationCurve(xscale.ToArray()));
+                if (masked) {
+                    ac.SetCurve(path, typeof(AnchoredAnimatedRuntimeObject), "scale.x", new AnimationCurve(xscale.ToArray()));
+                } else {
+                    ac.SetCurve(path, typeof(RectTransform), "localScale.x", new AnimationCurve(xscale.ToArray()));
+                }
             }
             if (yscale.Count != 0) {
-                ac.SetCurve(path, typeof(RectTransform), "localScale.y", new AnimationCurve(yscale.ToArray()));
+                if (masked) {
+                    ac.SetCurve(path, typeof(AnchoredAnimatedRuntimeObject), "scale.y", new AnimationCurve(yscale.ToArray()));
+                } else {
+                    ac.SetCurve(path, typeof(RectTransform), "localScale.y", new AnimationCurve(yscale.ToArray()));
+                }
             }
             if (zrot.Count != 0) {
                 // Run a sanity check on the zRot values to make sure there are no extreme jumps that cause weird interpolations
@@ -366,6 +391,7 @@ namespace CWAEmu.OFUCU {
         public abstract int Start { get; set; }
         public abstract int End { get; set; }
         public abstract string Path { get; set; }
+        public abstract bool Masked { get; set; }
 
         public bool isDesiredObj(int frameIndex) {
             if (frameIndex >= End) {

@@ -1,7 +1,8 @@
+using System;
 using UnityEngine;
 
 namespace CWAEmu.OFUCU.Runtime {
-    // TODO: how does this handle getting animated? do we even animate props of things under a mask? (yes we do, but only position?)
+    [Obsolete("Only Used in OFUCU < 1.3, kept for backwards compatability")]
     public class RuntimeAnchor : MonoBehaviour {
         public RectTransform canvas;
         public RectTransform anchorReference;
@@ -9,9 +10,6 @@ namespace CWAEmu.OFUCU.Runtime {
         public Vector3 anchorScale;
         public Quaternion anchorRotationOffset;
 
-        public bool uns = true;
-
-        // TODO: Find a way to performance optimize this, yea its just math, but this is a lot of extra math to do every frame
         private void LateUpdate() {
             var canvasScale = canvas.localScale;
             var tmp = anchorPositionOffset;
