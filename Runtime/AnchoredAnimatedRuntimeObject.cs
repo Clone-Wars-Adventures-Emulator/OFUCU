@@ -5,7 +5,7 @@ namespace CWAEmu.OFUCU.Runtime {
         public RectTransform canvas;
         public RectTransform anchorReference;
         public Vector3 position;
-        public Vector3 scale;
+        public Vector3 scale = new(1, 1, 1);
 
         protected override void LateUpdate() {
             handleColor();

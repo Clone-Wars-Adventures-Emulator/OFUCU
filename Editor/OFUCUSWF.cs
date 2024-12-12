@@ -370,7 +370,7 @@ namespace CWAEmu.OFUCU {
                         GameObject target = go;
                         if (aoo is OFUCUSprite) {
                             if (go.transform.childCount != 1) {
-                                Debug.LogError($"Cannot process mask for {objDesc.name}.{objDesc.depth} on frame {f.frameIndex} (its a sprite), will not animate");
+                                Debug.LogError($"Cannot process mask for {objDesc.name}.{objDesc.depth} on frame {f.frameIndex} (its a sprite with more than one child), will not animate");
                                 return;
                             }
 
@@ -387,7 +387,6 @@ namespace CWAEmu.OFUCU {
                     // check to see if this object is getting masked
                     int maskedByCount = 0;
                     foreach (var (start, end, rt, path) in masks.Values) {
-                        // TODO: it is unknown how this will work with 2 masks at once, I dont think Flash supports that so this should be okay, but keep and eye on it
                         if (start < depth && end >= depth) {
                             // set the initial positions because they need to be saved
                             var (translate, scale, rotz) = objDesc.matrix.getTransformation();
@@ -404,9 +403,6 @@ namespace CWAEmu.OFUCU {
                             aaro.anchorReference = root;
 
                             maskedByCount++;
-                            if (maskedByCount > 1) {
-                                Debug.LogError($"{go.name} is masked by {maskedByCount} masks, this IS NOT really supported");
-                            }
                         }
                     }
 
