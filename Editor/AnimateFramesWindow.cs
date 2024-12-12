@@ -40,11 +40,21 @@ namespace CWAEmu.OFUCU {
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
+            // Force playOnAwake to be true when the animation loops, as that is the functionality anyway
+            if (animsLoop) {
+                playOnAwake = true;
+            }
+
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
             playOnAwake = GUILayout.Toggle(playOnAwake, "Play First Animation on Awake");
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
+
+            // Force playOnAwake to be true when the animation loops, as that is the functionality anyway
+            if (animsLoop) {
+                playOnAwake = true;
+            }
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
