@@ -96,7 +96,7 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                 KerningCount = reader.readUInt16();
                 KerningTable = new KerningRecord[KerningCount];
                 for (int i = 0; i < KerningCount; i++) {
-                    KerningTable[i] = KerningRecord.readRecord(reader, WideOffsets);
+                    KerningTable[i] = KerningRecord.readRecord(reader, wideCodes);
                 }
             }
         }
