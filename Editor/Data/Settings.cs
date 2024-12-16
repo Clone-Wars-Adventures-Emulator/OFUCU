@@ -29,7 +29,7 @@ namespace CWAEmu.OFUCU.Data {
 
                     if (settings.hasModifiedProperties) {
                         settings.ApplyModifiedPropertiesWithoutUndo();
-                        Debug.Log("Doing things");
+                        Debug.Log("Modifying saved settings object");
                         Settings.Instance.save();
                     }
                 },

@@ -136,14 +136,16 @@ namespace CWAEmu.OFUCU.Flash {
             }
 
             Frame curFrame = new();
+            int tagsRead = 0;
 
             // read all tags until completion
             while (!reader.ReachedEnd) {
                 FlashTagHeader header = reader.readFlashTagHeader();
                 TagHeaders.Add(header);
+                tagsRead++;
 
                 if (Settings.Instance.EnhancedLogging) {
-                    Debug.Log($"Tag: {header.TagType} {header.TagLength}");
+                    Debug.Log($"Tag: {header.TagType} {header.TagLength}, tag count: {tagsRead}");
                 }
 
                 // if end tag, stop parsing
