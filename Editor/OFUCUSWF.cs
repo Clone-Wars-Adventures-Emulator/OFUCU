@@ -359,7 +359,7 @@ namespace CWAEmu.OFUCU {
                         go.name = objDesc.name;
                     }
 
-                    go.name = $"{go.name}.{depth}";
+                    go.name = $"{go.name}.{depth}.{f.frameIndex}";
 
                     go.SetActive(false);
                     string objPath = go.name;
