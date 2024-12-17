@@ -1,6 +1,7 @@
 using CWAEmu.OFUCU.Flash;
-using CWAEmu.OFUCU.Flash.Records;
+using CWAEmu.OFUCU.Flash.Tags;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -55,9 +56,10 @@ namespace CWAEmu.OFUCU {
         }
 
         private void bulkParse() {
-            int count = 0;
             int fileCount = 0;
-            int total = 0;
+
+            int bad = 0;
+
             var files = Directory.EnumerateFiles(path, "*.swf", SearchOption.TopDirectoryOnly);
             foreach (var file in files) {
                 Debug.Log($"Parsing SWF file at {file}");
@@ -65,22 +67,16 @@ namespace CWAEmu.OFUCU {
                 try {
                     SWFFile swfFile = SWFFile.readFull(file);
                     if (swfFile == null) {
-                        Debug.LogError($"File at {file} failed to parse");
+                        // Temporarily ingore files that the parser doesnt parse (usually version related)
+                        // Debug.LogError($"File at {file} failed to parse");
                         continue;
                     }
 
                     fileCount++;
-
-                    Debug.Log($"{swfFile.Name} has {swfFile.CharacterTags.Count} parsed characters");
-
-                    foreach (var text in swfFile.EditTexts) {
-                        if (text.Value.HasLayout) {
-                            Debug.Log($"{swfFile.Name} has layout of {text.Value.LeftMargin} {text.Value.RightMargin} {text.Value.Indent} {text.Value.Leading}");
-                            count++;
-                        }
-                        total++;
+                    bad += checkFrameOrdering(swfFile.Frames, swfFile.Name);
+                    foreach (var sprite in swfFile.Sprites.Values) {
+                        bad += checkFrameOrdering(sprite.Frames, $"{swfFile.Name}.Sprite.{sprite.CharacterId}");
                     }
-
                 } catch (Exception e) {
                     Debug.LogError($"File at {file} failed to parse with exception: ");
                     Debug.LogException(e);
@@ -88,7 +84,30 @@ namespace CWAEmu.OFUCU {
 
             }
 
-            Debug.Log($"There are {count} with layout over {fileCount} files with {total} text entries");
+            Debug.Log($"There are {bad} instances of RemoveObject after PlaceObject over {fileCount} files");
+        }
+
+        private int checkFrameOrdering(List<Frame> frames, string name) {
+            if (frames.Count == 0) {
+                return 0;
+            }
+
+            Debug.Log($"Checking {frames.Count} frames of {name}");
+            int bad = 0;
+            foreach (var frame in frames) {
+                bool seenPlace = false;
+                foreach (var tag in frame.Tags) {
+                    if (tag is PlaceObject or PlaceObject2) {
+                        seenPlace = true;
+                    }
+
+                    if (tag is RemoveObject or RemoveObject2 && seenPlace) {
+                        Debug.LogError($"Frame {frame.FrameIndex} of {name} has a remove after a place");
+                        bad++;
+                    }
+                }
+            }
+            return bad;
         }
     }
 }
