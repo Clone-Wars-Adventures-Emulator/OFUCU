@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace CWAEmu.OFUCU {
@@ -136,6 +137,7 @@ namespace CWAEmu.OFUCU {
 
         public void animateMatrix(int frame, float frameRate, Matrix2x3 matrix) {
             var (t, s, r) = matrix.getTransformation();
+            // ensure we have some data for the first frame
             if (!hasAnimatedMatrix && frame != 1) {
                 addKeyframe(xpos, 1, frameRate, t.x);
                 addKeyframe(ypos, 1, frameRate, t.y);
@@ -154,7 +156,7 @@ namespace CWAEmu.OFUCU {
 
         public void animateColor(int frame, float frameRate, ColorTransform ct) {
             bool animateMult = ct.hasMult || animatedMultLast;
-            addKeyframe(hasm, frame, frameRate, animateMult ? 1 : 0, false);
+            addKeyframe(hasm, frame, frameRate, animateMult ? 1 : 0, true);
             if (ct.hasMult) {
                 Color col = ct.mult;
 
@@ -187,7 +189,7 @@ namespace CWAEmu.OFUCU {
             }
 
             bool animateAdd = ct.hasAdd || animatedAddLast;
-            addKeyframe(hasa, frame, frameRate, animateAdd ? 1 : 0, false);
+            addKeyframe(hasa, frame, frameRate, animateAdd ? 1 : 0, true);
             if (ct.hasAdd) {
                 // if this isnt frame one and we havent initialized this type yet, initialize frame one with defaults
                 if (frame != 1 && !hasInitializedColorAdd) {
@@ -219,18 +221,18 @@ namespace CWAEmu.OFUCU {
 
             // we need to do this down here at the end so that we ensure this is always the case
             if (!hasInitializedColor) {
-                addKeyframe(hasm, 1, frameRate, 1, false);
-                addKeyframe(hasm, 2, frameRate, 0, false);
+                addKeyframe(hasm, 1, frameRate, 1, true);
+                addKeyframe(hasm, 2, frameRate, 0, true);
 
-                addKeyframe(hasa, 1, frameRate, 1, false);
-                addKeyframe(hasa, 2, frameRate, 0, false);
+                addKeyframe(hasa, 1, frameRate, 1, true);
+                addKeyframe(hasa, 2, frameRate, 0, true);
             }
 
             hasInitializedColor = true;
         }
 
         public void animateEnable(int frame, float frameRate, bool enable) {
-            addKeyframe(enabled, frame, frameRate, enable ? 1 : 0, false);
+            addKeyframe(enabled, frame, frameRate, enable ? 1 : 0, true);
         }
 
         public void addEnableOnFinal(int end, float frameRate) {
@@ -248,12 +250,14 @@ namespace CWAEmu.OFUCU {
             animateEnable(end, frameRate, lastEnabled);
         }
 
-        private void addKeyframe(List<Keyframe> kfs, int frame, float frameRate, float value, bool interp = true) {
-            // find previous frame index
-            //   if none, add
-            //   if found, check how many frames ago
-            //     if last frame, add interpolate
-            //     if not last frame, duplicate that to be last frame, add this frame interpolate
+        private void addKeyframe(List<Keyframe> kfs, int frame, float frameRate, float value, bool hold = false) {
+            // if no kfs, add
+            // if kfs
+            //   if there is already an entry for this frame
+            //     override its values and the interpolation as needed
+            //   else
+            //      find insert location
+            //      do interpolation if needed
 
             var time = (frame - 1) / frameRate;
             if (kfs.Count == 0) {
@@ -262,82 +266,93 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
-            // if setting something on frame one
-            if (frame == 1) {
-                if (kfs.Count > 1) {
-                    Debug.LogError("There should not be more than one frame of data when setting data for frame 1.");
-                    return;
-                }
-
-                var kf = kfs[0];
-                kf.value = value;
-                kfs[0] = kf;
-                return;
-            }
-
             // check for overrides, and copy the value if we are overriding
             for (int i = 0; i < kfs.Count; i++) {
                 if (kfs[i].time == time) {
-                    updateCurrent(kfs, i, time, value, interp);
-                    break;
+                    var kf = kfs[i];
+                    kf.value = value;
+
+                    kfs[i] = interpolate(kf, kfs, i, hold);
+
+                    return;
                 }
             }
 
-            // TODO: if no override, check for inserting new inbetween different frames
+            // check for inserting new in between different frames
+            for (int i = 1; i < kfs.Count; i++) {
+                if (kfs[i - 1].time < time && time < kfs[i].time) {
+                    checkNeedHoldKeyframe(kfs, i - i, time, frameRate, hold);
 
-            var last = kfs[^1];
-            int lastFrameIdx = (int) Math.Round(last.time * frameRate) + 1;
+                    var kf = interpolate(new(time, value), kfs, i, hold);
 
-            // check for the gap that we need to fil
-            if (lastFrameIdx != frame - 1) {
-                var lastTime = (frame - 2) / frameRate;
-                last = new(lastTime, last.value);
-                kfs.Add(last);
+                    kfs.Insert(i, kf);
+
+                    return;
+                }
             }
 
-            if (interp) {
-                var lastVal = last.value;
-                var interpolate = (value - lastVal) / (time - last.time);
-                last = new Keyframe(last.time, last.value, last.inTangent, interpolate);
-                var thisF = new Keyframe(time, value, interpolate, 0f);
-                kfs[^1] = last;
-                kfs.Add(thisF);
-            } else {
-                kfs.Add(new Keyframe(time, value));
+            // if we are down here, there is no previous frame time where we fit in, we need logic here
+            checkNeedHoldKeyframe(kfs, kfs.Count - 1, time, frameRate, hold);
+
+            // add this frame
+            Keyframe nkf = new(time, value);
+            kfs.Add(nkf);
+            kfs[^1] = interpolate(nkf, kfs, kfs.Count - 1, hold);
+        }
+
+        private void checkNeedHoldKeyframe(List<Keyframe> kfs, int lastIdx, float time, float frameRate, bool hold) {
+            if (lastIdx < 0) {
+                return;
+            }
+
+            float delta = 1.0f / frameRate;
+            var last = kfs[^1];
+
+            // if the time since the last frame is greater than a single frame delta, we need a new hold keyframe
+            if (time - last.time > delta) {
+                var newTime = time - delta;
+                Keyframe kf = new(newTime, last.value);
+                kfs.Add(kf);
+                kfs[^1] = interpolate(kf, kfs, kfs.Count - 1, hold);
             }
         }
 
-        private void updateCurrent(List<Keyframe> kfs, int curIdx, float frameTime, float value, bool interp) {
-            Debug.LogWarning("Updating Current");
-            var kf = kfs[curIdx];
-            kf.value = value;
-
-            // re-calculate interpolations if needed
-            if (interp) {
-                // check for previous frame
-                if (curIdx > 0) {
-                    var localLast = kfs[curIdx - 1];
-                    var lastVal = localLast.value;
-                    var interpolate = (value - lastVal) / (frameTime - localLast.time);
-                    localLast.outTangent = interpolate;
-                    kfs[curIdx - 1] = localLast;
-
-                    kf.inTangent = interpolate;
+        private Keyframe interpolate(Keyframe kf, List<Keyframe> kfs, int idx, bool hold) {
+            // check for previous frame
+            if (idx > 0) {
+                var last = kfs[idx - 1];
+                if (hold) {
+                    // for hold, use infinity
+                    last.outTangent = float.PositiveInfinity;
+                    kf.inTangent = float.PositiveInfinity;
+                } else {
+                    // calculate the tangent
+                    float iVal = (kf.value - last.value) / (kf.time - last.time);
+                    last.outTangent = iVal;
+                    kf.inTangent = iVal;
                 }
 
-                // check for next frame
-                if (curIdx + 1 < kfs.Count) {
-                    var next = kfs[curIdx + 1];
-                    var nextVal = next.value;
-                    var interpolate = (value - nextVal) / (frameTime - next.time);
-                    next.inTangent = interpolate;
-                    kfs[curIdx + 1] = next;
-
-                    kf.outTangent = interpolate;
-                }
+                kfs[idx - 1] = last;
             }
 
-            kfs[curIdx] = kf;
+            // check for next frame
+            if (idx + 1 < kfs.Count) {
+                var next = kfs[idx + 1];
+                if (hold) {
+                    // for hold, use infinity
+                    kf.outTangent = float.PositiveInfinity;
+                    next.inTangent = float.PositiveInfinity;
+                } else {
+                    // calculate the tangent
+                    float ival = (kf.value - next.value) / (kf.time - next.time);
+                    kf.outTangent = ival;
+                    next.inTangent = ival;
+                }
+
+                kfs[idx + 1] = next;
+            }
+
+            return kf;
         }
 
         public void applyToAnim(AnimationClip ac) {
