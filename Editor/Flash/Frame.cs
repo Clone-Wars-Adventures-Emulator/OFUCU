@@ -36,16 +36,6 @@ namespace CWAEmu.OFUCU.Flash {
                     bool isDelta = false;
                     if (po2.HasCharacter && !po2.Move) {
                         df.objectsAdded.Add(po2.Depth);
-
-                        // check to see if there was a RemoveObject tag for this object this frame and that both this object and the previous object were masks.
-                        // If so, treat this as a delta with a state reset instead of delete and create (basically, we need to fix what ever flash export / artist
-                        // made this be 2 tags instead of just Move=true, which is annoyingly common in a lot of cases, but messes with masks)
-                        if (df.objectsRemoved.Contains(po2.Depth) && state.charId == po2.CharacterId && state.hasClipDepth && po2.HasClipDepth) {
-                            df.objectsRemoved.Remove(po2.Depth);
-                            df.objectsAdded.Remove(po2.Depth);
-                            state = new();
-                            isDelta = true;
-                        }
                     }
                     if (!po2.HasCharacter && po2.Move) {
                         isDelta = true;
