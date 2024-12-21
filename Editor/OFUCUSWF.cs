@@ -1,3 +1,4 @@
+using CWAEmu.OFUCU.Data;
 using CWAEmu.OFUCU.Flash;
 using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.OFUCU.Runtime;
@@ -423,7 +424,7 @@ namespace CWAEmu.OFUCU {
                         start = f.frameIndex,
                         go = go,
                         path = objPath,
-                        masked = maskedByCount != 0
+                        masked = maskedByCount != 0,
                     };
 
                     objs.addAtDepth(depth, afo);
@@ -533,13 +534,6 @@ namespace CWAEmu.OFUCU {
                 }
 
                 foreach (var change in f.changes.Values) {
-                    // Why do i read this? there is a reason but WHAT IS IT ???!?
-                    AnimatedFrameObject afo = objs.getObject(change.depth, i);
-                    if (afo == null) {
-                        Debug.LogWarning($"There is a change at frame {i}@{change.depth} that does not have an AFO.");
-                        continue;
-                    }
-
                     AnimationData ad = animData.getObject(change.depth, i);
                     if (ad == null) {
                         Debug.LogWarning($"There is a change at frame {i}@{change.depth} that does not have AnimData.");
@@ -556,6 +550,7 @@ namespace CWAEmu.OFUCU {
                 }
             }
 
+            // in the first object we animate, inject a key frame at the end of the "gap" of empty frames
             if (includeEmpty) {
                 var itor = animData.GetEnumerator();
                 itor.MoveNext();
@@ -608,7 +603,9 @@ namespace CWAEmu.OFUCU {
                 go = sprite.getCopy();
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
-                Debug.Log($"Found {obj.charId} as sprite in dictionary");
+                if (Settings.Instance.EnhancedLogging) {
+                    Debug.Log($"Found {obj.charId} as sprite in dictionary");
+                }
             }
 
             if (aoo == null && File.Exists($"{prefabDir}/Sprite.{obj.charId}.prefab")) {
@@ -616,14 +613,18 @@ namespace CWAEmu.OFUCU {
                 go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
-                Debug.Log($"Found {obj.charId} as sprite prefab");
+                if (Settings.Instance.EnhancedLogging) {
+                    Debug.Log($"Found {obj.charId} as sprite prefab");
+                }
             }
 
             if (aoo == null && texts.TryGetValue(obj.charId, out var text)) {
                 go = text.getCopy();
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
-                Debug.Log($"Found {obj.charId} as text in dictionary");
+                if (Settings.Instance.EnhancedLogging) {
+                    Debug.Log($"Found {obj.charId} as text in dictionary");
+                }
             }
 
             if (aoo == null && File.Exists($"{prefabDir}/EditText.{obj.charId}.prefab")) {
@@ -631,12 +632,16 @@ namespace CWAEmu.OFUCU {
                 go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
-                Debug.Log($"Found {obj.charId} as text prefab");
+                if (Settings.Instance.EnhancedLogging) {
+                    Debug.Log($"Found {obj.charId} as text prefab");
+                }
             }
 
             if (aoo == null) {
                 string svg = $"{unityRoot}/shapes/{obj.charId}.svg";
-                Debug.Log($"Looking for {obj.charId} as shape at {svg}");
+                if (Settings.Instance.EnhancedLogging) {
+                    Debug.Log($"Looking for {obj.charId} as shape at {svg}");
+                }
                 GameObject prefabGo = AssetDatabase.LoadAssetAtPath<GameObject>(svg);
                 if (prefabGo == null) {
                     if (missingIsError) {
@@ -650,7 +655,7 @@ namespace CWAEmu.OFUCU {
 
             // TODO: handle text and other? objects
             if (aoo == null) {
-                Debug.Log($"Not placing {obj.charId}, not shape or sprite");
+                Debug.LogWarning($"Not placing {obj.charId}, not shape or sprite");
             } else {
                 ro = go.GetComponent<RuntimeObject>();
                 go.name = go.name.Replace("(Clone)", "");

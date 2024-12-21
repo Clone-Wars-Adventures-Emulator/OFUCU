@@ -1,3 +1,4 @@
+using CWAEmu.OFUCU.Data;
 using CWAEmu.OFUCU.Flash;
 using CWAEmu.OFUCU.Runtime;
 using System;
@@ -387,7 +388,9 @@ namespace CWAEmu.OFUCU {
                             offset += 360;
                         }
 
-                        Debug.Log($"Adjusting offset on zrot for path {path} by {offset}");
+                        if (Settings.Instance.EnhancedLogging) {
+                            Debug.Log($"Adjusting offset on zrot for path {path} by {offset}");
+                        }
                     }
 
                     var lastKf = zrot[i - 1];
