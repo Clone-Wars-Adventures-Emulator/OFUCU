@@ -360,6 +360,7 @@ namespace CWAEmu.OFUCU {
                         go.name = objDesc.name;
                     }
 
+                    // deconflict the names and add some "debug" info to it as well
                     go.name = $"{go.name}.{depth}.{f.frameIndex}";
 
                     go.SetActive(false);
@@ -383,12 +384,49 @@ namespace CWAEmu.OFUCU {
                         masks.Add(depth, (depth, o.clipDepth, target.transform as RectTransform, path));
                         var mask = target.AddComponent<Mask>();
                         mask.showMaskGraphic = false;
+
+                        // loop through my depth to my clip depth to see if i am masking anything that already exists
+                        // this will exclude things removed this frame thankfully, as thats handled by the above removed loop removing the object
+                        for (int curDepth = o.depth + 1; curDepth <= o.clipDepth; curDepth++) {
+                            if (objs.tryGetObject(curDepth, f.frameIndex, out var maskedAFO)) {
+                                var lastFrameIndexZeroBased = f.frameIndex - 2;
+                                if (lastFrameIndexZeroBased < 0) {
+                                    Debug.LogWarning(
+                                        $"Something Fishy is going on... adding a mask of an object we already have an AFO for on last frame, but last frame index is {f.frameIndex}." +
+                                        $"There might be an error following this warning.");
+                                }
+
+                                var lastFrame = dl.frames[lastFrameIndexZeroBased];
+                                var maskedObjDescLastFrame = lastFrame.states[curDepth];
+
+                                // when ever a new mask is encountered, duplicate the masked object and add its path to a list of paths
+                                // only duplicate the object in the hirearchy, dont make a new AFO for it, as it doesnt actually have different data
+                                maskedAFO.allPaths.Add($"{path}/{maskedAFO.go.name}");
+                                var (maskedGoClone, maskedAoo, _) = createObjectReference(goRt, maskedObjDescLastFrame);
+
+                                // make sure we set the right property data
+                                maskedGoClone.name = maskedAFO.go.name;
+                                if (maskedObjDescLastFrame.hasBlendMode) {
+                                    maskedAoo.setBlendMode(maskedObjDescLastFrame.blendMode, $"{unityRoot}/materials", maskedGoClone.transform.parent.name);
+                                }
+
+                                // check to see if they have an aaro, this sets up the aaro and the reference properly
+                                if (!maskedGoClone.TryGetComponent<AnchoredAnimatedRuntimeObject>(out var _)) {
+                                    // if not, try to get the aro, remove it, then add an aaro
+                                    if (maskedGoClone.TryGetComponent<AnimatedRuntimeObject>(out var maskedAro)) {
+                                        DestroyImmediate(maskedAro);
+                                    }
+                                    var aaro = maskedGoClone.AddComponent<AnchoredAnimatedRuntimeObject>();
+                                    aaro.anchorReference = maskedGoClone.transform.parent as RectTransform;
+                                }
+                            }
+                        }
                     }
 
                     // check to see if this object is getting masked
                     int maskedByCount = 0;
                     foreach (var (start, end, rt, path) in masks.Values) {
-                        if (start < depth && end >= depth) {
+                        if (start < depth && depth <= end) {
                             // set the initial positions because they need to be saved
                             var (translate, scale, rotz) = objDesc.matrix.getTransformation();
                             goRt.anchoredPosition = translate;
@@ -426,6 +464,8 @@ namespace CWAEmu.OFUCU {
                         path = objPath,
                         masked = maskedByCount != 0,
                     };
+
+                    afo.allPaths.Add(objPath);
 
                     objs.addAtDepth(depth, afo);
                 }

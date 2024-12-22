@@ -23,6 +23,8 @@ namespace CWAEmu.OFUCU {
                     t.End = v.End;
                     t.Path = v.Path;
                     t.Masked = v.Masked;
+                    t.allPaths.Clear();
+                    t.allPaths.AddRange(v.allPaths);
                     list.Add(t);
                 }
             }
@@ -355,38 +357,78 @@ namespace CWAEmu.OFUCU {
             return kf;
         }
 
+        private void addObjectKeyFrame(List<ObjectReferenceKeyframe> kfs, int frame, float frameRate, UnityEngine.Object value) {
+            // this is like add Key frame, but we dont do any interpolation and we work on ObjectReferenceKeyFrames
+
+            var time = (frame - 1) / frameRate;
+            if (kfs.Count == 0) {
+                var kf = new ObjectReferenceKeyframe {
+                    time = time,
+                    value = value
+                };
+                kfs.Add(kf);
+                return;
+            }
+
+            // check for overrides, copy the value if we are overriding
+            for (int i = 0; i < kfs.Count; i++) {
+                if (kfs[i].time == time) {
+                    var kf = kfs[i];
+                    kf.value = value;
+                    kfs[i] = kf;
+                    return;
+                }
+            }
+
+            // check for inserting new in between different frames
+            for (int i = 1; i < kfs.Count; i++) {
+                if (kfs[i - 1].time < time && time < kfs[i].time) {
+                    kfs.Insert(i, new ObjectReferenceKeyframe {
+                        time = time,
+                        value = value
+                    });
+                    return;
+                }
+            }
+
+            kfs.Add(new ObjectReferenceKeyframe {
+                time = time,
+                value = value
+            });
+        }
+
         public void applyToAnim(AnimationClip ac) {
             if (enabled.Count != 0) {
-                ac.SetCurve(path, typeof(GameObject), "m_IsActive", new AnimationCurve(enabled.ToArray()));
+                applyFloatCurve(ac, typeof(GameObject), "m_IsActive", enabled);
             }
 
             // Matrix Props
             if (xpos.Count != 0) {
                 if (masked) {
-                    ac.SetCurve(path, typeof(AnchoredAnimatedRuntimeObject), "position.x", new AnimationCurve(xpos.ToArray()));
+                    applyFloatCurve(ac, typeof(AnchoredAnimatedRuntimeObject), "position.x", xpos);
                 } else {
-                    ac.SetCurve(path, typeof(RectTransform), "m_AnchoredPosition.x", new AnimationCurve(xpos.ToArray()));
+                    applyFloatCurve(ac, typeof(RectTransform), "m_AnchoredPosition.x", xpos);
                 }
             }
             if (ypos.Count != 0) {
                 if (masked) {
-                    ac.SetCurve(path, typeof(AnchoredAnimatedRuntimeObject), "position.y", new AnimationCurve(ypos.ToArray()));
+                    applyFloatCurve(ac, typeof(AnchoredAnimatedRuntimeObject), "position.y", ypos);
                 } else {
-                    ac.SetCurve(path, typeof(RectTransform), "m_AnchoredPosition.y", new AnimationCurve(ypos.ToArray()));
+                    applyFloatCurve(ac, typeof(RectTransform), "m_AnchoredPosition.y", ypos);
                 }
             }
             if (xscale.Count != 0) {
                 if (masked) {
-                    ac.SetCurve(path, typeof(AnchoredAnimatedRuntimeObject), "scale.x", new AnimationCurve(xscale.ToArray()));
+                    applyFloatCurve(ac, typeof(AnchoredAnimatedRuntimeObject), "scale.x", xscale);
                 } else {
-                    ac.SetCurve(path, typeof(RectTransform), "localScale.x", new AnimationCurve(xscale.ToArray()));
+                    applyFloatCurve(ac, typeof(RectTransform), "localScale.x", xscale);
                 }
             }
             if (yscale.Count != 0) {
                 if (masked) {
-                    ac.SetCurve(path, typeof(AnchoredAnimatedRuntimeObject), "scale.y", new AnimationCurve(yscale.ToArray()));
+                    applyFloatCurve(ac, typeof(AnchoredAnimatedRuntimeObject), "scale.y", yscale);
                 } else {
-                    ac.SetCurve(path, typeof(RectTransform), "localScale.y", new AnimationCurve(yscale.ToArray()));
+                    applyFloatCurve(ac, typeof(RectTransform), "localScale.y", yscale);
                 }
             }
             if (zrot.Count != 0) {
@@ -421,44 +463,62 @@ namespace CWAEmu.OFUCU {
                     lastVal = val;
                 }
 
-                ac.SetCurve(path, typeof(AnimatedRuntimeObject), "zRot", new AnimationCurve(zrot.ToArray()));
+                applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "zRot", zrot);
             }
 
             // color props
             if (hasInitializedColor) {
                 if (hasm.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "hasMult", new AnimationCurve(hasm.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "hasMult", hasm);
                 }
                 if (mr.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "multColor.r", new AnimationCurve(mr.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "multColor.r", mr);
                 }
                 if (mg.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "multColor.g", new AnimationCurve(mg.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "multColor.g", mg);
                 }
                 if (mb.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "multColor.b", new AnimationCurve(mb.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "multColor.b", mb);
                 }
                 if (ma.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "multColor.a", new AnimationCurve(ma.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "multColor.a", ma);
                 }
 
                 if (hasa.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "hasAdd", new AnimationCurve(hasa.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "hasAdd", hasa);
                 }
                 if (ar.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "addColor.r", new AnimationCurve(ar.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "addColor.r", ar);
                 }
                 if (ag.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "addColor.g", new AnimationCurve(ag.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "addColor.g", ag);
                 }
                 if (ab.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "addColor.b", new AnimationCurve(ab.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "addColor.b", ab);
                 }
                 if (aa.Count != 0) {
-                    ac.SetCurve(path, typeof(AnimatedRuntimeObject), "addColor.a", new AnimationCurve(aa.ToArray()));
+                    applyFloatCurve(ac, typeof(AnimatedRuntimeObject), "addColor.a", aa);
                 }
             }
         }
+
+        private void applyFloatCurve(AnimationClip ac, Type targetType, string propPath, List<Keyframe> kfs) {
+            var arr = kfs.ToArray();
+
+            foreach (var path in allPaths) {
+                ac.SetCurve(path, targetType, propPath, new AnimationCurve(arr));
+            }
+        }
+
+        private void applyObjectCurve(AnimationClip ac, Type targetType, string propPath, List<ObjectReferenceKeyframe> kfs) {
+            var arr = kfs.ToArray();
+
+            foreach (var path in allPaths) {
+                var binding = EditorCurveBinding.PPtrCurve(path, typeof(AnimatedRuntimeObject), propPath);
+                AnimationUtility.SetObjectReferenceCurve(ac, binding, arr);
+            }
+        }
+
     }
 
     public abstract class AnimatedThing {
@@ -466,13 +526,10 @@ namespace CWAEmu.OFUCU {
         public abstract int End { get; set; }
         public abstract string Path { get; set; }
         public abstract bool Masked { get; set; }
+        public readonly List<string> allPaths = new();
 
         public bool isDesiredObj(int frameIndex) {
-            if (frameIndex >= End) {
-                return false;
-            }
-
-            return frameIndex >= Start;
+            return Start <= frameIndex && frameIndex < End;
         }
     }
 }
