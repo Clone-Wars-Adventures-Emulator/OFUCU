@@ -307,12 +307,13 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
-            float delta = 1.0f / frameRate;
             var last = kfs[^1];
+            int lastFrame = (int) Math.Round(last.time * frameRate) + 1;
+            int curFrame = (int) Math.Round(time * frameRate) + 1;
 
-            // if the time since the last frame is greater than a single frame delta, we need a new hold keyframe
-            if (time - last.time > delta) {
-                var newTime = time - delta;
+            // if the last frame isnt actually the last frame (current frame - 1), we need a new hold keyframe
+            if (lastFrame != curFrame - 1) {
+                var newTime = time - (1.0f / frameRate);
                 Keyframe kf = new(newTime, last.value);
                 kfs.Add(kf);
                 kfs[^1] = interpolate(kf, kfs, kfs.Count - 1, hold);
