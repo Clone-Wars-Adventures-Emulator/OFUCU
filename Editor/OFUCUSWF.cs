@@ -135,7 +135,7 @@ namespace CWAEmu.OFUCU {
                 var name = $"EditText.{pair.Value.CharacterId}";
 
                 GameObject go;
-                if (File.Exists($"")) {
+                if (File.Exists($"{prefabDir}/{name}.prefab")) {
                     GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/{name}.prefab");
                     go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 } else {
@@ -153,7 +153,7 @@ namespace CWAEmu.OFUCU {
                 var name = $"Text.{pair.Value.CharacterId}";
 
                 GameObject go;
-                if (File.Exists($"")) {
+                if (File.Exists($"{prefabDir}/{name}.prefab")) {
                     GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/{name}.prefab");
                     go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 } else {
