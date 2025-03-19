@@ -60,6 +60,10 @@ namespace CWAEmu.OFUCU {
 
             int bad = 0;
 
+            int button1 = 0;
+            int button2 = 0;
+            List<string> filesWithButton = new();
+
             var files = Directory.EnumerateFiles(path, "*.swf", SearchOption.TopDirectoryOnly);
             foreach (var file in files) {
                 Debug.Log($"Parsing SWF file at {file}");
@@ -77,6 +81,20 @@ namespace CWAEmu.OFUCU {
                     foreach (var sprite in swfFile.Sprites.Values) {
                         bad += checkFrameOrdering(sprite.Frames, $"{swfFile.Name}.Sprite.{sprite.CharacterId}");
                     }
+
+                    bool shouldAdd = false;
+                    if (swfFile.Buttons.Count != 0) {
+                        button1 += swfFile.Buttons.Count;
+                        shouldAdd = true;
+                    }
+                    if (swfFile.Button2s.Count != 0) {
+                        button2 += swfFile.Button2s.Count;
+                        shouldAdd = true;
+                    }
+
+                    if (shouldAdd) {
+                        filesWithButton.Add(file);
+                    }
                 } catch (Exception e) {
                     Debug.LogError($"File at {file} failed to parse with exception: ");
                     Debug.LogException(e);
@@ -85,6 +103,9 @@ namespace CWAEmu.OFUCU {
             }
 
             Debug.Log($"There are {bad} instances of RemoveObject after PlaceObject over {fileCount} files");
+
+            Debug.Log($"There are {button1} DefineButtons, {button2} DefineButton2s (total {button1 + button2}) over {fileCount} files");
+            Debug.Log(string.Join('\n', filesWithButton));
         }
 
         private int checkFrameOrdering(List<Frame> frames, string name) {

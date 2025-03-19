@@ -68,11 +68,7 @@ namespace CWAEmu.OFUCU.Flash {
         DoInitAction = 59,
     }
 
-    // G:\Programming\CWAEmu\OldCWAData\____.swf
-    // G:\Programming\CWAEmu\OldCWAData\StuntGungan.swf
-    // G:\Programming\CWAEmu\OldCWAData\StarTyper.swf
-    // G:\Programming\CWAEmu\OldCWAData\DailyTrivia.swf
-    // G:\Programming\CWAEmu\OldCWAData\FleetCommander.swf
+    // G:\Programming\CWAEmu\OldCWA\OldCWAData\____.swf
     [Serializable]
     public class SWFFile {
         public char Signature1 => sig1;
@@ -111,6 +107,10 @@ namespace CWAEmu.OFUCU.Flash {
         private readonly Dictionary<int, DefineText> texts = new();
         public Dictionary<int, DefineFont3> Fonts => fonts;
         private readonly Dictionary<int, DefineFont3> fonts = new();
+        public Dictionary<int, DefineButton> Buttons => buttons;
+        private readonly Dictionary<int, DefineButton> buttons = new();
+        public Dictionary<int, DefineButton2> Button2s => button2s;
+        private readonly Dictionary<int, DefineButton2> button2s = new();
         public List<Frame> Frames => frames;
         private readonly List<Frame> frames = new();
         public List<DefineScalingGrid> ScalingGrids => scalingGrids;
@@ -247,6 +247,7 @@ namespace CWAEmu.OFUCU.Flash {
                         db.read(reader);
 
                         CharacterTags.Add(db.CharacterId, db);
+                        buttons.Add(db.CharacterId, db);
                         break;
 
                     case EnumTagType.DefineButton2:
@@ -256,6 +257,7 @@ namespace CWAEmu.OFUCU.Flash {
                         db2.read(reader);
 
                         CharacterTags.Add(db2.CharacterId, db2);
+                        button2s.Add(db2.CharacterId, db2);
                         break;
 
                     case EnumTagType.DefineEditText:
