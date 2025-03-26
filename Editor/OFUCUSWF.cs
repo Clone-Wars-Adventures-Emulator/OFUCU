@@ -37,6 +37,7 @@ namespace CWAEmu.OFUCU {
         public Dictionary<int, OFUCUSprite> sprites = new();
         public Dictionary<int, OFUCUText> texts = new();
         public Dictionary<int, Font> fontMap = new();
+        public Dictionary<int, OFUCUButton2> buttons = new();
         public HashSet<int> svgIds = new();
 
         public static void placeNewSWFFile(SWFFile file, string unityRoot, bool placeDict, Dictionary<int, Font> fontMap) {
@@ -166,6 +167,24 @@ namespace CWAEmu.OFUCU {
                 text.init(file, this, pair.Value, prefabDir, matDir);
                 texts.Add(pair.Key, text);
             }
+
+            foreach (var pair in file.Button2s) {
+                var name = $"Button2.{pair.Value.CharacterId}";
+
+                GameObject go;
+                if (File.Exists($"{prefabDir}/{name}.prefab")) {
+                    GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/{name}.prefab");
+                    go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
+                } else {
+                    go = new(name, typeof(OFUCUButton2));
+                }
+
+                RectTransform rt = go.transform as RectTransform;
+                rt.SetParent(dictonaryT, false);
+                var btn = go.GetComponent<OFUCUButton2>();
+                btn.init(this, pair.Value, prefabDir, matDir);
+                buttons.Add(pair.Key, btn);
+            }
         }
 
         public void placeFrames(RectTransform root, List<Frame> frames, HashSet<int> dependencies = null, bool anchorTopLeft = false, bool missingIsError = true) {
@@ -201,7 +220,7 @@ namespace CWAEmu.OFUCU {
                     }
 
                     // create object (can be extracted)
-                    var (go, aoo, ro) = createObjectReference(frameRt, obj, missingIsError);
+                    var (go, aoo, ro) = createObjectReference(frameRt, obj.charId, missingIsError);
 
                     if (go == null) {
                         Debug.LogWarning($"Skipping missing dependency {obj.charId} of {root.name}");
@@ -352,7 +371,7 @@ namespace CWAEmu.OFUCU {
                 // check objects added and spawn them
                 foreach (var depth in f.objectsAdded) {
                     var objDesc = f.states[depth];
-                    var (go, aoo, _) = createObjectReference(root, objDesc);
+                    var (go, aoo, _) = createObjectReference(root, objDesc.charId);
                     var aro = go.AddComponent<AnimatedRuntimeObject>();
                     var goRt = go.transform as RectTransform;
 
@@ -402,7 +421,7 @@ namespace CWAEmu.OFUCU {
                                 // when ever a new mask is encountered, duplicate the masked object and add its path to a list of paths
                                 // only duplicate the object in the hirearchy, dont make a new AFO for it, as it doesnt actually have different data
                                 maskedAFO.allPaths.Add($"{path}/{maskedAFO.go.name}");
-                                var (maskedGoClone, maskedAoo, _) = createObjectReference(goRt, maskedObjDescLastFrame);
+                                var (maskedGoClone, maskedAoo, _) = createObjectReference(goRt, maskedObjDescLastFrame.charId);
 
                                 // make sure we set the right property data
                                 maskedGoClone.name = maskedAFO.go.name;
@@ -635,57 +654,76 @@ namespace CWAEmu.OFUCU {
             return 0;
         }
 
-        private (GameObject go, AbstractOFUCUObject aoo, RuntimeObject ro) createObjectReference(RectTransform parent, DisplayObject obj, bool missingIsError = true) {
+        public (GameObject go, AbstractOFUCUObject aoo, RuntimeObject ro) createObjectReference(RectTransform parent, int charId, bool missingIsError = true) {
             GameObject go = null;
             AbstractOFUCUObject aoo = null;
             RuntimeObject ro = null;
-            if (sprites.TryGetValue(obj.charId, out var sprite)) {
+            if (sprites.TryGetValue(charId, out var sprite)) {
                 go = sprite.getCopy();
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
                 if (Settings.Instance.EnhancedLogging) {
-                    Debug.Log($"Found {obj.charId} as sprite in dictionary");
+                    Debug.Log($"Found {charId} as sprite in dictionary");
                 }
             }
 
-            if (aoo == null && File.Exists($"{prefabDir}/Sprite.{obj.charId}.prefab")) {
-                GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/Sprite.{obj.charId}.prefab");
+            if (aoo == null && File.Exists($"{prefabDir}/Sprite.{charId}.prefab")) {
+                GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/Sprite.{charId}.prefab");
                 go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
                 if (Settings.Instance.EnhancedLogging) {
-                    Debug.Log($"Found {obj.charId} as sprite prefab");
+                    Debug.Log($"Found {charId} as sprite prefab");
                 }
             }
 
-            if (aoo == null && texts.TryGetValue(obj.charId, out var text)) {
+            if (aoo == null && texts.TryGetValue(charId, out var text)) {
                 go = text.getCopy();
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
                 if (Settings.Instance.EnhancedLogging) {
-                    Debug.Log($"Found {obj.charId} as text in dictionary");
+                    Debug.Log($"Found {charId} as text in dictionary");
                 }
             }
 
-            if (aoo == null && File.Exists($"{prefabDir}/EditText.{obj.charId}.prefab")) {
-                GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/EditText.{obj.charId}.prefab");
+            if (aoo == null && File.Exists($"{prefabDir}/EditText.{charId}.prefab")) {
+                GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/EditText.{charId}.prefab");
                 go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
                 go.transform.SetParent(parent, false);
                 aoo = go.GetComponent<AbstractOFUCUObject>();
                 if (Settings.Instance.EnhancedLogging) {
-                    Debug.Log($"Found {obj.charId} as text prefab");
+                    Debug.Log($"Found {charId} as text prefab");
+                }
+            }
+
+            if (aoo == null && buttons.TryGetValue(charId, out var button)) {
+                go = button.getCopy();
+                go.transform.SetParent(parent, false);
+                aoo = go.GetComponent<AbstractOFUCUObject>();
+                if (Settings.Instance.EnhancedLogging) {
+                    Debug.Log($"Found {charId} as button in dictionary");
+                }
+            }
+
+            if (aoo == null && File.Exists($"{prefabDir}/Button2.{charId}.prefab")) {
+                GameObject pgo = AssetDatabase.LoadAssetAtPath<GameObject>($"{prefabDir}/Button2.{charId}.prefab");
+                go = (GameObject) PrefabUtility.InstantiatePrefab(pgo);
+                go.transform.SetParent(parent, false);
+                aoo = go.GetComponent<AbstractOFUCUObject>();
+                if (Settings.Instance.EnhancedLogging) {
+                    Debug.Log($"Found {charId} as button prefab");
                 }
             }
 
             if (aoo == null) {
-                string svg = $"{unityRoot}/shapes/{obj.charId}.svg";
+                string svg = $"{unityRoot}/shapes/{charId}.svg";
                 if (Settings.Instance.EnhancedLogging) {
-                    Debug.Log($"Looking for {obj.charId} as shape at {svg}");
+                    Debug.Log($"Looking for {charId} as shape at {svg}");
                 }
                 GameObject prefabGo = AssetDatabase.LoadAssetAtPath<GameObject>(svg);
                 if (prefabGo == null) {
                     if (missingIsError) {
-                        Debug.LogError($"Failed to find svg file {obj.charId}");
+                        Debug.LogError($"Failed to find svg file {charId}");
                     }
                 } else {
                     go = (GameObject) PrefabUtility.InstantiatePrefab(prefabGo, parent);
@@ -693,9 +731,8 @@ namespace CWAEmu.OFUCU {
                 }
             }
 
-            // TODO: handle text and other? objects
             if (aoo == null) {
-                Debug.LogWarning($"Not placing {obj.charId}, not shape or sprite");
+                Debug.LogWarning($"Not placing {charId}, not shape or sprite");
             } else {
                 ro = go.GetComponent<RuntimeObject>();
                 go.name = go.name.Replace("(Clone)", "");
