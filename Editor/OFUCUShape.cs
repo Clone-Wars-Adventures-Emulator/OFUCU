@@ -25,8 +25,9 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
-            var mat = new Material(svgi.material);
-            mat.shader = Shader.Find(shaderName);
+            var mat = new Material(svgi.material) {
+                shader = Shader.Find(shaderName)
+            };
             svgi.material = mat;
 
             if (!Directory.Exists(saveFolder)) {
