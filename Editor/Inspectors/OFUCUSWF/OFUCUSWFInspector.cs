@@ -43,6 +43,13 @@ namespace CWAEmu.OFUCU {
                 };
             }
 
+            var saveBtnEle = root.Q("save");
+            if (saveBtnEle is Button saveBtn) {
+                saveBtn.clicked += () => {
+                    swf.saveAsPrefab();
+                };
+            }
+
             return root;
         }
     }

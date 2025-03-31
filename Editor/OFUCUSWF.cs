@@ -762,6 +762,19 @@ namespace CWAEmu.OFUCU {
 
             animateFrames(vfswfhT, file.Frames);
         }
+
+        public void saveAsPrefab() {
+            // TODO: the implementations of these methods across all instances are wrong. They should check for the asset and use that as the condition
+            // This would prevent needing to reload all the time....
+            string path = $"{unityRoot}/{name}.prefab";
+            if (File.Exists(path)) {
+                // TODO: do i override it?
+                Debug.LogWarning($"{name} already has a prefab at path {path}, modify that directly");
+                return;
+            }
+
+            PrefabUtility.SaveAsPrefabAssetAndConnect(gameObject, path, InteractionMode.AutomatedAction);
+        }
     }
 
     [Serializable]
