@@ -1,5 +1,7 @@
 using CWAEmu.OFUCU.Flash;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -50,6 +52,12 @@ namespace CWAEmu.OFUCU {
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
+            bool browseSwf = GUILayout.Button("Browse for SWF");
+            GUILayout.Space(5);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(5);
             GUILayout.Label("Unity Input/Output root: ");
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
@@ -57,6 +65,12 @@ namespace CWAEmu.OFUCU {
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
             EditorGUILayout.PropertyField(So.FindProperty("unityRoot"), new GUIContent(""));
+            GUILayout.Space(5);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(5);
+            bool browseRoot = GUILayout.Button("Browse for Unity Root");
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
@@ -72,19 +86,32 @@ namespace CWAEmu.OFUCU {
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
-            if (so.hasModifiedProperties) {
-                so.ApplyModifiedPropertiesWithoutUndo();
-            }
-
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
-            if (GUILayout.Button("Read SWF")) {
-                attemptSWFRead();
-            }
+            var readSwf = GUILayout.Button("Read SWF");
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
             GUILayout.EndArea();
+
+            if (browseSwf) {
+                So.FindProperty("swfPath").stringValue = EditorUtility.OpenFilePanel("Select SWF File", "", "swf");
+            } else if (browseRoot) {
+                var dir = EditorUtility.OpenFolderPanel("Select Asset Root", "Assets", "");
+                dir = $"Assets/{Path.GetRelativePath(Application.dataPath, dir).Replace('\\', '/')}";
+                So.FindProperty("unityRoot").stringValue = dir;
+            } else if (readSwf) {
+                try {
+                    attemptSWFRead();
+                } catch (Exception e) {
+                    Debug.LogError($"Failed to parse swf {swfPath}");
+                    Debug.LogException(e);
+                }
+            }
+
+            if (so.hasModifiedProperties) {
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         private void attemptSWFRead() {

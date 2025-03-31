@@ -63,6 +63,7 @@ namespace CWAEmu.OFUCU {
             int button1 = 0;
             int button2 = 0;
             List<string> filesWithButton = new();
+            List<DefineButton2> button2s = new();
 
             var files = Directory.EnumerateFiles(path, "*.swf", SearchOption.TopDirectoryOnly);
             foreach (var file in files) {
@@ -106,6 +107,8 @@ namespace CWAEmu.OFUCU {
 
             Debug.Log($"There are {button1} DefineButtons, {button2} DefineButton2s (total {button1 + button2}) over {fileCount} files");
             Debug.Log(string.Join('\n', filesWithButton));
+
+            Debug.Log(JsonUtility.ToJson(button2s));
         }
 
         private int checkFrameOrdering(List<Frame> frames, string name) {
