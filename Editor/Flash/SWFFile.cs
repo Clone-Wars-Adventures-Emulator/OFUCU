@@ -1,3 +1,4 @@
+using CWAEmu.OFUCU.Data;
 using CWAEmu.OFUCU.Flash.Records;
 using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.Ionic.Zlib;
@@ -6,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Rect = CWAEmu.OFUCU.Flash.Records.Rect;
-using CWAEmu.OFUCU.Data;
 
 namespace CWAEmu.OFUCU.Flash {
     public enum EnumTagType {
@@ -15,12 +15,15 @@ namespace CWAEmu.OFUCU.Flash {
         DefineShape2 = 22,
         DefineShape3 = 32,
         DefineShape4 = 83,
+        DefineMorphShape = 46,
+        DefineMorphShape2 = 84,
 
         // jpegs
         DefineBits = 6,
         JPEGTables = 8,
         DefineBitsJPEG2 = 21,
         DefineBitsJPEG3 = 35,
+        DefineBitsJPEG4 = 90, // SWF 10
 
         // PNGs
         DefineBitsLossless = 20,
@@ -49,6 +52,11 @@ namespace CWAEmu.OFUCU.Flash {
         RemoveObject = 5,
         RemoveObject2 = 28,
 
+        // Fonts
+        DefineFont3 = 75,
+        DefineFontAlignZones = 73,
+        DefineFontName = 88,
+
         // Metadata / Unknowns
         CSMTextSettings = 74,
         ExportAssets = 56,
@@ -56,16 +64,15 @@ namespace CWAEmu.OFUCU.Flash {
 
         // Unknown if care
         ImportAssets2 = 71,
-        DefineFont3 = 75,
-        DefineFontAlignZones = 73,
+        DefineFont4 = 91, // SWF 10
         Metadata = 77,
-        DefineFontName = 88,
 
         // Wont care ever
         SetBackgroundColor = 9,
         Protect = 24, // really dont care about this one, we are intending to break these files...
         DoAction = 12,
         DoInitAction = 59,
+        ScriptLimits = 65,
     }
 
     // G:\Programming\CWAEmu\OldCWA\OldCWAData\____.swf
@@ -158,6 +165,7 @@ namespace CWAEmu.OFUCU.Flash {
 
                 switch (header.TagType) {
                     // = = = = = = = = = = Need to parse = = = = = = = = = =
+                    // == Shapes ==
                     case EnumTagType.DefineShape:
                         readShape(1, header, reader);
                         break;
@@ -170,7 +178,16 @@ namespace CWAEmu.OFUCU.Flash {
                     case EnumTagType.DefineShape4:
                         readShape(4, header, reader);
                         break;
+                    case EnumTagType.DefineMorphShape:
+                        Debug.LogWarning($"SWF {name} defines a MorphShape, but OFUCU does not support this yet. Things may be missing or broken");
+                        reader.skip(header.TagLength);
+                        break;
+                    case EnumTagType.DefineMorphShape2:
+                        Debug.LogWarning($"SWF {name} defines a MorphShape2, but OFUCU does not support this yet. Things may be missing or broken");
+                        reader.skip(header.TagLength);
+                        break;
 
+                    // == Jpegs ==
                     case EnumTagType.DefineBits:
                         DefineBits defBits = new() {
                             Header = header,
@@ -212,6 +229,7 @@ namespace CWAEmu.OFUCU.Flash {
                         Images.Add(jpg3.CharacterId, jpg3);
                         break;
 
+                    // == PNGS ==
                     case EnumTagType.DefineBitsLossless:
                         readBitsLossless(1, header, reader);
                         break;
@@ -219,10 +237,12 @@ namespace CWAEmu.OFUCU.Flash {
                         readBitsLossless(2, header, reader);
                         break;
 
+                    // == Sprite ==
                     case EnumTagType.DefineSprite:
                         readSprite(header, reader);
                         break;
 
+                    // == Frame Control ==
                     case EnumTagType.PlaceObject2:
                         PlaceObject2 po2 = new() {
                             Header = header,
@@ -230,6 +250,38 @@ namespace CWAEmu.OFUCU.Flash {
                         po2.read(reader);
 
                         curFrame.addTag(po2);
+                        break;
+                    case EnumTagType.PlaceObject3:
+                        PlaceObject3 po3 = new() {
+                            Header = header
+                        };
+                        po3.read(reader);
+
+                        curFrame.addTag(po3);
+                        break;
+                    case EnumTagType.RemoveObject:
+                        RemoveObject ro = new() {
+                            Header = header
+                        };
+                        ro.read(reader);
+
+                        curFrame.addTag(ro);
+                        break;
+                    case EnumTagType.RemoveObject2:
+                        RemoveObject2 ro2 = new() {
+                            Header = header
+                        };
+                        ro2.read(reader);
+
+                        curFrame.addTag(ro2);
+                        break;
+                    case EnumTagType.FrameLabel:
+                        FrameLabel fl = new() {
+                            Header = header
+                        };
+                        fl.read(reader);
+
+                        curFrame.addTag(fl);
                         break;
 
                     case EnumTagType.ShowFrame:
@@ -240,6 +292,7 @@ namespace CWAEmu.OFUCU.Flash {
                         };
                         break;
 
+                    // == Buttons ==
                     case EnumTagType.DefineButton:
                         DefineButton db = new() {
                             Header = header,
@@ -249,7 +302,6 @@ namespace CWAEmu.OFUCU.Flash {
                         CharacterTags.Add(db.CharacterId, db);
                         buttons.Add(db.CharacterId, db);
                         break;
-
                     case EnumTagType.DefineButton2:
                         DefineButton2 db2 = new() {
                             Header = header,
@@ -260,6 +312,7 @@ namespace CWAEmu.OFUCU.Flash {
                         button2s.Add(db2.CharacterId, db2);
                         break;
 
+                    // == Text ==
                     case EnumTagType.DefineEditText:
                         DefineEditText det = new() {
                             Header = header,
@@ -269,11 +322,9 @@ namespace CWAEmu.OFUCU.Flash {
                         CharacterTags.Add(det.CharacterId, det);
                         EditTexts.Add(det.CharacterId, det);
                         break;
-
                     case EnumTagType.DefineText:
                         readText(header, reader, 1);
                         break;
-
                     case EnumTagType.DefineText2:
                         readText(header, reader, 2);
                         break;
@@ -311,6 +362,8 @@ namespace CWAEmu.OFUCU.Flash {
                     case EnumTagType.SetBackgroundColor:
                     case EnumTagType.Protect:
                     case EnumTagType.DoInitAction:
+                    case EnumTagType.DoAction:
+                    case EnumTagType.ScriptLimits:
                         reader.skip(header.TagLength);
                         break;
                     default:
@@ -402,8 +455,8 @@ namespace CWAEmu.OFUCU.Flash {
                 return null;
             }
 
-            if (file.Version > 9) {
-                Debug.LogError($"File version {file.Version} is too new! Must be 9 or older.");
+            if (file.Version > 10) {
+                Debug.LogError($"File version {file.Version} is too new! Must be 10 or older.");
                 return null;
             }
 

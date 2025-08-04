@@ -43,7 +43,9 @@ namespace CWAEmu.OFUCU.Flash {
                 record.YOffset = reader.readUInt16();
             }
 
-            record.Height = reader.readUInt16();
+            if (record.HasFont) {
+                record.Height = reader.readUInt16();
+            }
             record.GlyphCount = reader.readByte();
 
             var glyphs = new GlyphEntry[record.GlyphCount];

@@ -1,4 +1,5 @@
 using CWAEmu.OFUCU.Flash.Records;
+using System;
 
 namespace CWAEmu.OFUCU.Flash.Tags {
     // TODO: support for DefineFont2 and other font tags?
@@ -28,6 +29,8 @@ namespace CWAEmu.OFUCU.Flash.Tags {
         public KerningRecord[] KerningTable { get; private set; }
 
         public override void read(Reader reader) {
+            int head = reader.Index;
+
             CharacterId = reader.readUInt16();
 
             HasLayout = reader.readBitFlag();
@@ -97,6 +100,18 @@ namespace CWAEmu.OFUCU.Flash.Tags {
                 KerningTable = new KerningRecord[KerningCount];
                 for (int i = 0; i < KerningCount; i++) {
                     KerningTable[i] = KerningRecord.readRecord(reader, wideCodes);
+                }
+            }
+
+            // there are some situations where there is a whole bunch of extra data here for no reason at all
+            int bytesRead = reader.Index - head;
+            if (bytesRead != Header.TagLength) {
+                if (bytesRead > Header.TagLength) {
+                    throw new Exception($"Read {bytesRead - Header.TagLength} more bytes in DefineFont3@{CharacterId} than we should have");
+                } else {
+                    // this is technically a legal state, where we have read less bytes than the tag length.
+                    // Why adobe would have ever exported like this i cant say, but it did, and its wrong, so we gotta fix it...
+                    reader.skip(Header.TagLength - bytesRead);
                 }
             }
         }

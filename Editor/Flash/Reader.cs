@@ -31,6 +31,7 @@ namespace CWAEmu.OFUCU.Flash {
         public bool SkipImageData => skipImageData;
         public bool ReachedEnd => index == data.Length;
         public int Remaining => data.Length - index;
+        public int Index => index;
         public SWFFile File => file;
 
         public void skip(int bytes) => index += bytes;

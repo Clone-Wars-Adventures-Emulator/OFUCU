@@ -67,15 +67,17 @@ namespace CWAEmu.OFUCU {
 
             var files = Directory.EnumerateFiles(path, "*.swf", SearchOption.TopDirectoryOnly);
             foreach (var file in files) {
-                Debug.Log($"Parsing SWF file at {file}");
+                // Debug.Log($"Parsing SWF file at {file}");
 
                 try {
                     SWFFile swfFile = SWFFile.readFull(file);
                     if (swfFile == null) {
                         // Temporarily ingore files that the parser doesnt parse (usually version related)
-                        // Debug.LogError($"File at {file} failed to parse");
+                        Debug.LogError($"File at {file} failed to parse");
                         continue;
                     }
+
+                    continue;
 
                     fileCount++;
                     bad += checkFrameOrdering(swfFile.Frames, swfFile.Name);
@@ -103,12 +105,12 @@ namespace CWAEmu.OFUCU {
 
             }
 
-            Debug.Log($"There are {bad} instances of RemoveObject after PlaceObject over {fileCount} files");
+            // Debug.Log($"There are {bad} instances of RemoveObject after PlaceObject over {fileCount} files");
 
-            Debug.Log($"There are {button1} DefineButtons, {button2} DefineButton2s (total {button1 + button2}) over {fileCount} files");
-            Debug.Log(string.Join('\n', filesWithButton));
+            // Debug.Log($"There are {button1} DefineButtons, {button2} DefineButton2s (total {button1 + button2}) over {fileCount} files");
+            // Debug.Log(string.Join('\n', filesWithButton));
 
-            Debug.Log(JsonUtility.ToJson(button2s));
+            // Debug.Log(JsonUtility.ToJson(button2s));
         }
 
         private int checkFrameOrdering(List<Frame> frames, string name) {
