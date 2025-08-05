@@ -1,17 +1,13 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace CWAEmu.OFUCU {
     [CustomEditor(typeof(OFUCUText))]
+    [CanEditMultipleObjects]
     public class OFUCUTextInspector : Editor {
         public VisualTreeAsset Inspector;
-
-        private OFUCUText text;
-
-        private void OnEnable() {
-            text = (OFUCUText) target;
-        }
 
         public override VisualElement CreateInspectorGUI() {
             if (Application.isPlaying) {
@@ -25,7 +21,14 @@ namespace CWAEmu.OFUCU {
             var placeBtnEle = root.Q("save");
             if (placeBtnEle is Button placeBtn) {
                 placeBtn.clicked += () => {
-                    text.saveAsPrefab();
+                    foreach (var textTarget in targets) {
+                        try {
+                            ((OFUCUText) textTarget).saveAsPrefab();
+                        } catch (Exception e) {
+                            Debug.LogError($"Failed to save {textTarget.name} as a prefab");
+                            Debug.LogException(e);
+                        }
+                    }
                 };
             }
 
