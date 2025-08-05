@@ -1,7 +1,7 @@
 {
   "name": "com.cwaemu.ofucu",
   "displayName": "OFUCU",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "OFUCU - Opinionated Flash to Unity Conversion Utility\nOFUCU is a tool to convert a selected flash file to Unity UI. It is opinionated in its conversion and will do things a specific way, leaving very little up to the user to decide.",
   "unity": "2021.3",
   "type": "tool",
