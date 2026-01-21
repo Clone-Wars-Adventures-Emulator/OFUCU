@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.VectorGraphics;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -40,9 +41,38 @@ namespace CWAEmu.OFUCU {
         public Dictionary<int, OFUCUButton2> buttons = new();
         public HashSet<int> svgIds = new();
 
+        public static bool verifySwfShapes(string unityRoot, string swfName, out List<int> ids) {
+            ids = new();
+
+            var files = Directory.EnumerateFiles($"{unityRoot}/shapes", "*.svg", SearchOption.TopDirectoryOnly);
+            List<string> badSvgs = new();
+            foreach (var filePath in files) {
+                var fileName = Path.GetFileNameWithoutExtension(filePath);
+                var obj = AssetDatabase.LoadAssetAtPath<SVGImage>(filePath.Replace('\\', '/'));
+                if (obj == null) {
+                    badSvgs.Add(fileName);
+                    continue;
+                }
+
+                if (int.TryParse(fileName, out var id)) {
+                    ids.Add(id);
+                }
+            }
+
+            if (badSvgs.Count != 0) {
+                Debug.LogError($"SWF {swfName} has {badSvgs.Count} misconfigured sprite assets. Was their import type not changed?\n{string.Join('\n', badSvgs)}");
+                return false;
+            }
+            return true;
+        }
+
         public static void placeNewSWFFile(SWFFile file, string unityRoot, bool placeDict, Dictionary<int, Font> fontMap) {
             if (!Directory.Exists(unityRoot)) {
                 Debug.LogError($"Input/Output root directory '{unityRoot}' does not exist.");
+                return;
+            }
+
+            if (!verifySwfShapes(unityRoot, file.Name, out var svgIds)) {
                 return;
             }
 
@@ -52,18 +82,10 @@ namespace CWAEmu.OFUCU {
             swf.file = file;
             swf.fontMap = fontMap;
             swf.placeDict = placeDict;
-            swf.init();
+            swf.init(svgIds);
         }
 
-        private void init() {
-            var files = Directory.EnumerateFiles($"{unityRoot}/shapes", "*.svg", SearchOption.TopDirectoryOnly);
-            foreach (var filePath in files) {
-                var fileName = Path.GetFileNameWithoutExtension(filePath);
-                if (int.TryParse(fileName, out var id)) {
-                    svgIds.Add(id);
-                }
-            }
-
+        private void init(List<int> svgIds) {
             Canvas canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.additionalShaderChannels = AdditionalCanvasShaderChannels.TexCoord1 | AdditionalCanvasShaderChannels.TexCoord2 | AdditionalCanvasShaderChannels.TexCoord3;
@@ -732,7 +754,7 @@ namespace CWAEmu.OFUCU {
             }
 
             if (aoo == null) {
-                Debug.LogWarning($"Not placing {charId}, not shape or sprite");
+                Debug.LogWarning($"Not placing {charId}, not shape, sprite, or text");
             } else {
                 ro = go.GetComponent<RuntimeObject>();
                 go.name = go.name.Replace("(Clone)", "");
