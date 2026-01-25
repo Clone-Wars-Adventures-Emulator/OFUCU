@@ -41,7 +41,7 @@ namespace CWAEmu.OFUCU {
         public Dictionary<int, OFUCUButton2> buttons = new();
         public HashSet<int> svgIds = new();
 
-        public static bool verifySwfShapes(string unityRoot, string swfName, out List<int> ids) {
+        public static bool verifySwfShapes(string unityRoot, string swfName, out HashSet<int> ids) {
             ids = new();
 
             var files = Directory.EnumerateFiles($"{unityRoot}/shapes", "*.svg", SearchOption.TopDirectoryOnly);
@@ -66,14 +66,14 @@ namespace CWAEmu.OFUCU {
             return true;
         }
 
-        public static void placeNewSWFFile(SWFFile file, string unityRoot, bool placeDict, Dictionary<int, Font> fontMap) {
+        public static OFUCUSWF placeNewSWFFile(SWFFile file, string unityRoot, bool placeDict, Dictionary<int, Font> fontMap) {
             if (!Directory.Exists(unityRoot)) {
                 Debug.LogError($"Input/Output root directory '{unityRoot}' does not exist.");
-                return;
+                return null;
             }
 
-            if (!verifySwfShapes(unityRoot, file.Name, out var svgIds)) {
-                return;
+            if (!verifySwfShapes(unityRoot, file.Name, out var tmpSvgIds)) {
+                return null;
             }
 
             GameObject go = new($"SWFRoot-{file.Name}");
@@ -82,10 +82,13 @@ namespace CWAEmu.OFUCU {
             swf.file = file;
             swf.fontMap = fontMap;
             swf.placeDict = placeDict;
-            swf.init(svgIds);
+            swf.svgIds = tmpSvgIds;
+            swf.init();
+
+            return swf;
         }
 
-        private void init(List<int> svgIds) {
+        private void init() {
             Canvas canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.additionalShaderChannels = AdditionalCanvasShaderChannels.TexCoord1 | AdditionalCanvasShaderChannels.TexCoord2 | AdditionalCanvasShaderChannels.TexCoord3;
