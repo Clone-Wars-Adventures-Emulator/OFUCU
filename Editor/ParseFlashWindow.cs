@@ -1,4 +1,5 @@
 using CWAEmu.OFUCU.Flash;
+using CWAEmu.OFUCU.MagicButton;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -92,19 +93,34 @@ namespace CWAEmu.OFUCU {
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(5);
+            var magic = GUILayout.Button("Magic Button");
+            GUILayout.Space(5);
+            GUILayout.EndHorizontal();
+
             GUILayout.EndArea();
 
             if (browseSwf) {
                 So.FindProperty("swfPath").stringValue = EditorUtility.OpenFilePanel("Select SWF File", "", "swf");
             } else if (browseRoot) {
                 var dir = EditorUtility.OpenFolderPanel("Select Asset Root", "Assets", "");
-                dir = $"Assets/{Path.GetRelativePath(Application.dataPath, dir).Replace('\\', '/')}";
-                So.FindProperty("unityRoot").stringValue = dir;
+                if (dir != null) {
+                    dir = $"Assets/{Path.GetRelativePath(Application.dataPath, dir).Replace('\\', '/')}";
+                    So.FindProperty("unityRoot").stringValue = dir;
+                }
             } else if (readSwf) {
                 try {
                     attemptSWFRead();
                 } catch (Exception e) {
                     Debug.LogError($"Failed to parse swf {swfPath}");
+                    Debug.LogException(e);
+                }
+            } else if (magic) {
+                try {
+                    magicButton();
+                } catch (Exception e) {
+                    Debug.LogError($"Failed to run magic button for {swfPath}");
                     Debug.LogException(e);
                 }
             }
@@ -114,13 +130,15 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        private void attemptSWFRead() {
-            // parse the file, this does the actual interaction with the SWF specification
-            SWFFile file = SWFFile.readFull(swfPath, false);
+        private bool commonRead(out SWFFile file, out OFUCUSWF ofucuSwf) {
+            // compile proection
+            ofucuSwf = null;
+
+            file = SWFFile.readFull(swfPath, false);
 
             if (file == null) {
-                Debug.LogError("The supplied SWF file does not exist or an error occured.");
-                return;
+                Debug.LogError($"The supplied SWF file {swfPath} does not exist or an error occured.");
+                return false;
             }
 
             Dictionary<int, Font> fontMap = new();
@@ -134,7 +152,31 @@ namespace CWAEmu.OFUCU {
             }
 
             // "Place" the file, this is the start of the conversion steps from SWF to Unity
-            OFUCUSWF.placeNewSWFFile(file, unityRoot, placeDict, fontMap);
+            var placed = OFUCUSWF.placeNewSWFFile(file, unityRoot, true, fontMap);
+            if (placed == null) {
+                // it errored out, but the error was already printed, so we dont care
+                return false;
+            }
+
+            return true;
+        }
+
+        private void attemptSWFRead() {
+            // discard the output from the common read, we dont need it for the original functionality
+            commonRead(out _, out _);
+        }
+
+        private void magicButton() {
+            // we care about the results from this, if it succeeded tho
+            var succ = commonRead(out var file, out var ofucuSwf);
+            if (!succ) {
+                return;
+            }
+
+            // and now the magic starts to occur
+            var analysis = SwfAnalysis.of(file);
+
+            // TODO: right here we need to open a dialog that will display all the options and let us modify them
         }
     }
 }
