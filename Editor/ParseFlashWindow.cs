@@ -125,16 +125,17 @@ namespace CWAEmu.OFUCU {
                 }
             }
 
-            if (so.hasModifiedProperties) {
-                so.ApplyModifiedPropertiesWithoutUndo();
+            if (So.hasModifiedProperties) {
+                So.ApplyModifiedPropertiesWithoutUndo();
             }
         }
 
-        private bool commonRead(out SWFFile file, out OFUCUSWF ofucuSwf) {
+        private bool commonRead(out SWFFile file, out Func<OFUCUSWF> createSwf) {
             // compile proection
-            ofucuSwf = null;
+            createSwf = null;
 
-            file = SWFFile.readFull(swfPath, false);
+            var localFile = SWFFile.readFull(swfPath, false);
+            file = localFile;
 
             if (file == null) {
                 Debug.LogError($"The supplied SWF file {swfPath} does not exist or an error occured.");
@@ -151,32 +152,33 @@ namespace CWAEmu.OFUCU {
                 fontMap.Add(mapping.fontId, mapping.font);
             }
 
-            // "Place" the file, this is the start of the conversion steps from SWF to Unity
-            var placed = OFUCUSWF.placeNewSWFFile(file, unityRoot, true, fontMap);
-            if (placed == null) {
-                // it errored out, but the error was already printed, so we dont care
+            if (!OFUCUSWF.verifySwfPlaceable(file, unityRoot, out var tempIds)) {
                 return false;
             }
+
+            // return a function that will place the SWF when the consumer is ready
+            createSwf = () => OFUCUSWF.placeNewSWFFile(localFile, unityRoot, true, fontMap, tempIds);
 
             return true;
         }
 
         private void attemptSWFRead() {
             // discard the output from the common read, we dont need it for the original functionality
-            commonRead(out _, out _);
+            commonRead(out _, out var create);
+            create?.Invoke();
         }
 
         private void magicButton() {
             // we care about the results from this, if it succeeded tho
-            var succ = commonRead(out var file, out var ofucuSwf);
+            var succ = commonRead(out var file, out var create);
             if (!succ) {
                 return;
             }
 
             // and now the magic starts to occur
-            var analysis = SwfAnalysis.of(file);
+            var analysis = SwfAnalysis.of(file, unityRoot);
 
-            // TODO: right here we need to open a dialog that will display all the options and let us modify them
+            GetWindow<MagicButtonWindow>().setCurrent(analysis, create);
         }
     }
 }

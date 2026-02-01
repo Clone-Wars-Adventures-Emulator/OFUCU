@@ -66,23 +66,28 @@ namespace CWAEmu.OFUCU {
             return true;
         }
 
-        public static OFUCUSWF placeNewSWFFile(SWFFile file, string unityRoot, bool placeDict, Dictionary<int, Font> fontMap) {
+        public static bool verifySwfPlaceable(SWFFile file, string unityRoot, out HashSet<int> tmpSvgIds) {
             if (!Directory.Exists(unityRoot)) {
                 Debug.LogError($"Input/Output root directory '{unityRoot}' does not exist.");
-                return null;
+                tmpSvgIds = new();
+                return false;
             }
 
-            if (!verifySwfShapes(unityRoot, file.Name, out var tmpSvgIds)) {
-                return null;
+            if (!verifySwfShapes(unityRoot, file.Name, out tmpSvgIds)) {
+                return false;
             }
 
+            return true;
+        }
+
+        public static OFUCUSWF placeNewSWFFile(SWFFile file, string unityRoot, bool placeDict, Dictionary<int, Font> fontMap, HashSet<int> svgIds) {
             GameObject go = new($"SWFRoot-{file.Name}");
             OFUCUSWF swf = go.AddComponent<OFUCUSWF>();
             swf.unityRoot = unityRoot;
             swf.file = file;
             swf.fontMap = fontMap;
             swf.placeDict = placeDict;
-            swf.svgIds = tmpSvgIds;
+            swf.svgIds = svgIds;
             swf.init();
 
             return swf;

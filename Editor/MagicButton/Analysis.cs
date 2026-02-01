@@ -1,7 +1,7 @@
 using CWAEmu.OFUCU.Flash;
-using CWAEmu.OFUCU.Flash.Tags;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace CWAEmu.OFUCU.MagicButton {
@@ -10,6 +10,7 @@ namespace CWAEmu.OFUCU.MagicButton {
         Manual,
         Place,
         PlacedButton,
+        PlaceExcludeEmpty,
         Animated,
     }
 
@@ -26,36 +27,60 @@ namespace CWAEmu.OFUCU.MagicButton {
         public readonly Dictionary<int, SpriteDepTree> children = new();
     }
 
-    public class SpriteAnalysis {
+    public class AnalyzedFrames {
         public EnumAnalyzedType analyzedType;
         public EnumAnalyzedType userSelectedType;
         public AnimationParams defaultParams;
         public AnimationParams userParams;
         public SpriteDepTree dependencies;
+
+        public int frameCount;
+        public string label;
+        public string commaSeperatedIndicies;
     }
 
     public class SwfAnalysis {
+        public string swfName;
         public readonly Dictionary<int, SpriteDepTree> depTree = new();
         public readonly Dictionary<int, SpriteDepTree> depFlat = new();
-        public readonly Dictionary<int, SpriteAnalysis> spriteData = new();
+        public readonly Dictionary<int, AnalyzedFrames> spriteData = new();
 
-        public static SwfAnalysis of(SWFFile swf) {
-            var swfAnalysis = new SwfAnalysis();
+        public AnalyzedFrames swfData;
+
+        public static SwfAnalysis of(SWFFile swf, string unityRoot) {
+            var analysis = new SwfAnalysis {
+                swfName = swf.Name,
+            };
 
             var keys = swf.Sprites.Keys.ToArray();
             Array.Sort(keys);
             foreach (var key in keys) {
-                swfAnalysis.analyze(swf.Sprites[key], swf, out var analysis);
+                // check if this sprite already has a prefab, if so, skip the analysis
+                if (File.Exists($"{unityRoot}/prefabs/Sprite.{key}.prefab")) {
+                    continue;
+                }
+
+                analysis.analyze(swf.Sprites[key].Frames, swf, out var data);
+                if (data.analyzedType == EnumAnalyzedType.Unknown) {
+                    continue;
+                }
+                analysis.spriteData[key] = data;
+                data.label = $"Sprite: {key}";
             }
 
-            return swfAnalysis;
+            // oh thats so goofy, you can out into a ref.field. Common C# W?
+            analysis.analyze(swf.Frames, swf, out analysis.swfData);
+            analysis.swfData.label = $"Swf: {swf.Name}";
+
+            return analysis;
         }
 
-        private void analyze(DefineSprite sprite, SWFFile swf, out SpriteAnalysis analysis) {
+        private void analyze(List<Frame> frames, SWFFile swf, out AnalyzedFrames analysis) {
             var deps = new SpriteDepTree();
-            analysis = new SpriteAnalysis {
+            analysis = new AnalyzedFrames {
                 defaultParams = new(),
-                userParams = new()
+                userParams = new(),
+                frameCount = frames.Count,
             };
 
             HashSet<int> foundDeps = new();
@@ -65,7 +90,7 @@ namespace CWAEmu.OFUCU.MagicButton {
             bool hasDown = false;
             int labeledFrames = 0;
 
-            foreach (var frame in sprite.Frames) {
+            foreach (var frame in frames) {
                 var dispFrame = frame.asDisplayFrame();
                 foreach (var charId in dispFrame.objectsAdded) {
                     foundDeps.Add(charId);
@@ -104,13 +129,13 @@ namespace CWAEmu.OFUCU.MagicButton {
 
             // analyze the sprite to see what type it is
             // 0 frames is not allowed
-            if (sprite.Frames.Count == 0) {
+            if (frames.Count == 0) {
                 analysis.analyzedType = analysis.userSelectedType = EnumAnalyzedType.Unknown;
                 return;
             }
 
             // if only one frame, its a place
-            if (sprite.Frames.Count == 1) {
+            if (frames.Count == 1) {
                 analysis.analyzedType = analysis.userSelectedType = EnumAnalyzedType.Place;
                 return;
             }
