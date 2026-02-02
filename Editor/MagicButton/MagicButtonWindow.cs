@@ -35,15 +35,15 @@ namespace CWAEmu.OFUCU.MagicButton {
 
             GUILayout.Space(5);
 
-            GUILayout.Label($"{analysis.swfName}");
-
-            guiFor(analysis.swfData);
+            GUILayout.Label($"Magic Window for {analysis.swfName}");
 
             foreach (var analyzed in analysis.spriteData.Values) {
                 if (!analyzed.hasBeenPlaced) {
                     guiFor(analyzed);
                 }
             }
+
+            guiFor(analysis.swfData);
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
@@ -172,12 +172,15 @@ namespace CWAEmu.OFUCU.MagicButton {
                             try {
                                 switch (analyzed.userSelectedType) {
                                     case EnumAnalyzedType.Manual:
-                                        manualWaitingOnIdx = (level, idx);
-                                        hitManual = true;
-                                        EditorUtility.DisplayDialog($"Magic Button {swf.name}",
-                                            $"The manual option was selection for the sprite {charId}, please manually select one of the fill options on the sprite editor, then" +
-                                            $"come back to the Magic Button Window and click Resume After",
-                                            "ok");
+                                        if (!sprite.HasPrefab) {
+                                            manualWaitingOnIdx = (level, idx);
+                                            hitManual = true;
+                                            EditorUtility.DisplayDialog($"Magic Button {swf.name}",
+                                                $"The manual option was selection for the sprite {charId}, please manually select one of the fill options on the sprite editor, then" +
+                                                $"come back to the Magic Button Window and click Resume After",
+                                                "ok");
+                                            analyzed.hasBeenPlaced = false;
+                                        }
                                         break;
                                     case EnumAnalyzedType.Place:
                                         sprite.place();
