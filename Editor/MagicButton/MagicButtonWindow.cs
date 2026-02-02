@@ -101,6 +101,13 @@ namespace CWAEmu.OFUCU.MagicButton {
                         int[] sortedCharacterSpriteIds = analysis.spriteData.Keys.ToArray();
                         Array.Sort(sortedCharacterSpriteIds);
                         foreach (var spriteId in sortedCharacterSpriteIds) {
+                            if (!swf.sprites.TryGetValue(spriteId, out var sprite)) {
+                                continue;
+                            }
+                            if (sprite.HasPrefab) {
+                                analysis.spriteData[spriteId].hasBeenPlaced = true;
+                            }
+
                             if (!spriteIdToDepLevel.TryGetValue(spriteId, out var myLevel)) {
                                 myLevel = 0;
                             }
@@ -160,6 +167,7 @@ namespace CWAEmu.OFUCU.MagicButton {
                                 Debug.LogError($"Cannot find placed sprite for analyzed sprite {charId}, did something go wrong?");
                                 return;
                             }
+                            analyzed.hasBeenPlaced = true;
 
                             try {
                                 switch (analyzed.userSelectedType) {
