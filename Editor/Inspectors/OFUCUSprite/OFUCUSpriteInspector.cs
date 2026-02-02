@@ -79,10 +79,13 @@ namespace CWAEmu.OFUCU {
                 matsBtn.clicked += () => {
                     foreach (var spriteTarget in targets) {
                         try {
+                            AssetDatabase.StartAssetEditing();
                             ((OFUCUSprite) spriteTarget).uniquifyMaterials();
                         } catch (Exception e) {
                             Debug.LogError($"Failed to uniquify {spriteTarget.name}");
                             Debug.LogException(e);
+                        } finally {
+                            AssetDatabase.StopAssetEditing();
                         }
                     }
                 };

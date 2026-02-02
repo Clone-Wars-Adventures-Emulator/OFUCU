@@ -9,6 +9,7 @@ namespace CWAEmu.OFUCU {
 
         [SerializeField]
         private List<int> indices;
+        [SerializeField]
         private bool labelsAsSeps;
         [SerializeField]
         private bool animsLoop;

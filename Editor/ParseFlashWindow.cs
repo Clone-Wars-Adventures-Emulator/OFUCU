@@ -1,4 +1,5 @@
 using CWAEmu.OFUCU.Flash;
+using CWAEmu.OFUCU.MagicButton;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -92,14 +93,22 @@ namespace CWAEmu.OFUCU {
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(5);
+            var magic = GUILayout.Button("Magic Button");
+            GUILayout.Space(5);
+            GUILayout.EndHorizontal();
+
             GUILayout.EndArea();
 
             if (browseSwf) {
                 So.FindProperty("swfPath").stringValue = EditorUtility.OpenFilePanel("Select SWF File", "", "swf");
             } else if (browseRoot) {
                 var dir = EditorUtility.OpenFolderPanel("Select Asset Root", "Assets", "");
-                dir = $"Assets/{Path.GetRelativePath(Application.dataPath, dir).Replace('\\', '/')}";
-                So.FindProperty("unityRoot").stringValue = dir;
+                if (dir != null) {
+                    dir = $"Assets/{Path.GetRelativePath(Application.dataPath, dir).Replace('\\', '/')}";
+                    So.FindProperty("unityRoot").stringValue = dir;
+                }
             } else if (readSwf) {
                 try {
                     attemptSWFRead();
@@ -107,20 +116,30 @@ namespace CWAEmu.OFUCU {
                     Debug.LogError($"Failed to parse swf {swfPath}");
                     Debug.LogException(e);
                 }
+            } else if (magic) {
+                try {
+                    magicButton();
+                } catch (Exception e) {
+                    Debug.LogError($"Failed to run magic button for {swfPath}");
+                    Debug.LogException(e);
+                }
             }
 
-            if (so.hasModifiedProperties) {
-                so.ApplyModifiedPropertiesWithoutUndo();
+            if (So.hasModifiedProperties) {
+                So.ApplyModifiedPropertiesWithoutUndo();
             }
         }
 
-        private void attemptSWFRead() {
-            // parse the file, this does the actual interaction with the SWF specification
-            SWFFile file = SWFFile.readFull(swfPath, false);
+        private bool commonRead(out SWFFile file, out Func<OFUCUSWF> createSwf, bool placeDict = true) {
+            // compile proection
+            createSwf = null;
+
+            var localFile = SWFFile.readFull(swfPath, false);
+            file = localFile;
 
             if (file == null) {
-                Debug.LogError("The supplied SWF file does not exist or an error occured.");
-                return;
+                Debug.LogError($"The supplied SWF file {swfPath} does not exist or an error occured.");
+                return false;
             }
 
             Dictionary<int, Font> fontMap = new();
@@ -133,8 +152,33 @@ namespace CWAEmu.OFUCU {
                 fontMap.Add(mapping.fontId, mapping.font);
             }
 
-            // "Place" the file, this is the start of the conversion steps from SWF to Unity
-            OFUCUSWF.placeNewSWFFile(file, unityRoot, placeDict, fontMap);
+            if (!OFUCUSWF.verifySwfPlaceable(file, unityRoot, out var tempIds)) {
+                return false;
+            }
+
+            // return a function that will place the SWF when the consumer is ready
+            createSwf = () => OFUCUSWF.placeNewSWFFile(localFile, unityRoot, placeDict, fontMap, tempIds);
+
+            return true;
+        }
+
+        private void attemptSWFRead() {
+            // discard the output from the common read, we dont need it for the original functionality
+            commonRead(out _, out var create, placeDict: placeDict);
+            create?.Invoke();
+        }
+
+        private void magicButton() {
+            // we care about the results from this, if it succeeded tho
+            var succ = commonRead(out var file, out var create);
+            if (!succ) {
+                return;
+            }
+
+            // and now the magic starts to occur
+            var analysis = SwfAnalysis.of(file, unityRoot);
+
+            GetWindow<MagicButtonWindow>().setCurrent(analysis, create);
         }
     }
 }
