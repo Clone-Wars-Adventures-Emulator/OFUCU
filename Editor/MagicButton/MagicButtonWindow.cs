@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +9,9 @@ namespace CWAEmu.OFUCU.MagicButton {
         private Vector2 scrollPos = new();
         private SwfAnalysis analysis;
         private Func<OFUCUSWF> swfCreate;
-
+        private OFUCUSWF swf;
+        private (int level, int idx) manualWaitingOnIdx;
+        private int[][] sortedIds;
 
         [MenuItem("OFUCU/Flash Magic Button %#&M")]
         public static void showWindow() {
@@ -24,7 +28,6 @@ namespace CWAEmu.OFUCU.MagicButton {
             if (analysis == null) {
                 GUILayout.Space(5);
                 GUILayout.Label("No Analysis data, close this window or reuse the magic button");
-                GUILayout.Space(5);
                 return;
             }
 
@@ -37,12 +40,14 @@ namespace CWAEmu.OFUCU.MagicButton {
             guiFor(analysis.swfData);
 
             foreach (var analyzed in analysis.spriteData.Values) {
-                guiFor(analyzed);
+                if (!analyzed.hasBeenPlaced) {
+                    guiFor(analyzed);
+                }
             }
 
             GUILayout.BeginHorizontal();
             GUILayout.Space(5);
-            bool applyAnalysis = GUILayout.Button("Apply");
+            bool applyAnalysis = GUILayout.Button(manualWaitingOnIdx.idx != 0 ? $"Resume After {sortedIds[manualWaitingOnIdx.level][manualWaitingOnIdx.idx]}" : "Apply");
             GUILayout.Space(5);
             GUILayout.EndHorizontal();
 
@@ -51,9 +56,197 @@ namespace CWAEmu.OFUCU.MagicButton {
             GUILayout.EndScrollView();
 
             if (applyAnalysis) {
-                // TODO: apply the analysis after it was modified
-                // for now log it
+                HashSet<string> violators = new();
+                if (analysis.swfData.userSelectedType == EnumAnalyzedType.Unknown) {
+                    violators.Add(analysis.swfName);
+                }
+                foreach (var af in analysis.spriteData.Values) {
+                    if (af.userSelectedType == EnumAnalyzedType.Unknown) {
+                        violators.Add(af.label);
+                    }
+                }
+                if (violators.Count != 0) {
+                    Debug.LogError($"User selection of Unknown is not allowed. {violators.Count} offenders: {string.Join(',', violators)}");
+                    return;
+                }
 
+                // if the sprite hasnt been created yet, we need to create it
+                if (swf == null) {
+                    try {
+                        // which requires that we start asset editing
+                        AssetDatabase.StartAssetEditing();
+                        swf = swfCreate();
+
+                        // so we make sure the texts have been prefabbed
+                        foreach (var text in swf.texts.Values) {
+                            if (!text.HasPrefab) {
+                                text.saveAsPrefab();
+                            }
+                        }
+
+                        // and so we make sure the non sprite buttons have been prefabbed
+                        foreach (var button in swf.buttons.Values) {
+                            if (!button.HasPrefab) {
+                                button.saveAsPrefab();
+                            }
+                        }
+
+                        // then once thats done, we need to construct the dependency level dictionary to determine which sprites can be batched together
+                        Dictionary<int, int> spriteIdToDepLevel = new();
+                        Dictionary<int, List<int>> depLevelToSpriteId = new();
+                        int heighestLevel = 0;
+
+                        // swf contents are automatically stored in a dependents come first approach, so if we iterate though the sorted sprite char ids,
+                        // we can correctly build a level based heirarchy to figure out what we can batch with what
+                        int[] sortedCharacterSpriteIds = analysis.spriteData.Keys.ToArray();
+                        Array.Sort(sortedCharacterSpriteIds);
+                        foreach (var spriteId in sortedCharacterSpriteIds) {
+                            if (!spriteIdToDepLevel.TryGetValue(spriteId, out var myLevel)) {
+                                myLevel = 0;
+                            }
+
+                            foreach (var depCharId in analysis.spriteData[spriteId].directDependencies) {
+                                if (!analysis.spriteData.ContainsKey(depCharId)) {
+                                    // dependency isnt a sprite, skip
+                                    continue;
+                                }
+
+                                var theirLevel = spriteIdToDepLevel[depCharId];
+                                if (theirLevel >= myLevel) {
+                                    myLevel = theirLevel + 1;
+                                }
+                            }
+
+                            spriteIdToDepLevel[spriteId] = myLevel;
+
+                            if (!depLevelToSpriteId.TryGetValue(myLevel, out var spritesAtMyLevel)) {
+                                spritesAtMyLevel = new();
+                                depLevelToSpriteId[myLevel] = spritesAtMyLevel;
+                            }
+                            spritesAtMyLevel.Add(spriteId);
+
+                            heighestLevel = Math.Max(heighestLevel, myLevel);
+                        }
+
+                        sortedIds = new int[heighestLevel + 1][];
+                        for (int lev = 0; lev < sortedIds.Length; lev++) {
+                            sortedIds[lev] = depLevelToSpriteId[lev].ToArray();
+                            Array.Sort(sortedIds[lev]);
+                        }
+                    } catch (Exception ex) {
+                        Debug.LogError($"Exception thrown when initializing magic button actions");
+                        Debug.LogException(ex);
+                        return;
+                    } finally {
+                        AssetDatabase.StopAssetEditing();
+                    }
+                }
+
+                int level = manualWaitingOnIdx.level != 0 ? manualWaitingOnIdx.level : 0;
+                int idx = manualWaitingOnIdx.idx != 0 ? manualWaitingOnIdx.idx : 0;
+                manualWaitingOnIdx = (0, 0);
+                bool hitManual = false;
+                // for level = (above), while level is in bounds and we didnt hid a manual, do loop. after, increase level and reset idx
+                for ( ; level < sortedIds.Length && !hitManual; level++, idx = 0) {
+                    Debug.Log($"Handling level {level}");
+                    try {
+                        // each dependency level needs its own start and stop asset editing. If we dont, something at level 1 wont be able to get the prefab for a sprite at level 0
+                        AssetDatabase.StartAssetEditing();
+                        for ( ; idx < sortedIds[level].Length && !hitManual; idx++) {
+                            var charId = sortedIds[level][idx];
+                            Debug.Log($"handling char {charId} @ {level} {idx}");
+
+                            if (!swf.sprites.TryGetValue(charId, out var sprite) || !analysis.spriteData.TryGetValue(charId, out var analyzed)) {
+                                Debug.LogError($"Cannot find placed sprite for analyzed sprite {charId}, did something go wrong?");
+                                return;
+                            }
+
+                            try {
+                                switch (analyzed.userSelectedType) {
+                                    case EnumAnalyzedType.Manual:
+                                        manualWaitingOnIdx = (level, idx);
+                                        hitManual = true;
+                                        EditorUtility.DisplayDialog($"Magic Button {swf.name}",
+                                            $"The manual option was selection for the sprite {charId}, please manually select one of the fill options on the sprite editor, then" +
+                                            $"come back to the Magic Button Window and click Resume After",
+                                            "ok");
+                                        break;
+                                    case EnumAnalyzedType.Place:
+                                        sprite.place();
+                                        break;
+                                    case EnumAnalyzedType.PlacedButton:
+                                        sprite.place(onlyLabled: true);
+                                        break;
+                                    case EnumAnalyzedType.PlaceExcludeEmpty:
+                                        sprite.place(dropEmpty: true);
+                                        break;
+                                    case EnumAnalyzedType.Animated:
+                                        sprite.automationAnimate(analyzed.userParams.labelsAsClips, analyzed.userParams.manualClipIndicies, analyzed.userParams.looping,
+                                            analyzed.userParams.playOnAwke, analyzed.userParams.includeEmpty);
+                                        sprite.uniquifyMaterials();
+                                        break;
+                                    default:
+                                        Debug.LogError($"Unknown user selection {analyzed.userSelectedType} for sprite {charId}, skipping.");
+                                        break;
+                                }
+
+                                if (!hitManual) {
+                                    sprite.saveAsPrefab();
+                                }
+                            } catch (Exception e) {
+                                Debug.LogError($"Failed to preform action on {analyzed.label}");
+                                Debug.LogException(e);
+                                // TODO: what does this failure look like?
+                            }
+                        }
+                    } catch (Exception ex) {
+                        Debug.LogError($"Exception thrown during application of magic button");
+                        Debug.LogException(ex);
+                        return;
+                    } finally {
+                        AssetDatabase.StopAssetEditing();
+                    }
+                }
+
+                if (!hitManual) {
+                    try {
+                        swf.destroyCreatedDictionary();
+                        switch (analysis.swfData.userSelectedType) {
+                            case EnumAnalyzedType.Manual:
+                                manualWaitingOnIdx = (level, idx);
+                                hitManual = true;
+                                EditorUtility.DisplayDialog($"Magic Button {swf.name}",
+                                    $"The manual option was selection for the swf, please manually select one of the fill options on the swf editor, then come back to the Magic" +
+                                    $"Button Window and click Resume After",
+                                    "ok");
+                                break;
+                            case EnumAnalyzedType.Place:
+                                swf.placeSwf();
+                                break;
+                            case EnumAnalyzedType.PlacedButton:
+                                swf.placeSwf(onlyLabled: true);
+                                break;
+                            case EnumAnalyzedType.PlaceExcludeEmpty:
+                                swf.placeSwf(dropEmpty: true);
+                                break;
+                            case EnumAnalyzedType.Animated:
+                                swf.automationAnimSwf(analysis.swfData.userParams.labelsAsClips, analysis.swfData.userParams.manualClipIndicies, analysis.swfData.userParams.looping,
+                                    analysis.swfData.userParams.playOnAwke, analysis.swfData.userParams.includeEmpty);
+                                break;
+                            default:
+                                Debug.LogError($"Unknown user selection {analysis.swfData.userSelectedType} for swf, skipping.");
+                                break;
+                        }
+                    } catch (Exception e) {
+                        Debug.LogError($"Failed to preform action on the swf, recommend preforming manually");
+                        Debug.LogException(e);
+                        return;
+                    }
+
+                    if (!hitManual) {
+                        swf.saveAsPrefab();
+                    }
+                }
             }
         }
 

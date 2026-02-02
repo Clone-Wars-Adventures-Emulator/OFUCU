@@ -130,7 +130,7 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        private bool commonRead(out SWFFile file, out Func<OFUCUSWF> createSwf) {
+        private bool commonRead(out SWFFile file, out Func<OFUCUSWF> createSwf, bool placeDict = true) {
             // compile proection
             createSwf = null;
 
@@ -157,14 +157,14 @@ namespace CWAEmu.OFUCU {
             }
 
             // return a function that will place the SWF when the consumer is ready
-            createSwf = () => OFUCUSWF.placeNewSWFFile(localFile, unityRoot, true, fontMap, tempIds);
+            createSwf = () => OFUCUSWF.placeNewSWFFile(localFile, unityRoot, placeDict, fontMap, tempIds);
 
             return true;
         }
 
         private void attemptSWFRead() {
             // discard the output from the common read, we dont need it for the original functionality
-            commonRead(out _, out var create);
+            commonRead(out _, out var create, placeDict: placeDict);
             create?.Invoke();
         }
 

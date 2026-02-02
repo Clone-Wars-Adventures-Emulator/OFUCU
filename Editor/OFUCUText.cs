@@ -205,7 +205,7 @@ namespace CWAEmu.OFUCU {
         }
 
         public override void setBlendMode(EnumFlashBlendMode blendMode, string saveFolder, string path) {
-            Debug.LogError("Unimplemented for text objects");
+            Debug.LogError("Blend mode is Unimplemented for text objects");
         }
 
         public void saveAsPrefab() {

@@ -22,27 +22,21 @@ namespace CWAEmu.OFUCU.MagicButton {
         public List<int> manualClipIndicies;
     }
 
-    public class SpriteDepTree {
-        public int characterId;
-        public readonly Dictionary<int, SpriteDepTree> children = new();
-    }
-
     public class AnalyzedFrames {
         public EnumAnalyzedType analyzedType;
         public EnumAnalyzedType userSelectedType;
         public AnimationParams defaultParams;
         public AnimationParams userParams;
-        public SpriteDepTree dependencies;
-
+        public int[] directDependencies;
         public int frameCount;
         public string label;
+
         public string commaSeperatedIndicies;
+        public bool hasBeenPlaced;
     }
 
     public class SwfAnalysis {
         public string swfName;
-        public readonly Dictionary<int, SpriteDepTree> depTree = new();
-        public readonly Dictionary<int, SpriteDepTree> depFlat = new();
         public readonly Dictionary<int, AnalyzedFrames> spriteData = new();
 
         public AnalyzedFrames swfData;
@@ -76,7 +70,6 @@ namespace CWAEmu.OFUCU.MagicButton {
         }
 
         private void analyze(List<Frame> frames, SWFFile swf, out AnalyzedFrames analysis) {
-            var deps = new SpriteDepTree();
             analysis = new AnalyzedFrames {
                 defaultParams = new(),
                 userParams = new(),
@@ -92,8 +85,8 @@ namespace CWAEmu.OFUCU.MagicButton {
 
             foreach (var frame in frames) {
                 var dispFrame = frame.asDisplayFrame();
-                foreach (var charId in dispFrame.objectsAdded) {
-                    foundDeps.Add(charId);
+                foreach (var depth in dispFrame.objectsAdded) {
+                    foundDeps.Add(dispFrame.states[depth].charId);
                 }
 
                 if (frame.Label != null) {
@@ -113,19 +106,8 @@ namespace CWAEmu.OFUCU.MagicButton {
                 }
             }
 
-            // build dependency tree
-            foreach (var dep in foundDeps) {
-                // if there is an entry in the dep tree, remove it (cause it is no longer a root (this needs inverted)
-                if (depTree.TryGetValue(dep, out var d)) {
-                    depTree.Remove(dep);
-                } else if (!depFlat.TryGetValue(dep, out d)) {
-                    d = new SpriteDepTree() {
-                        characterId = dep
-                    };
-                }
-                deps.children.Add(dep, d);
-            }
-            analysis.dependencies = deps;
+            analysis.directDependencies = foundDeps.ToArray();
+            Array.Sort(analysis.directDependencies);
 
             // analyze the sprite to see what type it is
             // 0 frames is not allowed

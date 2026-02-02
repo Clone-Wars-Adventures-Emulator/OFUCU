@@ -1,6 +1,5 @@
 using CWAEmu.OFUCU.Flash.Tags;
 using CWAEmu.OFUCU.Runtime;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -54,7 +53,7 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        public void place(bool forceDeps = false, bool ignoreMissing = false) {
+        public void place(bool forceDeps = false, bool ignoreMissing = false, bool onlyLabled = false, bool dropEmpty = false) {
             if (forceDeps) {
                 swf.placeFrames(transform as RectTransform, sprite.Frames, dependencies, missingIsError: !ignoreMissing);
 
@@ -68,7 +67,7 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
-            swf.placeFrames(transform as RectTransform, sprite.Frames, missingIsError: !ignoreMissing);
+            swf.placeFrames(transform as RectTransform, sprite.Frames, missingIsError: !ignoreMissing, onlyLabled: onlyLabled, dropEmpty: dropEmpty);
             filled = true;
 
             loadChildren();
@@ -88,18 +87,25 @@ namespace CWAEmu.OFUCU {
             loadChildren();
         }
 
+        public void automationAnimate(bool labelsAsClips, List<int> clipIndexes, bool animationsLoop, bool playOnAwake, bool includeEmptyTrail) {
+            // check if dependencies are filled, if not, dont do this
+            var dep = swf.allSpritesFilled(dependencies);
+            if (dep != 0) {
+                Debug.LogError($"Not animating {sprite.CharacterId}, sprite {dep} is not filled.");
+                return;
+            }
+
+            swf.onAnimateButton(transform as RectTransform, sprite.Frames, labelsAsClips, clipIndexes, animationsLoop, playOnAwake, includeEmptyTrail);
+            filled = true;
+
+            loadChildren();
+        }
+
         public void uniquifyMaterials() {
-            try {
-                AssetDatabase.StartAssetEditing();
-                recurseMats(transform, name);
-                if (prefabAssetPath != null) {
-                    Debug.Log($"{name} thinks it has PAP at {prefabAssetPath}");
-                    PrefabUtility.SavePrefabAsset(gameObject);
-                }
-            } catch (Exception e) {
-                Debug.LogException(e);
-            } finally {
-                AssetDatabase.StopAssetEditing();
+            recurseMats(transform, name);
+            if (prefabAssetPath != null) {
+                Debug.Log($"{name} thinks it has PAP at {prefabAssetPath}");
+                PrefabUtility.SavePrefabAsset(gameObject);
             }
         }
 

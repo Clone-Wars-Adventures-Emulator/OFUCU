@@ -217,7 +217,7 @@ namespace CWAEmu.OFUCU {
             }
         }
 
-        public void placeFrames(RectTransform root, List<Frame> frames, HashSet<int> dependencies = null, bool anchorTopLeft = false, bool missingIsError = true) {
+        public void placeFrames(RectTransform root, List<Frame> frames, HashSet<int> dependencies = null, bool anchorTopLeft = false, bool missingIsError = true, bool onlyLabled = false, bool dropEmpty = false) {
             if (dependencies != null) {
                 foreach (int i in dependencies) {
                     if (sprites.TryGetValue(i, out var sprite) && !sprite.Filled) {
@@ -229,6 +229,14 @@ namespace CWAEmu.OFUCU {
             DisplayList dl = new(frames);
 
             foreach (var df in dl.frames) {
+                if (onlyLabled && df.label == null) {
+                    continue;
+                }
+
+                if (dropEmpty && df.objectsAdded.Count == 0 && df.objectsRemoved.Count == 0 && df.changes.Count == 0) {
+                    continue;
+                }
+
                 string name = df.label ?? $"Frame {df.frameIndex}";
 
                 // create frame object (only when there is more than one frame)
@@ -325,7 +333,7 @@ namespace CWAEmu.OFUCU {
             EditorWindow.GetWindow<AnimateFramesWindow>($"Animate {root.name}");
         }
 
-        private void onAnimateButton(RectTransform root, List<Frame> frames, bool labelsAsClips, List<int> clipIndexes, bool animationsLoop, bool playOnAwake, bool includeEmptyTrail) {
+        public void onAnimateButton(RectTransform root, List<Frame> frames, bool labelsAsClips, List<int> clipIndexes, bool animationsLoop, bool playOnAwake, bool includeEmptyTrail) {
             if (!root.gameObject.TryGetComponent<Animator>(out var anim)) {
                 anim = root.gameObject.AddComponent<Animator>();
             }
@@ -771,7 +779,15 @@ namespace CWAEmu.OFUCU {
             return (go, aoo, ro);
         }
 
-        public void placeSwf(bool ignoreMissing = false) {
+        public void destroyCreatedDictionary() {
+            sprites.Clear();
+            texts.Clear();
+            buttons.Clear();
+
+            DestroyImmediate(dictonaryT.gameObject);
+        }
+
+        public void placeSwf(bool ignoreMissing = false, bool onlyLabled = false, bool dropEmpty = false) {
             // check if dependencies are filled, if not, dont do this
             var dep = allSpritesFilled(dependencies);
             if (dep != 0 && !ignoreMissing) {
@@ -779,7 +795,7 @@ namespace CWAEmu.OFUCU {
                 return;
             }
 
-            placeFrames(vfswfhT, file.Frames, anchorTopLeft: true);
+            placeFrames(vfswfhT, file.Frames, anchorTopLeft: true, onlyLabled: onlyLabled, dropEmpty: dropEmpty);
         }
 
         public void animSwf() {
@@ -791,6 +807,17 @@ namespace CWAEmu.OFUCU {
             }
 
             animateFrames(vfswfhT, file.Frames);
+        }
+
+        public void automationAnimSwf(bool labelsAsClips, List<int> clipIndexes, bool animationsLoop, bool playOnAwake, bool includeEmptyTrail) {
+            // check if dependencies are filled, if not, dont do this
+            var dep = allSpritesFilled(dependencies);
+            if (dep != 0) {
+                Debug.LogError($"Not animating swf, sprite {dep} is not filled.");
+                return;
+            }
+
+            onAnimateButton(vfswfhT, file.Frames, labelsAsClips, clipIndexes, animationsLoop, playOnAwake, includeEmptyTrail);
         }
 
         public void saveAsPrefab() {
